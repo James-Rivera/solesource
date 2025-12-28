@@ -1,4 +1,4 @@
-<footer class="bg-brand-black text-white py-5 mt-5">
+<footer class="bg-brand-black text-white py-5">
     <div class="container-xxl">
         <div class="row gy-4">
             

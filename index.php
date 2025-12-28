@@ -55,7 +55,7 @@
         }
 
         $brands = [
-            ['name' => 'Nike', 'logo' => 'assets/img/brands/nike.png'],
+            ['name' => 'Nike', 'logo' => 'assets/img/brands/nike.svg'],
             ['name' => 'Asics', 'logo' => 'assets/img/brands/asics.png'],
             ['name' => 'Onitsuka Tiger', 'logo' => 'assets/img/brands/onitsuka.png'],
             ['name' => 'Adidas', 'logo' => 'assets/img/brands/adidas.png'],
@@ -96,7 +96,7 @@
         </div>
     </section>
 
-
+    <!-- Carousel Section - fix functionality later -->                    
     <section class="py-5">
         <div class="container-xxl">
             <div id="retroCarousel" class="carousel slide retro-carousel" data-bs-ride="carousel">
@@ -166,6 +166,45 @@
                 <?php endforeach; ?>
             </div>
         </div>
+    </section>
+
+
+    <section class="py-5 bg-brand-dark-gray" style="background-color: #333333;">
+    <div class="container my-4">
+        <div class="row gy-4"> 
+            <div class="col-lg-6">
+                <div class="d-flex flex-column h-100">
+                    <div class="img-wrapper mb-5 w-100 bg-transparent">
+                        <img src="assets/img/editorial/quality.jpg" alt="Authentication" class="img-fluid w-100">
+                    </div>
+                    <h3 class="fw-bold text-white mb-3">100% Verified Authentic</h3>
+                    <p class="editorial-text mb-4" style="text-align: justify;">
+                        Every item sold on SoleSource goes through our rigorous multi-point inspection process. If it's not real, it never leaves our warehouse.
+                    </p>
+                    
+                    <div class="mt-auto">
+                        <a href="#" class="text-white text-decoration-underline text-lowercase">our process</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="d-flex flex-column h-100">
+                    <div class="img-wrapper mb-5 w-100 bg-transparent">
+                        <img src="assets/img/editorial/rotation.jpg" alt="The Rotation" class="img-fluid w-100">
+                    </div>
+                    <h3 class="editorial-title fw-bold mb-3">THE ROTATION.</h3>
+                    <p class="editorial-text mb-4" style="text-align: justify;">
+                        Streetwear is evolving. From the terrace-culture revival of the Adidas Samba to the rugged utility of Gorpcore, 2025 is defined by versatility. We dive deep into the data to bring you the silhouettes that matter right now. Explore the definitive guide to this year's essential rotation.
+                    </p>
+                    
+                    <div class="mt-auto">
+                        <a href="#" class="text-white text-decoration-underline text-lowercase">read story</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     </section>
 
 
