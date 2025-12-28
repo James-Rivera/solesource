@@ -23,7 +23,7 @@ a:hover {
 /* HERO */
 .hero-section {
     position: relative;
-    min-height: 85vh;
+    min-height: 90vh;
     background: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.25) 45%, rgba(0, 0, 0, 0) 75%),
                 url('../img/hero.jpg') center center / cover no-repeat;
     color: var(--brand-white);
@@ -378,3 +378,91 @@ input.search-pill {
 .footer-logo{
     padding-right: 4rem;
 }
+
+/* CATALOGUE / SHOP PAGE */
+.catalogue-hero {
+    background-color: #121212;
+    padding: 80px 0;
+}
+
+.catalogue-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: 1px;
+}
+
+.catalogue-subtitle {
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 300;
+}
+
+.filter-pill {
+    background-color: #E5E5E5;
+    border: 2px solid transparent;
+    border-radius: 50px;
+    padding: 8px 24px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: #333;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.filter-pill:hover {
+    background-color: #d5d5d5;
+    color: #333;
+    text-decoration: none;
+}
+
+.filter-pill.active {
+    border-color: #333;
+    background-color: #fff;
+    color: #333;
+}
+
+.catalogue-search {
+    background-color: #F5F5F5;
+    border: 1px solid #E5E5E5;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+}
+
+.catalogue-search:focus {
+    background-color: #fff;
+    border-color: #333;
+    box-shadow: none;
+}
+
+.pagination-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.pagination-arrow {
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: opacity 0.2s ease;
+}
+
+.pagination-arrow:hover {
+    opacity: 0.7;
+}
+
+.pagination-info {
+    font-size: 1rem;
+}
+
+/* PRODUCT DETAIL PAGE */
+.product-gallery-main { max-height: 520px; object-fit: contain; }
+.product-gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 50%; width: 44px; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.product-gallery-nav.prev { left: 12px; }
+.product-gallery-nav.next { right: 12px; }
+.product-thumb { border: 1px solid #e5e5e5; border-radius: 10px; }
+.product-thumb.active { border-color: var(--brand-black); }
+.size-btn { border: 1px solid #e5e5e5; background: #fff; padding: 10px 14px; border-radius: 8px; min-width: 58px; text-align: center; font-weight: 600; color: #333; transition: all 0.15s ease; }
+.size-btn:hover { border-color: #ccc; }
+.size-btn.active { background: #111; color: #fff; border-color: #111; }

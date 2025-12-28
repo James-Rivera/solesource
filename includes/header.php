@@ -1,7 +1,8 @@
+<?php include __DIR__ . '/products.php'; ?>
 <header>
 	<nav class="navbar navbar-expand-lg navbar-dark bg-brand-black py-3 border-bottom border-brand-dark-gray">
 		<div class="container-xxl align-items-center">
-			<a class="navbar-brand d-flex align-items-center" href="#">
+			<a class="navbar-brand d-flex align-items-center" href="index.php">
 				<img src="assets/svg/logo-big-white.svg" alt="SoleSource Logo" height="30">
 			</a>
 			<button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#topNav"
@@ -11,9 +12,10 @@
 
 			<div class="collapse navbar-collapse" id="topNav">
 				<div class="d-lg-flex align-items-center w-100 gap-3 gap-lg-4">
-					<form class="search-wrapper flex-grow-1 my-3 my-lg-0 order-lg-2" role="search">
-						<input class="form-control search-pill text-end" type="search" placeholder="Search" aria-label="Search">
-					</form>
+					<div class="search-container position-relative flex-grow-1 my-3 my-lg-0 order-lg-2">
+						<input id="globalSearchInput" class="form-control search-pill text-end" type="search" placeholder="Search" aria-label="Search">
+						<div id="globalSearchResults" class="global-search-dropdown d-none"></div>
+					</div>
 
 					<ul class="navbar-nav align-items-center gap-lg-3 order-lg-3 flex-row flex-lg-row gap-3 mb-2 mb-lg-0 ms-lg-3 small">
 						<li class="nav-item">
@@ -36,14 +38,71 @@
 	<nav class="bg-brand-black border-bottom border-brand-dark-gray py-1">
 		<div class="container-xxl">
 			<div class="d-flex justify-content-center gap-4 gap-md-5 py-3 small category-links flex-wrap">
-				<a class="text-inactive text-decoration-none" href="#">All</a>
-				<a class="text-inactive text-decoration-none" href="#">Brands</a>
-				<a class="text-inactive text-decoration-none" href="#">Adidas</a>
-				<a class="text-inactive text-decoration-none" href="#">Puma</a>
-				<a class="text-inactive text-decoration-none" href="#">Onitsuka Tiger</a>
-				<a class="text-inactive text-decoration-none" href="#">Asics</a>
-				<a class="text-inactive text-decoration-none" href="#">Fila</a>
+				<a class="text-inactive text-decoration-none" href="shop.php">All</a>
+				<a class="text-inactive text-decoration-none" href="shop.php?brand=Nike">Nike</a>
+				<a class="text-inactive text-decoration-none" href="shop.php?brand=Adidas">Adidas</a>
+				<a class="text-inactive text-decoration-none" href="shop.php?brand=Puma">Puma</a>
+				<a class="text-inactive text-decoration-none" href="shop.php?brand=Onitsuka">Onitsuka Tiger</a>
+				<a class="text-inactive text-decoration-none" href="shop.php?brand=Asics">Asics</a>
+				<a class="text-inactive text-decoration-none" href="shop.php?brand=Fila">Fila</a>
 			</div>
 		</div>
 	</nav>
 </header>
+<style>
+.global-search-dropdown {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	left: 0;
+	background: #fff;
+	border: 1px solid var(--brand-dark-gray);
+	border-radius: 8px;
+	padding: 8px 0;
+	z-index: 1000;
+	box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+.global-search-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; color: #111; }
+.global-search-item:hover { background: #f5f5f5; text-decoration: none; }
+.global-search-thumb { width: 44px; height: 44px; object-fit: contain; }
+.global-search-name { font-weight: 700; text-transform: uppercase; color: #000; font-size: 0.9rem; }
+.global-search-brand { color: #777; font-size: 0.75rem; text-transform: uppercase; }
+.global-search-price { margin-left: auto; color: #000; font-weight: 600; font-size: 0.9rem; }
+</style>
+
+<script>
+// Expose products to JS
+const allProducts = <?php echo json_encode($all_products, JSON_UNESCAPED_SLASHES); ?>;
+
+const input = document.getElementById('globalSearchInput');
+const dropdown = document.getElementById('globalSearchResults');
+
+function renderResults(items) {
+	if (!items.length) { dropdown.classList.add('d-none'); dropdown.innerHTML = ''; return; }
+	dropdown.innerHTML = items.slice(0,5).map(p => `
+		<a class="global-search-item" href="shop.php?search=${encodeURIComponent(p.name)}">
+			<img class="global-search-thumb" src="${p.image}" alt="${p.name}">
+			<div>
+				<div class="global-search-name">${p.name}</div>
+				<div class="global-search-brand">${p.brand}</div>
+			</div>
+			<div class="global-search-price">${p.price}</div>
+		</a>
+	`).join('');
+	dropdown.classList.remove('d-none');
+}
+
+function filterProducts(q) {
+	const term = q.trim().toLowerCase();
+	if (!term) { dropdown.classList.add('d-none'); dropdown.innerHTML=''; return; }
+	const results = allProducts.filter(p =>
+		(p.name || '').toLowerCase().includes(term) ||
+		(p.brand || '').toLowerCase().includes(term)
+	);
+	renderResults(results);
+}
+
+input?.addEventListener('input', (e) => filterProducts(e.target.value));
+input?.addEventListener('focus', (e) => filterProducts(e.target.value));
+input?.addEventListener('blur', () => setTimeout(() => { dropdown.classList.add('d-none'); }, 150));
+</script>

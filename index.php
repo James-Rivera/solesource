@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <?php include 'includes/head-meta.php'; ?>
 </head>
 <body>
 
@@ -64,7 +65,7 @@
 
 
     <section class="hero-section">
-        <div class="container h-100">
+        <div class="container h-100 py-5">
             <div class="row h-100 align-items-center">
                 <div class="col-lg-6 col-md-8">
                     <h1 class="hero-title mb-4">
@@ -84,7 +85,7 @@
                     <h2 class="mb-0 fw-bold text-uppercase text-brand-black">NEW RELEASE</h2>
                 </div>
                 <div class="col-6 text-end">
-                    <a href="#" class="text-decoration-underline text-lowercase text-brand-black fw-semibold">find more</a>
+                    <a href="shop.php?sort=new" class="text-decoration-underline text-lowercase text-brand-black fw-semibold">find more</a>
                 </div>
             </div>
 
@@ -132,7 +133,7 @@
                     <h2 class="mb-0 fw-bold text-lowercase text-brand-black">best selling</h2>
                 </div>
                 <div class="col-6 text-end">
-                    <a href="#" class="text-decoration-underline text-lowercase text-brand-black fw-semibold">find more</a>
+                    <a href="shop.php?sort=best" class="text-decoration-underline text-lowercase text-brand-black fw-semibold">find more</a>
                 </div>
             </div>
 
@@ -159,9 +160,11 @@
             <div class="row g-4">
                 <?php foreach ($brands as $brand): ?>
                     <div class="col-6 col-md-3">
-                        <div class="brand-card d-flex align-items-center justify-content-center h-100">
-                            <img src="<?php echo htmlspecialchars($brand['logo']); ?>" alt="<?php echo htmlspecialchars($brand['name']); ?>" class="img-fluid brand-logo">
-                        </div>
+                        <a href="shop.php?brand=<?php echo urlencode($brand['name']); ?>" class="text-decoration-none">
+                            <div class="brand-card d-flex align-items-center justify-content-center h-100">
+                                <img src="<?php echo htmlspecialchars($brand['logo']); ?>" alt="<?php echo htmlspecialchars($brand['name']); ?>" class="img-fluid brand-logo">
+                            </div>
+                        </a>
                     </div>
                 <?php endforeach; ?>
             </div>
