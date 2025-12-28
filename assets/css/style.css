@@ -1,27 +1,15 @@
 /*  FONTS & VARIABLES*/
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
-:root {
-    /* Brand Colors */
-    --brand-black: #121212;       
-    --brand-dark-gray: #333333;
-    --brand-orange: #FF5007;     
-    --brand-white: #FFFFFF;
-    --brand-background: #F8F9FA;
-    
-    /* Font */
-    --brand-font: 'Outfit', sans-serif;
-    --text-active: #FFFFFF;
-    --text-inactive: #B0B0B0;
-
-}
-
 /*  GLOBAL RESETS*/
 body {
     background-color: var(--brand-background);
     color: var(--brand-white);
     font-family: var(--brand-font);
 }
+
+.text-brand-black { color: var(--brand-black) !important; }
+.text-inactive { color: var(--text-inactive) !important; }
 
 a {
     text-decoration: none;
@@ -30,6 +18,94 @@ a {
 
 a:hover {
     opacity: 0.8;
+}
+
+/* HERO */
+.hero-section {
+    position: relative;
+    min-height: 85vh;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.25) 45%, rgba(0, 0, 0, 0) 75%),
+                url('../img/hero.jpg') center center / cover no-repeat;
+    color: var(--brand-white);
+    display: flex;
+    align-items: center;
+}
+
+.hero-title {
+    font-weight: 800;
+    font-size: clamp(2.8rem, 4vw + 1rem, 4.5rem);
+    line-height: 1;
+    margin: 0;
+}
+
+.hero-cta {
+    color: var(--brand-orange);
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-transform: lowercase;
+    display: inline-block;
+    margin-top: 1.5rem;
+}
+
+.hero-cta:hover {
+    opacity: 0.85;
+}
+
+/* NEW RELEASES */
+.product-card {
+    background: var(--brand-white);
+    border: 1px solid transparent;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    padding: 0;
+}
+
+.product-card:hover {
+    border-color: var(--brand-black);
+}
+
+.product-media {
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.product-image {
+    object-fit: contain;
+    padding: 16px;
+}
+
+.product-body {
+    padding: 16px 16px 12px;
+    border-top: 1px solid transparent;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: #111;
+}
+
+.product-body:hover {
+    border-color: var(--brand-black);
+}
+
+.product-brand {
+    font-style: capitalize;
+    color: var(--brand-black);
+    font-weight: 250;
+    letter-spacing: 0.4px;
+}
+
+.product-title {
+    color: var(--brand-black);
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.2;
+}
+
+.product-price {
+    color: #000;
+    font-weight: 500;
 }
 
 /*  UTILITY CLASSES*/
@@ -58,6 +134,10 @@ a:hover {
     box-shadow: 0 0 5px rgba(255, 80, 7, 0.5);
 }
 
+.border-brand-dark-gray {
+    border-color: var(--brand-dark-gray) !important;
+}
+
 /* replace browser default cancel button with a white X for .search-pill */
 input.search-pill::-webkit-search-cancel-button {
   -webkit-appearance: none;
@@ -82,9 +162,6 @@ input.search-pill::-ms-clear {
 input.search-pill {
   padding-right: 20px; 
 }
-
-
-
 
 /* Header Buttons */
 .btn-login {
@@ -151,7 +228,7 @@ input.search-pill {
 }
 
 .btn-close-white {
-    filter: invert(1); /* Makes the X button white */
+    filter: invert(1); 
 }
 
 /* FOOTER */

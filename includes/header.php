@@ -33,7 +33,7 @@
 		</div>
 	</nav>
 
-	<nav class="bg-brand-black border-bottom border-brand-dark-gray">
+	<nav class="bg-brand-black border-bottom border-brand-dark-gray py-1">
 		<div class="container-xxl">
 			<div class="d-flex justify-content-center gap-4 gap-md-5 py-3 small category-links flex-wrap">
 				<a class="text-inactive text-decoration-none" href="#">All</a>

@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    
+    <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -16,14 +16,107 @@
     <?php include 'includes/header.php'; ?>
 
 
-    <div class="container py-5 text-center">
-        <h1 class="display-4 fw-bold text-brand-orange">IT WORKS!</h1>
-        <p class="lead mb-5">The header is above, and the footer is below.</p>
-        
-        <button class="btn btn-primary-orange btn-lg" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartSidebar">
-            OPEN SIDEBAR CART
-        </button>
-    </div>
+    <section class="hero-section">
+        <div class="container h-100">
+            <div class="row h-100 align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <h1 class="hero-title mb-4">
+                        <span class="d-block">ADIDAS</span>
+                        <span class="d-block">GAZELLE</span>
+                    </h1>
+                    <a class="hero-cta" href="#">shop now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <?php
+        $new_releases = [
+            [
+                'brand' => 'Asics',
+                'name'  => 'GEL-KAYANO 14',
+                'price' => '₱ 9,490.00',
+                'image' => 'assets/img/products/new/asics-gel-kayano-14.png',
+            ],
+            [
+                'brand' => 'Adidas',
+                'name'  => 'ADIDAS GAZELLE INDOOR',
+                'price' => '₱ 4,700.00',
+                'image' => 'assets/img/products/new/adidas-gazelle-indoor.png',
+            ],
+            [
+                'brand' => 'Jordan',
+                'name'  => "JORDAN 11 RETRO 'COLUMBIA / LEGEND BLUE' 2024",
+                'price' => '₱ 12,000.00',
+                'image' => 'assets/img/products/new/jordan-11-legend-blue.png',
+            ],
+            [
+                'brand' => 'Nike',
+                'name'  => 'AIR FORCE 1',
+                'price' => '₱ 4,999.00',
+                'image' => 'assets/img/products/new/air-force-1.png',
+            ],
+        ];
+    ?>
+
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center mb-4">
+                <div class="col-6">
+                    <h2 class="mb-0 fw-bold text-uppercase text-brand-black">NEW RELEASE</h2>
+                </div>
+                <div class="col-6 text-end">
+                    <a href="#" class="text-decoration-underline text-lowercase text-brand-black fw-semibold">find more</a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <?php foreach ($new_releases as $item): ?>
+                    <div class="col-6 col-md-3">
+                        <div class="product-card h-100 d-flex flex-column">
+                            <div class="ratio ratio-1x1 product-media">
+                                <img src="<?php echo $item['image']; ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="img-fluid product-image">
+                            </div>
+                            <div class="product-body flex-grow-1 d-flex flex-column">
+                                <div class="product-brand text-uppercase small mb-2"><?php echo $item['brand']; ?></div>
+                                <div class="product-title fw-bold text-uppercase mb-2"><?php echo $item['name']; ?></div>
+                                <div class="mt-auto product-price"><?php echo $item['price']; ?></div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="py-5">
+        <div class="container-xxl">
+            <div id="retroCarousel" class="carousel slide retro-carousel" data-bs-ride="carousel">
+                <div class="carousel-inner rounded-5 overflow-hidden">
+                    <div class="carousel-item active">
+                        <div class="retro-slide d-flex align-items-center justify-content-center text-center">
+                            <div class="retro-overlay position-absolute top-0 start-0 w-100 h-100"></div>
+                            <div class="position-relative text-white">
+                                <h2 class="retro-title mb-2">RETRO ARCHIVE</h2>
+                                <p class="retro-subtitle mb-0">Timeless silhouettes. Verified authentic.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="carousel-control-prev retro-control" type="button" data-bs-target="#retroCarousel" data-bs-slide="prev">
+                    <span class="retro-control-btn" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next retro-control" type="button" data-bs-target="#retroCarousel" data-bs-slide="next">
+                    <span class="retro-control-btn" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </section>
 
 
     <?php include 'includes/footer.php'; ?>
