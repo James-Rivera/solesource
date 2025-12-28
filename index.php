@@ -16,21 +16,6 @@
     <?php include 'includes/header.php'; ?>
 
 
-    <section class="hero-section">
-        <div class="container h-100">
-            <div class="row h-100 align-items-center">
-                <div class="col-lg-6 col-md-8">
-                    <h1 class="hero-title mb-4">
-                        <span class="d-block">ADIDAS</span>
-                        <span class="d-block">GAZELLE</span>
-                    </h1>
-                    <a class="hero-cta" href="#">shop now</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
     <?php
         $new_releases = [
             [
@@ -58,7 +43,39 @@
                 'image' => 'assets/img/products/new/air-force-1.png',
             ],
         ];
+
+        $best_selling = [];
+        for ($i = 0; $i < 8; $i++) {
+            $best_selling[] = [
+                'brand' => 'Nike',
+                'name'  => 'AIR FORCE 1',
+                'price' => '₱ 4,999.00',
+                'image' => 'assets/img/products/best/air-force-1.png',
+            ];
+        }
+
+        $brands = [
+            ['name' => 'Nike', 'logo' => 'assets/img/brands/nike.png'],
+            ['name' => 'Asics', 'logo' => 'assets/img/brands/asics.png'],
+            ['name' => 'Onitsuka Tiger', 'logo' => 'assets/img/brands/onitsuka.png'],
+            ['name' => 'Adidas', 'logo' => 'assets/img/brands/adidas.png'],
+        ];
     ?>
+
+
+    <section class="hero-section">
+        <div class="container h-100">
+            <div class="row h-100 align-items-center">
+                <div class="col-lg-6 col-md-8">
+                    <h1 class="hero-title mb-4">
+                        <span class="d-block">ADIDAS</span>
+                        <span class="d-block">GAZELLE</span>
+                    </h1>
+                    <a class="hero-cta" href="#">shop now</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <section class="py-5">
         <div class="container">
@@ -72,19 +89,8 @@
             </div>
 
             <div class="row g-4">
-                <?php foreach ($new_releases as $item): ?>
-                    <div class="col-6 col-md-3">
-                        <div class="product-card h-100 d-flex flex-column">
-                            <div class="ratio ratio-1x1 product-media">
-                                <img src="<?php echo $item['image']; ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="img-fluid product-image">
-                            </div>
-                            <div class="product-body flex-grow-1 d-flex flex-column">
-                                <div class="product-brand text-uppercase small mb-2"><?php echo $item['brand']; ?></div>
-                                <div class="product-title fw-bold text-uppercase mb-2"><?php echo $item['name']; ?></div>
-                                <div class="mt-auto product-price"><?php echo $item['price']; ?></div>
-                            </div>
-                        </div>
-                    </div>
+                <?php foreach ($new_releases as $shoe): ?>
+                    <?php include 'includes/product-card.php'; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -114,6 +120,50 @@
                     <span class="retro-control-btn" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
                     <span class="visually-hidden">Next</span>
                 </button>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center mb-4">
+                <div class="col-6">
+                    <h2 class="mb-0 fw-bold text-lowercase text-brand-black">best selling</h2>
+                </div>
+                <div class="col-6 text-end">
+                    <a href="#" class="text-decoration-underline text-lowercase text-brand-black fw-semibold">find more</a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <?php foreach ($best_selling as $shoe): ?>
+                    <?php include 'includes/product-card.php'; ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center mb-4">
+                <div class="col-6">
+                    <h2 class="mb-0 fw-bold text-lowercase text-brand-black">brands</h2>
+                </div>
+                <div class="col-6 text-end">
+                    <a href="#" class="text-decoration-underline text-lowercase text-brand-black fw-semibold">find more</a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <?php foreach ($brands as $brand): ?>
+                    <div class="col-6 col-md-3">
+                        <div class="brand-card d-flex align-items-center justify-content-center h-100">
+                            <img src="<?php echo htmlspecialchars($brand['logo']); ?>" alt="<?php echo htmlspecialchars($brand['name']); ?>" class="img-fluid brand-logo">
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
