@@ -1,0 +1,160 @@
+/*  FONTS & VARIABLES*/
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+    /* Brand Colors */
+    --brand-black: #121212;       
+    --brand-dark-gray: #333333;
+    --brand-orange: #FF5007;     
+    --brand-white: #FFFFFF;
+    --brand-background: #F8F9FA;
+    
+    /* Font */
+    --brand-font: 'Outfit', sans-serif;
+    --text-active: #FFFFFF;
+    --text-inactive: #B0B0B0;
+
+}
+
+/*  GLOBAL RESETS*/
+body {
+    background-color: var(--brand-background);
+    color: var(--brand-white);
+    font-family: var(--brand-font);
+}
+
+a {
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+a:hover {
+    opacity: 0.8;
+}
+
+/*  UTILITY CLASSES*/
+.bg-brand-black { background-color: var(--brand-black) !important; }
+.text-brand-orange { color: var(--brand-orange) !important; }
+
+
+/*HEADER COMPONENTS*/
+
+.search-pill {
+    background-color: var(--brand-dark-gray) !important;
+    border: 1px solid var(--brand-dark-gray) !important;
+    border-radius: 50px !important; 
+    color: white !important;
+    padding: 10px 20px;
+    outline: none;
+}
+
+.search-pill::placeholder {
+    color: #888;
+    text-align: right; 
+}
+
+.search-pill:focus {
+    border-color: var(--brand-orange) !important;
+    box-shadow: 0 0 5px rgba(255, 80, 7, 0.5);
+}
+
+/* replace browser default cancel button with a white X for .search-pill */
+input.search-pill::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><path d='M6 6l12 12M18 6L6 18' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center;
+  background-size: 14px 14px;
+  cursor: pointer;
+  opacity: 0.95;
+}
+
+/* Edge / IE fallback */
+input.search-pill::-ms-clear {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><path d='M6 6l12 12M18 6L6 18' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center;
+  background-size: 14px 14px;
+}
+
+input.search-pill {
+  padding-right: 20px; 
+}
+
+
+
+
+/* Header Buttons */
+.btn-login {
+    background-color: var(--brand-dark-gray);
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 8px 20px;
+}
+
+.btn-signup {
+    background-color: var(--brand-white);
+    color: black;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 8px 20px;
+}
+
+.category-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: capitalize;
+    font-weight: 400;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.category-links a:hover {
+    color: var(--brand-orange);
+    opacity: 1;
+}
+
+/*  BUTTONS (Global)*/
+.btn-primary-orange {
+    background-color: var(--brand-orange);
+    color: white;
+    border: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-orange:hover {
+    background-color: #e04505; /* Slightly darker orange */
+    color: white;
+}
+
+/* SIDEBAR CART (Offcanvas) */
+.offcanvas-cart {
+    background-color: var(--brand-black);
+    color: white;
+    border-left: 1px solid var(--brand-dark-gray);
+}
+
+.offcanvas-header {
+    border-bottom: 1px solid var(--brand-dark-gray);
+}
+
+/* The Trust Badges Section */
+.trust-badges {
+    background-color: var(--brand-dark-gray);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.btn-close-white {
+    filter: invert(1); /* Makes the X button white */
+}
+
+/* FOOTER */
+.footer-logo{
+    padding-right: 4rem;
+}
