@@ -466,3 +466,8 @@ input.search-pill {
 .size-btn { border: 1px solid #e5e5e5; background: #fff; padding: 10px 14px; border-radius: 8px; min-width: 58px; text-align: center; font-weight: 600; color: #333; transition: all 0.15s ease; }
 .size-btn:hover { border-color: #ccc; }
 .size-btn.active { background: #111; color: #fff; border-color: #111; }
+.size-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.btn-size { aspect-ratio: 1 / 1; border: 1px solid #d9d9d9; background: #fff; color: #111; font-weight: 700; text-transform: uppercase; border-radius: 10px; transition: all 0.15s ease; }
+.btn-size:hover, .btn-size.active { background: #121212; color: #fff; border-color: #121212; }
+.btn-cta { width: 100%; padding: 14px 16px; background: #E35926; color: #fff; text-transform: uppercase; font-weight: 800; border: none; border-radius: 12px; letter-spacing: 0.02em; }
+.btn-cta:hover { background: #c74b1f; color: #fff; }

@@ -79,20 +79,19 @@ $breadcrumb_active = $product['name'];
                 <!-- Right: Details -->
                 <div class="col-lg-5">
                     <div class="mb-2 text-uppercase text-muted small fw-semibold"><?php echo htmlspecialchars($product['brand']); ?></div>
-                    <h2 class="fw-bold text-uppercase mb-3"><?php echo htmlspecialchars($product['name']); ?></h2>
-                    <div class="h4 fw-bold text-brand-black mb-4"><?php echo htmlspecialchars($product['price']); ?></div>
+                    <h1 class="product-title fw-bold text-uppercase mb-2"><?php echo htmlspecialchars($product['name']); ?></h1>
+                    <div class="product-price display-6 fw-bold text-brand-black mb-4"><?php echo htmlspecialchars($product['price']); ?></div>
 
                     <div class="mb-3 text-uppercase small fw-semibold">Select US Men's Size</div>
-                    <div class="d-flex flex-wrap gap-2 mb-4" id="sizeSelector">
-                        <?php $sizes = ['3.5','4','5','6','7','8','9','10','10.5','11','12','13']; ?>
+                    <?php $sizes = ['7','7.5','8','8.5','9','9.5','10','10.5','11','11.5','12','13']; ?>
+                    <div class="size-grid mb-4" id="sizeSelector">
                         <?php foreach ($sizes as $i => $size): ?>
-                            <button type="button" class="size-btn<?php echo $i === 0 ? ' active' : ''; ?>" data-size="<?php echo $size; ?>"><?php echo $size; ?></button>
+                            <button type="button" class="btn-size<?php echo $i === 0 ? ' active' : ''; ?>" data-size="<?php echo $size; ?>"><?php echo $size; ?></button>
                         <?php endforeach; ?>
                     </div>
+                    <input type="hidden" id="selectedSize" name="size" value="<?php echo $sizes[0]; ?>">
 
-                    <div class="d-grid gap-3 mb-4">
-                        <button class="btn btn-primary-orange w-100" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer">ADD TO CART</button>
-                    </div>
+                    <button class="btn-cta mb-4" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer">Add to Cart</button>
 
                     <p class="text-muted mb-4">
                         Originally released in 1996, the 2024 edition of the Air Jordan 11 Retro 'Legend Blue / Columbia' sports a white leather upper, accented with a matching patent leather mudguard, and contrasted with a Columbia Blue embroidered Jumpman hit on the lateral side. It features an ice-blue translucent outsole and full-length Air for comfort.
@@ -178,13 +177,15 @@ $breadcrumb_active = $product['name'];
     });
 
     // Size selector
-    const sizeBtns = document.querySelectorAll('.size-btn');
+    const sizeBtns = document.querySelectorAll('.btn-size');
     const cartSizePreview = document.getElementById('cartSizePreview');
+    const hiddenSize = document.getElementById('selectedSize');
     sizeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             sizeBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            cartSizePreview.textContent = btn.dataset.size;
+            if (cartSizePreview) cartSizePreview.textContent = btn.dataset.size;
+            if (hiddenSize) hiddenSize.value = btn.dataset.size;
         });
     });
 

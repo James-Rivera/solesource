@@ -18,42 +18,9 @@
 
 
     <?php
-        $new_releases = [
-            [
-                'brand' => 'Asics',
-                'name'  => 'GEL-KAYANO 14',
-                'price' => '₱ 9,490.00',
-                'image' => 'assets/img/products/new/asics-gel-kayano-14.png',
-            ],
-            [
-                'brand' => 'Adidas',
-                'name'  => 'ADIDAS GAZELLE INDOOR',
-                'price' => '₱ 4,700.00',
-                'image' => 'assets/img/products/new/adidas-gazelle-indoor.png',
-            ],
-            [
-                'brand' => 'Jordan',
-                'name'  => "JORDAN 11 RETRO 'COLUMBIA / LEGEND BLUE' 2024",
-                'price' => '₱ 12,000.00',
-                'image' => 'assets/img/products/new/jordan-11-legend-blue.png',
-            ],
-            [
-                'brand' => 'Nike',
-                'name'  => 'AIR FORCE 1',
-                'price' => '₱ 4,999.00',
-                'image' => 'assets/img/products/new/air-force-1.png',
-            ],
-        ];
-
-        $best_selling = [];
-        for ($i = 0; $i < 8; $i++) {
-            $best_selling[] = [
-                'brand' => 'Nike',
-                'name'  => 'AIR FORCE 1',
-                'price' => '₱ 4,999.00',
-                'image' => 'assets/img/products/best/air-force-1.png',
-            ];
-        }
+    // Use central product list (from header include) so cards carry ids for deep links
+    $new_releases = array_slice($all_products, 0, 4);
+    $best_sellers = array_slice($all_products, 4, 4);
 
         $brands = [
             ['name' => 'Nike', 'logo' => 'assets/img/brands/nike.svg'],
@@ -138,7 +105,7 @@
             </div>
 
             <div class="row g-4">
-                <?php foreach ($best_selling as $shoe): ?>
+                <?php foreach ($best_sellers as $shoe): ?>
                     <?php include 'includes/product-card.php'; ?>
                 <?php endforeach; ?>
             </div>
