@@ -22,7 +22,9 @@
 							<a class="nav-link px-0" href="#">About</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link px-0" href="#">Help</a>
+							<button class="nav-link px-0 btn btn-link text-decoration-none text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer" aria-controls="cartDrawer" aria-label="Open cart">
+								<i class="bi bi-cart3 fs-5"></i>
+							</button>
 						</li>
 					</ul>
 

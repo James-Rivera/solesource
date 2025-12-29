@@ -69,7 +69,7 @@
     ?>
 
     <!-- Hero Section -->
-    <section class="catalogue-hero bg-brand-black text-center py-5">
+    <section class="catalogue-hero bg-brand-orange text-center py-5">
         <div class="container py-5">
             <!-- Breadcrumbs -->
             <nav aria-label="breadcrumb" class="mb-3">
@@ -139,8 +139,6 @@
     </section>
 
     <?php include 'includes/footer.php'; ?>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

@@ -59,20 +59,27 @@
     </div>
 </footer>
 
-<div class="offcanvas offcanvas-end offcanvas-cart" tabindex="-1" id="cartSidebar">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title fw-bold">YOUR BAG (1)</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    <div class="cart-item d-flex gap-3 mb-3">
-        <div class="bg-secondary rounded" style="width: 70px; height: 70px;"></div>
-        <div>
-            <h6 class="m-0">Jordan 11 Retro</h6>
-            <small class="text-white-50">Size: 9.5</small>
-            <div class="mt-1">₱12,000.00</div>
+<div class="offcanvas offcanvas-end offcanvas-cart" tabindex="-1" id="cartDrawer" aria-labelledby="cartDrawerLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold" id="cartDrawerLabel">Your Bag</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+        <div class="cart-empty text-center text-muted py-4">
+                <p class="mb-1">The cart is empty.</p>
+                <small>Add items to see them here.</small>
+        </div>
+        <div class="cart-items d-flex flex-column gap-3 flex-grow-1"></div>
+
+        <div class="mt-4 border-top pt-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="fw-bold text-uppercase small">Subtotal</div>
+                <div id="cartSubtotal" class="fw-bold text-brand-black">₱0.00</div>
+            </div>
+            <button class="btn btn-primary-orange w-100 fw-bold" type="button">Checkout</button>
         </div>
     </div>
-    <a href="checkout.php" class="btn btn-primary-orange w-100 mt-auto">CHECKOUT</a>
-  </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/cart.js"></script>

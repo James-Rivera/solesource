@@ -61,13 +61,13 @@ $breadcrumb_active = $product['name'];
                 <!-- Left: Gallery -->
                 <div class="col-lg-7">
                     <div class="product-gallery position-relative mb-3">
-                        <div class="ratio ratio-1x1 bg-white d-flex align-items-center justify-content-center border rounded">
-                            <img id="productMainImage" src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-fluid product-gallery-main">
+                        <div class="product-gallery-main bg-white">
+                            <img id="productMainImage" src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-gallery-img">
                         </div>
-                        <button class="btn btn-light product-gallery-nav prev" type="button"><i class="bi bi-chevron-left"></i></button>
-                        <button class="btn btn-light product-gallery-nav next" type="button"><i class="bi bi-chevron-right"></i></button>
+                        <button class="product-gallery-nav prev" type="button"><i class="bi bi-chevron-left"></i></button>
+                        <button class="product-gallery-nav next" type="button"><i class="bi bi-chevron-right"></i></button>
                     </div>
-                    <div class="d-flex gap-3 product-thumbs">
+                    <div class="product-thumbs d-flex gap-3 justify-content-center">
                         <?php foreach ($gallery_images as $idx => $img): ?>
                             <button class="product-thumb btn btn-outline-light p-1 <?php echo $idx === 0 ? 'active' : ''; ?>" data-img="<?php echo htmlspecialchars($img); ?>">
                                 <img src="<?php echo htmlspecialchars($img); ?>" alt="Thumb <?php echo $idx + 1; ?>" class="img-fluid rounded">
@@ -79,10 +79,10 @@ $breadcrumb_active = $product['name'];
                 <!-- Right: Details -->
                 <div class="col-lg-5">
                     <div class="mb-2 text-uppercase text-muted small fw-semibold"><?php echo htmlspecialchars($product['brand']); ?></div>
-                    <h1 class="product-title fw-bold text-uppercase mb-2"><?php echo htmlspecialchars($product['name']); ?></h1>
-                    <div class="product-price display-6 fw-bold text-brand-black mb-4"><?php echo htmlspecialchars($product['price']); ?></div>
+                    <h1 class="product-title-detail mb-3"><?php echo htmlspecialchars($product['name']); ?></h1>
+                    <div class="product-price-detail mb-5"><?php echo htmlspecialchars($product['price']); ?></div>
 
-                    <div class="mb-3 text-uppercase small fw-semibold">Select US Men's Size</div>
+                    <div class="size-label mb-3 text-uppercase small fw-bold">SELECT US MEN'S SIZE</div>
                     <?php $sizes = ['7','7.5','8','8.5','9','9.5','10','10.5','11','11.5','12','13']; ?>
                     <div class="size-grid mb-4" id="sizeSelector">
                         <?php foreach ($sizes as $i => $size): ?>
@@ -91,22 +91,54 @@ $breadcrumb_active = $product['name'];
                     </div>
                     <input type="hidden" id="selectedSize" name="size" value="<?php echo $sizes[0]; ?>">
 
-                    <button class="btn-cta mb-4" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer">Add to Cart</button>
+                    <button
+                        class="btn-cta mb-5"
+                        id="addToCartBtn"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#cartDrawer"
+                        data-product-id="<?php echo htmlspecialchars($product['id']); ?>"
+                        data-product-name="<?php echo htmlspecialchars($product['name']); ?>"
+                        data-product-brand="<?php echo htmlspecialchars($product['brand']); ?>"
+                        data-product-price="<?php echo htmlspecialchars($product['price']); ?>"
+                        data-product-image="<?php echo htmlspecialchars($product['image']); ?>"
+                    >Add to Cart</button>
 
-                    <p class="text-muted mb-4">
+                    <div class="mb-3 size-label text-uppercase fw-bold small">About This Product</div>
+                    <p class="text-description lh-lg mb-3">
                         Originally released in 1996, the 2024 edition of the Air Jordan 11 Retro 'Legend Blue / Columbia' sports a white leather upper, accented with a matching patent leather mudguard, and contrasted with a Columbia Blue embroidered Jumpman hit on the lateral side. It features an ice-blue translucent outsole and full-length Air for comfort.
                     </p>
+                    <div class="text-muted small lh-lg">
+                        <div>SKU: CT8012-116</div>
+                        <div>Colorway: White/Legend Blue/Black</div>
+                        <div>Release Date: 12/13/24</div>
+                    </div>
+                </div>
+            </div>
 
-                    <div class="accordion" id="shippingAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingShip">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseShip" aria-expanded="false" aria-controls="collapseShip">
-                                    Shipping & Returns
-                                </button>
-                            </h2>
-                            <div id="collapseShip" class="accordion-collapse collapse" aria-labelledby="headingShip" data-bs-parent="#shippingAccordion">
-                                <div class="accordion-body text-muted small">
-                                    Delivery usually takes 3-5 business days. Returns accepted within 14 days of receipt. Items must be unworn and in original packaging.
+            <!-- Shipping & Returns Full Width -->
+            <div class="mt-5 pt-4 border-top">
+                <div class="accordion accordion-flush shipping-accordion" id="shippingAccordionFull">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingShippingFull">
+                            <button class="accordion-button collapsed px-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseShippingFull" aria-expanded="false" aria-controls="collapseShippingFull">
+                                <span class="accordion-text text-uppercase">Shipping & Returns</span>
+                            </button>
+                        </h2>
+                        <div id="collapseShippingFull" class="accordion-collapse collapse" aria-labelledby="headingShippingFull" data-bs-parent="#shippingAccordionFull">
+                            <div class="accordion-body px-0">
+                                <div class="row g-4">
+                                    <div class="col-lg-4">
+                                        <div class="fw-bold text-uppercase small mb-2">Cancellations</div>
+                                        <p class="text-muted small lh-lg mb-0">For sneakers, you may cancel your order within 3 hours of placing it or before it is confirmed by the seller. If the order is already confirmed, the order cannot be canceled.</p>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="fw-bold text-uppercase small mb-2">Delivery</div>
+                                        <p class="text-muted small lh-lg mb-0">Delivery and processing speeds vary by pricing option. Shipping estimates apply to the contiguous US and exclude delivery to P.O. boxes and military bases. Estimates are not guaranteed and may be impacted by weather or carrier delays.</p>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="fw-bold text-uppercase small mb-2">Returns</div>
+                                        <p class="text-muted small lh-lg mb-0">All sales with SOLESOURCE are final. Please verify sizing and condition before completing your purchase.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -126,107 +158,7 @@ $breadcrumb_active = $product['name'];
         </div>
     </main>
 
-    <!-- Cart Drawer Offcanvas -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="cartDrawer" aria-labelledby="cartDrawerLabel">
-        <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title fw-bold" id="cartDrawerLabel">Your Bag</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body d-flex flex-column">
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="rounded" style="width:72px; height:72px; object-fit:contain;">
-                <div class="flex-grow-1">
-                    <div class="fw-bold text-uppercase small mb-1"><?php echo htmlspecialchars($product['name']); ?></div>
-                    <div class="text-muted small">Size: <span id="cartSizePreview"><?php echo $sizes[0]; ?></span></div>
-                </div>
-                <div class="fw-bold"><?php echo htmlspecialchars($product['price']); ?></div>
-            </div>
-
-            <div class="d-flex align-items-center gap-2 mb-4">
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="qtyMinus">-</button>
-                <input type="number" id="qtyInput" class="form-control form-control-sm" value="1" min="1" style="width:70px; text-align:center;">
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="qtyPlus">+</button>
-            </div>
-
-            <div class="mt-auto">
-                <div class="d-flex justify-content-between fw-bold mb-3">
-                    <span>Subtotal</span>
-                    <span id="cartSubtotal"><?php echo htmlspecialchars($product['price']); ?></span>
-                </div>
-                <div class="d-grid gap-2">
-                    <button class="btn btn-primary-orange">Checkout</button>
-                    <a href="shop.php" class="text-decoration-underline text-center text-brand-black">Continue Shopping</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <?php include 'includes/footer.php'; ?>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    // Thumbnail switching
-    const mainImg = document.getElementById('productMainImage');
-    const thumbs = document.querySelectorAll('.product-thumb');
-    thumbs.forEach(btn => {
-        btn.addEventListener('click', () => {
-            thumbs.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const src = btn.getAttribute('data-img');
-            if (src) mainImg.src = src;
-        });
-    });
-
-    // Size selector
-    const sizeBtns = document.querySelectorAll('.btn-size');
-    const cartSizePreview = document.getElementById('cartSizePreview');
-    const hiddenSize = document.getElementById('selectedSize');
-    sizeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            sizeBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (cartSizePreview) cartSizePreview.textContent = btn.dataset.size;
-            if (hiddenSize) hiddenSize.value = btn.dataset.size;
-        });
-    });
-
-    // Quantity controls and subtotal update
-    const qtyInput = document.getElementById('qtyInput');
-    const qtyMinus = document.getElementById('qtyMinus');
-    const qtyPlus = document.getElementById('qtyPlus');
-    const cartSubtotal = document.getElementById('cartSubtotal');
-    const itemPrice = <?php echo (float) filter_var($product['price'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION); ?>;
-
-    function updateSubtotal() {
-        const qty = Math.max(1, parseInt(qtyInput.value || '1', 10));
-        qtyInput.value = qty;
-        const total = itemPrice * qty;
-        cartSubtotal.textContent = '₱' + total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    qtyMinus.addEventListener('click', () => { qtyInput.value = Math.max(1, (parseInt(qtyInput.value || '1', 10) - 1)); updateSubtotal(); });
-    qtyPlus.addEventListener('click', () => { qtyInput.value = (parseInt(qtyInput.value || '1', 10) + 1); updateSubtotal(); });
-    qtyInput.addEventListener('input', updateSubtotal);
-    updateSubtotal();
-
-    // Simple carousel nav (cycles thumbs)
-    const prevBtn = document.querySelector('.product-gallery-nav.prev');
-    const nextBtn = document.querySelector('.product-gallery-nav.next');
-    function currentIndex() {
-        return Array.from(thumbs).findIndex(b => b.classList.contains('active'));
-    }
-    function activateIndex(idx) {
-        const target = thumbs[idx];
-        if (target) target.click();
-    }
-    prevBtn?.addEventListener('click', () => {
-        const idx = currentIndex();
-        const next = (idx - 1 + thumbs.length) % thumbs.length;
-        activateIndex(next);
-    });
-    nextBtn?.addEventListener('click', () => {
-        const idx = currentIndex();
-        const next = (idx + 1) % thumbs.length;
-        activateIndex(next);
-    });
-    </script>
+    <script src="assets/js/product-details.js"></script>
 </body>
 </html>
