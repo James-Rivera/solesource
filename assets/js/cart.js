@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
   const cartDrawerEl = document.getElementById('cartDrawer');
-  if (!cartDrawerEl) return;
 
   const offcanvas = bootstrap.Offcanvas.getOrCreateInstance(cartDrawerEl);
   const emptyState = cartDrawerEl.querySelector('.cart-empty');
@@ -77,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCart(data);
   }
 
-  cartDrawerEl.addEventListener('show.bs.offcanvas', loadCart);
+  cartDrawerEl?.addEventListener('show.bs.offcanvas', loadCart);
   loadCart();
 
   window.cartDrawer = {
@@ -85,4 +84,31 @@ document.addEventListener('DOMContentLoaded', () => {
     close: () => offcanvas.hide(),
     refreshCart: loadCart
   };
+
+  // Recommended scroller progress
+  const recScroller = document.getElementById('recScroller');
+  const recThumb = document.getElementById('recThumb');
+  const recPrev = document.querySelector('.rec-nav-prev');
+  const recNext = document.querySelector('.rec-nav-next');
+  function updateRecProgress() {
+    if (!recScroller || !recThumb) return;
+    const maxScroll = recScroller.scrollWidth - recScroller.clientWidth;
+    const pct = maxScroll > 0 ? (recScroller.scrollLeft / maxScroll) * 100 : 100;
+    recThumb.style.width = `${pct}%`;
+    const canScroll = maxScroll > 0;
+    const epsilon = 2; // handle tiny scroll offsets
+    if (recPrev) recPrev.style.display = canScroll && recScroller.scrollLeft > epsilon ? 'inline-flex' : 'none';
+    if (recNext) recNext.style.display = canScroll && recScroller.scrollLeft < maxScroll - epsilon ? 'inline-flex' : 'none';
+  }
+  const scrollStep = () => recScroller?.clientWidth || 300;
+  recPrev?.addEventListener('click', () => {
+    if (!recScroller) return;
+    recScroller.scrollBy({ left: -scrollStep(), behavior: 'smooth' });
+  });
+  recNext?.addEventListener('click', () => {
+    if (!recScroller) return;
+    recScroller.scrollBy({ left: scrollStep(), behavior: 'smooth' });
+  });
+  recScroller?.addEventListener('scroll', updateRecProgress);
+  updateRecProgress();
 });
