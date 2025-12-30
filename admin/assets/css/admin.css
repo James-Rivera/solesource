@@ -1,0 +1,623 @@
+/* =========================================
+   1. GLOBAL VARIABLES & RESET
+   ========================================= */
+:root {
+    --admin-bg: #f6f6f6;
+    --admin-sidebar-width: 280px;
+    --admin-header-height: 80px;
+}
+
+body {
+    font-family: var(--brand-font, sans-serif);
+    background: var(--admin-bg);
+    color: var(--brand-black, #000);
+    margin: 0;
+    padding: 0;
+}
+
+/* =========================================
+   2. MAIN LAYOUT STRUCTURE
+   ========================================= */
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Main Content Area */
+.admin-content {
+    flex: 1;
+    margin-left: var(--admin-sidebar-width);
+    padding: 3rem 2rem;
+    transition: margin-left 0.3s ease;
+}
+
+.admin-header {
+    margin-bottom: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--brand-black, #000);
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.admin-page-subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* =========================================
+   3. SIDEBAR (SWISS / DARK THEME)
+   ========================================= */
+.admin-sidebar {
+    width: var(--admin-sidebar-width);
+    background: var(--brand-dark-gray, #1a1a1a);
+    color: #fff;
+    padding: 2rem 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+}
+
+.admin-logo {
+    padding: 0 2rem;
+    margin-bottom: 3rem;
+}
+
+.admin-logo img {
+    height: 25px; /* Adjust based on your logo aspect ratio */
+    width: auto;
+    filter: brightness(0) invert(1);
+}
+
+.admin-sidebar-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--brand-orange, #e35926);
+    padding: 0 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navigation Links (Text Only / Swiss Style) */
+.admin-nav-link {
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.875rem 2rem;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+}
+
+/* Orange Hover Line Effect */
+.admin-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 2rem;
+    right: 2rem;
+    height: 2px;
+    background-color: var(--brand-orange, #e35926);
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+.admin-nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-nav-link:hover::after,
+.admin-nav-link.active::after {
+    width: calc(100% - 4rem);
+}
+
+.admin-nav-link.active {
+    color: #fff;
+    font-weight: 700;
+    background: rgba(233, 113, 63, 0.1);
+}
+
+/* Logout Button Specifics */
+.admin-nav-link.logout {
+    color: #ff6b6b;
+    margin-top: auto; /* Pushes to bottom if flex container has height */
+}
+
+.admin-nav-link.logout:hover {
+    color: #ff5252;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+/* =========================================
+   4. DASHBOARD STATS & WIDGETS
+   ========================================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 2rem;
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    border-color: #d0d0d0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.stat-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 1px;
+    margin-bottom: 0.875rem;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--brand-black, #000);
+    line-height: 1;
+}
+
+/* =========================================
+   5. GENERAL TABLE & LIST STYLES
+   ========================================= */
+/* Container Style (White Box) */
+.table-container,
+.orders-list,
+.products-table-container,
+.orders-table-container {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures borders radius works */
+}
+
+/* Section Headers (e.g., Recent Orders) */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title-small {
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--brand-black, #000);
+}
+
+.section-link {
+    color: var(--brand-black, #000);
+    text-decoration: underline;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.section-link:hover {
+    color: var(--brand-orange, #e35926);
+}
+
+/* Filters (Tabs) */
+.filter-links {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e5e5e5;
+    padding-bottom: 1px;
+}
+
+.filter-link {
+    color: #666;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.filter-link:hover {
+    color: var(--brand-black, #000);
+}
+
+.filter-link.active {
+    color: var(--brand-black, #000);
+    border-bottom-color: var(--brand-orange, #e35926);
+}
+
+/* =========================================
+   6. PAGE: INVENTORY / PRODUCTS
+   ========================================= */
+.btn-add-product {
+    background: var(--brand-black, #000);
+    color: #fff;
+    padding: 0.75rem 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-add-product:hover {
+    background: #333;
+    transform: translateY(-1px);
+}
+
+/* Product Grid Layout */
+.product-table-row {
+    display: grid;
+    grid-template-columns: 80px 2fr 120px 140px 120px 80px; /* Image | Name | Category | Price | Stock | Status */
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e5e5;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.product-table-header {
+    background: #f9f9f9;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: #666;
+    letter-spacing: 1px;
+}
+
+.product-table-row:hover:not(.product-table-header) {
+    background-color: #fafafa;
+}
+
+.product-image-cell {
+    width: 80px;
+    height: 80px;
+}
+
+.product-image-cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 0.25rem;
+    background: #fff;
+}
+
+.product-name-cell {
+    font-weight: 700;
+    color: var(--brand-black, #000);
+    text-transform: uppercase;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+}
+
+.stock-cell { font-size: 0.875rem; }
+.stock-low { color: #dc3545; font-weight: 600; }
+.stock-good { color: #28a745; font-weight: 600; }
+.stock-out { color: #6c757d; font-weight: 600; }
+
+.price-cell {
+    font-weight: 700;
+    color: var(--brand-black, #000);
+}
+
+.status-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.status-active { background: #28a745; }
+.status-inactive { background: #6c757d; }
+
+/* =========================================
+   7. PAGE: ORDERS
+   ========================================= */
+/* Order Grid Layout */
+.order-table-row {
+    display: grid;
+    grid-template-columns: 140px 2fr 140px 140px 140px 80px; /* ID | Customer | Date | Payment | Fulfillment | Action */
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e5e5;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.order-table-header {
+    background: #f9f9f9;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: #666;
+    letter-spacing: 1px;
+}
+
+.order-table-row:hover:not(.order-table-header) {
+    background-color: #fafafa;
+}
+
+.order-id-cell { font-weight: 700; color: var(--brand-black, #000); }
+
+.customer-name { font-weight: 600; display: block; margin-bottom: 0.25rem; }
+.customer-email { font-size: 0.75rem; color: #999; }
+
+.fulfillment-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.fulfillment-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.fulfillment-pending { background: var(--brand-orange, #e35926); }
+.fulfillment-shipped { background: #28a745; }
+
+.action-link {
+    color: var(--brand-black, #000);
+    text-decoration: underline;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+}
+.action-link:hover { opacity: 0.7; }
+
+/* Dashboard Recent Activity (Simpler Row) */
+.order-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 140px 120px 120px 60px;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    align-items: center;
+}
+.order-row:hover { background-color: #fafafa; }
+.order-row:last-child { border-bottom: none; }
+
+/* =========================================
+   8. PAGE: SETTINGS & FORMS
+   ========================================= */
+.settings-section {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.settings-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--brand-black, #000);
+    letter-spacing: 0.5px;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e5e5;
+}
+
+.form-group { margin-bottom: 1.5rem; }
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control {
+    width: 100%;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    border-color: var(--brand-black, #000);
+    outline: none;
+}
+
+.btn-save {
+    background: var(--brand-black, #000);
+    color: #fff;
+    padding: 0.75rem 2.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.btn-save:hover { background: #333; }
+
+/* Backup Specifics */
+.backup-info {
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.backup-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.backup-date {
+    font-size: 1rem;
+    color: var(--brand-black, #000);
+    font-weight: 600;
+}
+
+.btn-backup {
+    background: transparent;
+    color: var(--brand-black, #000);
+    padding: 0.875rem 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 2px solid var(--brand-black, #000);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-bottom: 1rem;
+    cursor: pointer;
+}
+.btn-backup:hover {
+    background: var(--brand-black, #000);
+    color: #fff;
+}
+
+.btn-restore {
+    background: transparent;
+    color: #666;
+    padding: 0.875rem 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 2px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: center;
+    display: block;
+    cursor: pointer;
+}
+.btn-restore:hover {
+    border-color: var(--brand-black, #000);
+    color: var(--brand-black, #000);
+}
+
+.alert-success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+/* =========================================
+   9. RESPONSIVE DESIGN
+   ========================================= */
+@media (max-width: 991px) {
+    /* Collapse Sidebar */
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 1rem 0;
+    }
+    
+    .admin-content {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+
+    /* Stack Tables for Mobile */
+    .order-table-row, 
+    .product-table-row,
+    .order-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 1.5rem;
+    }
+
+    .order-table-header, 
+    .product-table-header, 
+    .order-row-header {
+        display: none;
+    }
+
+    /* Add Labels via pseudo-elements for mobile clarity */
+    .order-table-row > div:before,
+    .product-table-row > div:before,
+    .order-row > div:before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: #666;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    
+    .product-image-cell, .product-image-cell img {
+        width: 100%;
+        height: 200px;
+        object-fit: contain;
+    }
+}
