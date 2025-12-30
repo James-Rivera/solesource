@@ -5,28 +5,18 @@ $user = [
     'name' => 'JUAN DELA CRUZ',
     'email' => 'juandelacruz@gmail.com',
     'member_since' => 'December 29, 2025',
-    'birthdate' => '1990 - 25 - 03',
+    'birthdate' => '1990-03-25',
     'gender' => 'Male'
 ];
 
-// Mock wishlist and purchases
-$wishlist = [
+// Mock wishlist - using product structure
+$wishlist_products = [
     ['id' => 1, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 2, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 3, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 4, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
+    ['id' => 2, 'brand' => 'ADIDAS', 'name' => 'GAZELLE INDOOR', 'price' => '₱5,500.00', 'image' => 'assets/img/products/new/adidas-gazelle.png'],
+    ['id' => 3, 'brand' => 'JORDAN', 'name' => 'AIR JORDAN 1 HIGH', 'price' => '₱8,295.00', 'image' => 'assets/img/products/best/jordan-1-high.png'],
 ];
 
-$purchases = [
-    ['id' => 1, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 2, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 3, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 4, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 5, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 6, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 7, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 8, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-];
+$purchases_ids = [1, 2, 3, 4, 5, 6, 7, 8];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,272 +28,8 @@ $purchases = [
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/account.css">
     <?php include 'includes/head-meta.php'; ?>
-    <style>
-        /* Account Navigation */
-        .account-nav {
-            background: #E35926;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        .account-nav .nav-link {
-            color: rgba(255,255,255,0.7);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 1rem 1.5rem;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s ease;
-        }
-        
-        .account-nav .nav-link:hover {
-            color: #fff;
-        }
-        
-        .account-nav .nav-link.active {
-            color: #fff;
-            border-bottom-color: #fff;
-        }
-
-        /* Profile Hero */
-        .profile-hero {
-            background: #E35926;
-            color: #fff;
-            padding: 3rem 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .profile-hero-content h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-        }
-        
-        .profile-hero-content .member-since {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-        
-        .profile-hero-icon {
-            position: absolute;
-            right: 2rem;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0.15;
-        }
-        
-        .profile-hero-icon img {
-            width: 150px;
-            height: auto;
-            filter: brightness(0) invert(1);
-        }
-
-        /* Product Grids */
-        .account-section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-transform: capitalize;
-            color: var(--brand-black);
-            margin-bottom: 1.5rem;
-        }
-        
-        .account-product-card {
-            background: #fff;
-            border: 1px solid #e5e5e5;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-        
-        .account-product-card:hover {
-            border-color: var(--brand-black);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        
-        .account-product-img {
-            width: 100%;
-            height: 200px;
-            object-fit: contain;
-            padding: 1rem;
-            background: #fafafa;
-            border-radius: 8px 8px 0 0;
-        }
-        
-        .account-product-body {
-            padding: 1rem;
-        }
-        
-        .account-product-brand {
-            font-size: 0.75rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.25rem;
-        }
-        
-        .account-product-name {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--brand-black);
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-        }
-        
-        .account-product-price {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--brand-black);
-        }
-
-        /* Orders Empty State */
-        .orders-empty {
-            text-align: center;
-            padding: 5rem 0;
-        }
-        
-        .orders-empty h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--brand-black);
-            margin-bottom: 1rem;
-        }
-        
-        .orders-empty p {
-            color: #666;
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .orders-empty .btn-shop {
-            background: var(--brand-orange);
-            color: #fff;
-            padding: 0.875rem 3rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            border-radius: 8px;
-            border: none;
-            letter-spacing: 0.5px;
-        }
-        
-        .orders-empty .btn-shop:hover {
-            background: #cc4e21;
-        }
-
-        /* Settings Layout */
-        .settings-sidebar {
-            padding-right: 2rem;
-        }
-        
-        .settings-sidebar-title {
-            font-size: 0.875rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--brand-black);
-            margin-bottom: 1.5rem;
-        }
-        
-        .settings-sidebar .nav-link {
-            color: #666;
-            padding: 0.75rem 0;
-            border: none;
-            text-align: left;
-            font-size: 1rem;
-            transition: color 0.2s ease;
-        }
-        
-        .settings-sidebar .nav-link:hover {
-            color: var(--brand-black);
-        }
-        
-        .settings-sidebar .nav-link.active {
-            color: var(--brand-orange);
-            font-weight: 600;
-        }
-
-        /* Settings Content */
-        .settings-content-title {
-            font-size: 2rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--brand-black);
-            margin-bottom: 1rem;
-        }
-        
-        .settings-subtitle {
-            color: #666;
-            margin-bottom: 2rem;
-        }
-        
-        .settings-section {
-            margin-bottom: 3rem;
-        }
-        
-        .settings-section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--brand-black);
-            margin-bottom: 1.5rem;
-        }
-        
-        .settings-detail-item {
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e5e5e5;
-        }
-        
-        .settings-detail-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #666;
-            margin-bottom: 0.25rem;
-        }
-        
-        .settings-detail-value {
-            font-size: 1.1rem;
-            color: var(--brand-black);
-        }
-        
-        .settings-edit-link {
-            color: var(--brand-black);
-            text-decoration: underline;
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-        
-        .settings-edit-link:hover {
-            color: var(--brand-orange);
-        }
-        
-        .btn-delete-account {
-            background: #6c757d;
-            color: #fff;
-            padding: 0.75rem 2rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            border-radius: 6px;
-            border: none;
-            letter-spacing: 0.5px;
-        }
-        
-        .btn-delete-account:hover {
-            background: #5a6268;
-        }
-
-        @media (max-width: 991px) {
-            .profile-hero-icon {
-                display: none;
-            }
-            
-            .settings-sidebar {
-                padding-right: 0;
-                margin-bottom: 2rem;
-            }
-        }
-    </style>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -337,7 +63,7 @@ $purchases = [
                         <p class="member-since">Member since <?php echo $user['member_since']; ?></p>
                     </div>
                     <div class="profile-hero-icon d-none d-lg-block">
-                        <img src="assets/svg/logo-big-white.svg" alt="SoleSource Icon">
+                        <img src="assets/img/svg/white-logo.svg" alt="SoleSource Icon" style="width: 100px; height: 100px;">
                     </div>
                 </div>
             </section>
@@ -346,15 +72,25 @@ $purchases = [
             <section class="py-5 bg-light">
                 <div class="container-xxl">
                     <h2 class="account-section-title">My wishlist</h2>
-                    <div class="row g-4">
-                        <?php foreach ($wishlist as $item): ?>
-                            <div class="col-6 col-md-3">
-                                <div class="account-product-card">
-                                    <img src="<?php echo $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="account-product-img">
-                                    <div class="account-product-body">
-                                        <div class="account-product-brand"><?php echo $item['brand']; ?></div>
-                                        <div class="account-product-name"><?php echo $item['name']; ?></div>
-                                        <div class="account-product-price"><?php echo $item['price']; ?></div>
+                    <div class="row row-cols-2 row-cols-md-4 g-4">
+                        <?php foreach ($wishlist_products as $product): ?>
+                            <div class="col">
+                                <div class="wishlist-product-card h-100">
+                                    <div class="wishlist-product-image-wrapper position-relative">
+                                        <button class="wishlist-remove-btn" data-product-id="<?php echo $product['id']; ?>" aria-label="Remove from wishlist">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                        <div class="ratio ratio-1x1 wishlist-product-media">
+                                            <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>" class="wishlist-product-image">
+                                        </div>
+                                    </div>
+                                    <div class="wishlist-product-body">
+                                        <div class="wishlist-product-brand text-muted small fw-bold text-uppercase"><?php echo $product['brand']; ?></div>
+                                        <div class="wishlist-product-name fw-bold text-dark"><?php echo $product['name']; ?></div>
+                                        <div class="wishlist-product-price"><?php echo $product['price']; ?></div>
+                                        <button class="btn btn-add-to-cart btn-sm" data-product-id="<?php echo $product['id']; ?>">
+                                            Add to Cart
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -368,18 +104,20 @@ $purchases = [
                 <div class="container-xxl">
                     <h2 class="account-section-title">My purchases</h2>
                     <div class="row g-4">
-                        <?php foreach ($purchases as $item): ?>
-                            <div class="col-6 col-md-3">
-                                <div class="account-product-card">
-                                    <img src="<?php echo $item['image']; ?>" alt="<?php echo $item['name']; ?>" class="account-product-img">
-                                    <div class="account-product-body">
-                                        <div class="account-product-brand"><?php echo $item['brand']; ?></div>
-                                        <div class="account-product-name"><?php echo $item['name']; ?></div>
-                                        <div class="account-product-price"><?php echo $item['price']; ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+                        <?php 
+                        foreach ($purchases_ids as $id) {
+                            $shoe = null;
+                            foreach ($all_products as $p) {
+                                if ($p['id'] == $id) {
+                                    $shoe = $p;
+                                    break;
+                                }
+                            }
+                            if ($shoe):
+                                include 'includes/product-card.php';
+                            endif;
+                        }
+                        ?>
                     </div>
                 </div>
             </section>
@@ -416,8 +154,8 @@ $purchases = [
                             <div class="settings-sidebar-title">ACCOUNT OVERVIEW</div>
                             <nav class="nav flex-column">
                                 <a class="nav-link active" href="#personal-info" data-bs-toggle="pill">Personal Information</a>
-                                <a class="nav-link" href="#address" data-bs-toggle="pill">Address</a>
-                                <a class="nav-link" href="logout.php">Log out</a>
+                                <a class="nav-link" href="#address-view" data-bs-toggle="pill">Address</a>
+                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Log out</a>
                             </nav>
                         </div>
 
@@ -438,13 +176,13 @@ $purchases = [
                                         </div>
                                         <div class="settings-detail-item">
                                             <div class="settings-detail-label">DATE OF BIRTH</div>
-                                            <div class="settings-detail-value"><?php echo $user['birthdate']; ?></div>
+                                            <div class="settings-detail-value"><?php echo date('F d, Y', strtotime($user['birthdate'])); ?></div>
                                         </div>
                                         <div class="settings-detail-item">
                                             <div class="settings-detail-label">GENDER</div>
                                             <div class="settings-detail-value"><?php echo $user['gender']; ?></div>
                                         </div>
-                                        <a href="#" class="settings-edit-link">EDIT</a>
+                                        <a href="#" class="settings-edit-link" data-bs-toggle="modal" data-bs-target="#editPersonalModal">EDIT</a>
                                     </div>
 
                                     <!-- Account Details -->
@@ -458,32 +196,29 @@ $purchases = [
                                             <div class="settings-detail-label">PASSWORD</div>
                                             <div class="settings-detail-value">*****************</div>
                                         </div>
-                                        <a href="#" class="settings-edit-link">EDIT</a>
+                                        <a href="#" class="settings-edit-link" data-bs-toggle="modal" data-bs-target="#editSecurityModal">EDIT</a>
                                     </div>
 
                                     <!-- Manage Account -->
                                     <div class="settings-section">
                                         <h3 class="settings-section-title">Manage Account</h3>
-                                        <button type="button" class="btn btn-delete-account">Delete Account</button>
+                                        <button type="button" class="btn btn-delete-account" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">Delete Account</button>
                                     </div>
                                 </div>
 
-                                <!-- Address -->
-                                <div class="tab-pane fade" id="address">
+                                <!-- Address View -->
+                                <div class="tab-pane fade" id="address-view">
                                     <h1 class="settings-content-title">MY ADRESS</h1>
                                     <p class="settings-subtitle">Please add your address for easier shopping</p>
 
-                                    <div class="card p-4" style="border: 2px dashed #ddd; min-height: 300px;">
-                                        <div class="d-flex align-items-center justify-content-center h-100">
-                                            <div class="text-center">
-                                                <button type="button" class="btn btn-link text-brand-black" style="font-size: 3rem;">
-                                                    <i class="bi bi-plus-circle"></i>
-                                                </button>
-                                                <p class="mt-2 fw-bold">ADDRESS 1</p>
-                                            </div>
-                                        </div>
+                                    <div class="address-card-wrapper">
+                                        <button type="button" class="address-add-card" data-bs-toggle="modal" data-bs-target="#addressModal">
+                                            <i class="bi bi-plus-circle"></i>
+                                            <div class="address-card-label">ADDRESS 1</div>
+                                        </button>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -493,7 +228,216 @@ $purchases = [
     </div>
 
     <?php include 'includes/footer.php'; ?>
+
+    <!-- Edit Personal Information Modal -->
+    <div class="modal fade" id="editPersonalModal" tabindex="-1" aria-labelledby="editPersonalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-uppercase text-brand-black" id="editPersonalModalLabel">Edit Personal Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <form id="personalInfoForm">
+                        <div class="mb-4">
+                            <label for="fullName" class="form-label text-muted small fw-bold text-uppercase mb-1">Full Name</label>
+                            <input type="text" class="form-control form-control-lg" id="fullName" value="<?php echo $user['name']; ?>">
+                        </div>
+                        <div class="mb-4">
+                            <label for="birthdate" class="form-label text-muted small fw-bold text-uppercase mb-1">Date of Birth</label>
+                            <input type="date" class="form-control form-control-lg" id="birthdate" value="<?php echo $user['birthdate']; ?>">
+                        </div>
+                        <div class="mb-4">
+                            <label for="gender" class="form-label text-muted small fw-bold text-uppercase mb-1">Gender</label>
+                            <select class="form-select form-select-lg" id="gender">
+                                <option value="Male" <?php echo $user['gender'] === 'Male' ? 'selected' : ''; ?>>Male</option>
+                                <option value="Female" <?php echo $user['gender'] === 'Female' ? 'selected' : ''; ?>>Female</option>
+                                <option value="Other" <?php echo $user['gender'] === 'Other' ? 'selected' : ''; ?>>Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="personalInfoForm" class="btn px-4" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Security Modal -->
+    <div class="modal fade" id="editSecurityModal" tabindex="-1" aria-labelledby="editSecurityModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-uppercase text-brand-black" id="editSecurityModalLabel">Account Security</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <form id="securityForm">
+                        <div class="mb-3">
+                            <label for="emailAddress" class="form-label fw-semibold small text-uppercase">Email Address</label>
+                            <input type="email" class="form-control" id="emailAddress" value="<?php echo $user['email']; ?>" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                            <small class="text-muted">Email cannot be changed. Contact support if needed.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label fw-semibold small text-uppercase">Current Password</label>
+                            <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label fw-semibold small text-uppercase">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label fw-semibold small text-uppercase">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="securityForm" class="btn px-4" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Management Modal -->
+    <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-uppercase text-brand-black" id="addressModalLabel">Add Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <form id="addressForm">
+                        <div class="row g-3">
+                            <!-- First Name -->
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" placeholder="First Name" style="height: 60px;">
+                            </div>
+                            
+                            <!-- Last name -->
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" placeholder="Last name" style="height: 60px;">
+                            </div>
+                            
+                            <!-- Adress Line 1 -->
+                            <div class="col-12">
+                                <input type="text" class="form-control" placeholder="Adress Line 1" style="height: 60px;">
+                            </div>
+                            
+                            <!-- Adress Line 2 -->
+                            <div class="col-12">
+                                <input type="text" class="form-control" placeholder="Adress Line 2" style="height: 60px;">
+                            </div>
+                            
+                            <!-- Province/State -->
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" placeholder="Province/State" style="height: 60px;">
+                            </div>
+                            
+                            <!-- City/Municipality -->
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" placeholder="City/Municipality" style="height: 60px;">
+                            </div>
+                            
+                            <!-- Postal Code -->
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" placeholder="Postal Code" style="height: 60px;">
+                            </div>
+                            
+                            <!-- Barangay/District -->
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" placeholder="Barangay/District" style="height: 60px;">
+                            </div>
+                            
+                            <!-- Country -->
+                            <div class="col-12">
+                                <input type="text" class="form-control" placeholder="Country" style="height: 60px;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="addressForm" class="btn px-4" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Confirmation Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-uppercase text-brand-black" id="deleteAccountModalLabel">Delete Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <p class="mb-0 text-brand-black">Are you sure you want to permanently delete your SoleSource account? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn px-4" style="background: #dc3545; color: #fff; font-weight: 600;">Delete Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-uppercase text-brand-black" id="logoutModalLabel">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <p class="mb-0 text-brand-black">Are you sure you want to log out of your SoleSource account?</p>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
+                    <a href="logout.php" class="btn px-4" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Yes, Log Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Wishlist remove functionality
+        document.querySelectorAll('.wishlist-remove-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.dataset.productId;
+                const card = this.closest('.col');
+                
+                // Add fade out animation
+                card.style.transition = 'opacity 0.3s ease';
+                card.style.opacity = '0';
+                
+                // Remove from DOM after animation
+                setTimeout(() => {
+                    card.remove();
+                    // Here you would also make an API call to remove from wishlist
+                    // fetch('includes/wishlist-remove.php', { method: 'POST', body: JSON.stringify({ id: productId }) })
+                }, 300);
+            });
+        });
+
+        // Add to cart from wishlist
+        document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                // Add your add to cart logic here
+                console.log('Adding product to cart:', productId);
+                // You can integrate with your existing cart system
+            });
+        });
+    </script>
 </body>
 </html>
