@@ -21,7 +21,7 @@
     </header>
 
     <main class="login-main">
-        <div class="container">
+        <div class="container mb-5">
             <div class="login-wrapper">
                 <div class="login-card">
                     <div class="login-title">LOG IN</div>
@@ -38,10 +38,10 @@
                         <div class="mb-4 text-start">
                             <a href="#" class="forgot-link">forgot password?</a>
                         </div>
-                        <button class="btn btn-login-primary w-100 mb-3" type="button">LOG IN</button>
+                        <a class="btn btn-login-primary w-100" href="index.php">LOG IN</a>
                         <div class="small text-muted mb-3" style="line-height: 1.4;">By logging in, you agree to the Terms of Service and Privacy Policy.</div>
                         <div class="mb-2 small text-muted">Not a fellow Sole Member?</div>
-                        <button class="btn btn-login-secondary w-100" type="button">CREATE ACCOUNT</button>
+                        <a class="btn btn-login-secondary w-100" href="signup.php">CREATE ACCOUNT</a>
                     </form>
                 </div>
             </div>
@@ -49,13 +49,13 @@
     </main>
 
     <section class="container need-help mt-5">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-            <div>
-                <div class="help-title">Need Help/Questions?</div>
-                <div class="help-copy">Have any questions or comments? Reach out to us through our contact options.</div>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div>
+                    <div class="help-title">Need Help/Questions?</div>
+                    <div class="help-copy">Have any questions or comments? Reach out to us through our contact options.</div>
+                </div>
+                <a href="#" class="help-link">Contact us</a>
             </div>
-            <a href="#" class="text-decoration-none">Contact us</a>
-        </div>
     </section>
 
     <footer class="bg-brand-black py-4">

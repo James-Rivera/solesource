@@ -1,4 +1,10 @@
-<?php include __DIR__ . '/products.php'; ?>
+<?php
+include __DIR__ . '/products.php';
+if (session_status() === PHP_SESSION_NONE) {
+	session_start();
+}
+$isLoggedIn = !empty($_SESSION['user']);
+?>
 <header>
 	<nav class="navbar navbar-expand-lg navbar-dark bg-brand-black py-3 border-bottom border-brand-dark-gray">
 		<div class="container-xxl align-items-center">
@@ -29,8 +35,23 @@
 					</ul>
 
 					<div class="d-flex align-items-center gap-2 order-lg-4 flex-wrap ms-lg-3">
-						<a class="btn btn-login" href="#">Log In</a>
-						<a class="btn btn-signup" href="#">Signup</a>
+						<?php if (!$isLoggedIn): ?>
+							<a class="btn btn-login" href="login.php">Log In</a>
+							<a class="btn btn-signup" href="signup.php">Signup</a>
+						<?php else: ?>
+							<div class="dropdown">
+								<button class="btn account-btn d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+									<i class="bi bi-person-circle fs-5"></i>
+									<span class="d-none d-md-inline">Account</span>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li><a class="dropdown-item" href="profile.php">Profile</a></li>
+									<li><a class="dropdown-item" href="orders.php">Orders</a></li>
+									<li><hr class="dropdown-divider"></li>
+									<li><a class="dropdown-item" href="logout.php">Log out</a></li>
+								</ul>
+							</div>
+						<?php endif; ?>
 					</div>
 				</div>
 			</div>
@@ -70,6 +91,16 @@
 .global-search-name { font-weight: 700; text-transform: uppercase; color: #000; font-size: 0.9rem; }
 .global-search-brand { color: #777; font-size: 0.75rem; text-transform: uppercase; }
 .global-search-price { margin-left: auto; color: #000; font-weight: 600; font-size: 0.9rem; }
+.account-btn {
+	color: #fff;
+	background: transparent;
+	border: 1px solid transparent;
+	padding: 6px 10px;
+}
+.account-btn:hover {
+	color: #f2f2f2;
+	border-color: #3a3a3a;
+}
 </style>
 
 <script>
