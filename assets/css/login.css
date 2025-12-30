@@ -1,0 +1,108 @@
+/* Login page specific styles */
+.login-page {
+    background: #f6f6f6;
+    color: #111;
+    font-family: var(--brand-font, 'Outfit', sans-serif);
+}
+
+.login-header {
+    background: #111;
+    padding: 14px 0;
+}
+
+.login-logo {
+    height: 28px;
+}
+
+.login-wrapper {
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.login-main {
+    min-height: 80vh;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+}
+
+.login-card {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 32px 28px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.login-title {
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #111;
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+    margin-bottom: 18px;
+}
+
+.form-control {
+    border-radius: 3px;
+}
+
+.toggle-eye-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #888;
+}
+
+.toggle-eye-btn:hover {
+    color: #555;
+}
+
+.forgot-link {
+    text-decoration: underline;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.btn-login-primary {
+    background: #E35926;
+    color: #fff;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.btn-login-primary:hover {
+    background: #cc4e21;
+    color: #fff;
+}
+
+.btn-login-secondary {
+    background: #fff;
+    border: 1px solid #111;
+    color: #111;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.need-help {
+    border-top: 1px solid #ddd;
+    padding: 32px 0;
+    color: #111;
+}
+
+.need-help .help-title {
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.need-help .help-copy {
+    color: #555;
+    font-size: 0.95rem;
+}
