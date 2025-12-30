@@ -16,7 +16,33 @@ $wishlist_products = [
     ['id' => 3, 'brand' => 'JORDAN', 'name' => 'AIR JORDAN 1 HIGH', 'price' => '₱8,295.00', 'image' => 'assets/img/products/best/jordan-1-high.png'],
 ];
 
+// Mock order history
+$recent_orders = [
+    [
+        'order_number' => '#2401-9921',
+        'date' => 'Dec 30, 2025',
+        'status' => 'Processing',
+        'status_class' => 'bg-warning text-dark',
+        'image' => 'assets/img/products/new/jordan-11-legend-blue.png'
+    ],
+    [
+        'order_number' => '#2401-9820',
+        'date' => 'Dec 28, 2025',
+        'status' => 'Shipped',
+        'status_class' => 'bg-info text-dark',
+        'image' => 'assets/img/products/best/air-force-1.png'
+    ],
+    [
+        'order_number' => '#2401-9819',
+        'date' => 'Dec 25, 2025',
+        'status' => 'Delivered',
+        'status_class' => 'bg-success text-white',
+        'image' => 'assets/img/products/new/adidas-gazelle.png'
+    ],
+];
+
 $purchases_ids = [1, 2, 3, 4, 5, 6, 7, 8];
+$hasOrders = true; // Toggle to show/hide order history
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,6 +56,15 @@ $purchases_ids = [1, 2, 3, 4, 5, 6, 7, 8];
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/account.css">
     <?php include 'includes/head-meta.php'; ?>
+    <style>
+        /* Force HR visibility */
+        hr {
+            background-color: #000 !important;
+            opacity: 1 !important;
+            border: none;
+            height: 1px;
+        }
+    </style>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -129,15 +164,59 @@ $purchases_ids = [1, 2, 3, 4, 5, 6, 7, 8];
                 <div class="container-xxl">
                     <h2 class="account-section-title">ORDERS</h2>
                     <hr class="mb-5">
-                    <div class="orders-empty">
-                        <h2>NO ORDERS YET</h2>
-                        <p>time to start the collection</p>
-                        <a href="shop.php" class="btn btn-shop">Shop now</a>
-                    </div>
+                    
+                    <?php if ($hasOrders): ?>
+                        <!-- Recent Orders List -->
+                        <div class="mb-5">
+                            <div class="order-history-list">
+                                <?php foreach ($recent_orders as $index => $order): ?>
+                                    <div class="order-history-row d-flex align-items-center py-4 <?php echo $index !== count($recent_orders) - 1 ? 'border-bottom border-light' : ''; ?>">
+                                        <!-- Product Image -->
+                                        <div class="order-history-image flex-shrink-0 me-4">
+                                            <img src="<?php echo $order['image']; ?>" alt="Order Item" class="rounded">
+                                        </div>
+                                        
+                                        <!-- Order Details -->
+                                        <div class="order-history-details flex-grow-1">
+                                            <div class="order-history-number fw-bold text-brand-black mb-1">Order <?php echo $order['order_number']; ?></div>
+                                            <div class="order-history-meta text-muted small mb-2"><?php echo $order['date']; ?> • 1 Item</div>
+                                            <div class="order-history-status">
+                                                <?php if ($order['status'] === 'Processing'): ?>
+                                                    <span class="text-warning fs-6 me-1">●</span><span class="small">Processing</span>
+                                                <?php elseif ($order['status'] === 'Shipped'): ?>
+                                                    <span class="text-info fs-6 me-1">●</span><span class="small">Shipped</span>
+                                                <?php elseif ($order['status'] === 'Delivered'): ?>
+                                                    <span class="text-success fs-6 me-1">●</span><span class="small">Delivered</span>
+                                                <?php else: ?>
+                                                    <span class="text-secondary fs-6 me-1">●</span><span class="small"><?php echo $order['status']; ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Price & Action -->
+                                        <div class="order-history-right ms-auto text-end">
+                                            <div class="order-history-price fw-bold text-brand-black mb-2">₱12,000</div>
+                                            <a href="order-details.php?id=<?php echo urlencode($order['order_number']); ?>" class="order-history-link text-brand-black text-decoration-underline small d-inline-flex align-items-center gap-1">
+                                                View Details
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <!-- Empty State -->
+                        <div class="orders-empty">
+                            <h2>NO ORDERS YET</h2>
+                            <p>time to start the collection</p>
+                            <a href="shop.php" class="btn btn-shop">Shop now</a>
+                        </div>
+                    <?php endif; ?>
                     
                     <hr class="mt-5">
                     <div class="mt-4">
-                        <h5 class="fw-bold text-brand-black">looking for your order?</h5>
+                        <h5 class="fw-bold text-brand-black">order not appearing?</h5>
                         <a href="#" class="text-decoration-underline text-brand-black">Check the status of your order</a>
                     </div>
                 </div>
@@ -274,24 +353,24 @@ $purchases_ids = [1, 2, 3, 4, 5, 6, 7, 8];
                     <h5 class="modal-title fw-bold text-uppercase text-brand-black" id="editSecurityModalLabel">Account Security</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body px-4 py-3">
+                <div class="modal-body px-4 py-4">
                     <form id="securityForm">
-                        <div class="mb-3">
-                            <label for="emailAddress" class="form-label fw-semibold small text-uppercase">Email Address</label>
-                            <input type="email" class="form-control" id="emailAddress" value="<?php echo $user['email']; ?>" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                        <div class="mb-4">
+                            <label for="emailAddress" class="form-label text-muted small fw-bold text-uppercase mb-1">Email Address</label>
+                            <input type="email" class="form-control form-control-lg" id="emailAddress" value="<?php echo $user['email']; ?>" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
                             <small class="text-muted">Email cannot be changed. Contact support if needed.</small>
                         </div>
-                        <div class="mb-3">
-                            <label for="currentPassword" class="form-label fw-semibold small text-uppercase">Current Password</label>
-                            <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password">
+                        <div class="mb-4">
+                            <label for="currentPassword" class="form-label text-muted small fw-bold text-uppercase mb-1">Current Password</label>
+                            <input type="password" class="form-control form-control-lg" id="currentPassword" placeholder="Enter current password">
                         </div>
-                        <div class="mb-3">
-                            <label for="newPassword" class="form-label fw-semibold small text-uppercase">New Password</label>
-                            <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
+                        <div class="mb-4">
+                            <label for="newPassword" class="form-label text-muted small fw-bold text-uppercase mb-1">New Password</label>
+                            <input type="password" class="form-control form-control-lg" id="newPassword" placeholder="Enter new password">
                         </div>
-                        <div class="mb-3">
-                            <label for="confirmPassword" class="form-label fw-semibold small text-uppercase">Confirm New Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password">
+                        <div class="mb-4">
+                            <label for="confirmPassword" class="form-label text-muted small fw-bold text-uppercase mb-1">Confirm New Password</label>
+                            <input type="password" class="form-control form-control-lg" id="confirmPassword" placeholder="Confirm new password">
                         </div>
                     </form>
                 </div>
