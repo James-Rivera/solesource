@@ -1,0 +1,381 @@
+/* Checkout page specific styles */
+.checkout-hero {
+    background: #E35926;
+    color: #fff;
+    padding: 32px 0 28px;
+}
+
+.checkout-hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.checkout-hero .sub {
+    font-size: 0.95rem;
+    margin-top: 4px;
+    opacity: 0.9;
+}
+
+.checkout-page {
+    background: #f6f6f6;
+    color: #111;
+    font-size: 1rem;
+}
+
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    letter-spacing: 0.3px;
+}
+
+.form-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    color: #1a1a1a;
+}
+
+.form-control,
+.form-check-input {
+    border-radius: 4px;
+    border: 1px solid #d6d6d6;
+    font-size: 1.05rem;
+    padding: 14px 14px;
+    min-height: 20px;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: #111;
+}
+
+.helper-text {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.helper-text a {
+    font-weight: 700;
+    text-decoration: underline;
+    color: #111;
+}
+
+.orange-check:checked {
+    background-color: #E35926;
+    border-color: #E35926;
+}
+
+.card-choice input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.card-choice label {
+    display: block;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    padding: 14px 16px;
+    height: 100%;
+    cursor: pointer;
+    background: #fff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-choice input:checked + label {
+    border-color: #E35926;
+    box-shadow: 0 0 0 2px rgba(227, 89, 38, 0.15);
+}
+
+.delivery-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 0;
+    text-transform: lowercase;
+}
+
+.delivery-price {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.delivery-note {
+    font-size: 0.8rem;
+    color: #555;
+    margin-top: 6px;
+    line-height: 1.3;
+}
+
+.payment-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    padding: 12px;
+    height: 64px;
+    background: #fff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.payment-choice input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.payment-choice input:checked + .payment-pill {
+    border-color: #E35926;
+    box-shadow: 0 0 0 2px rgba(227, 89, 38, 0.15);
+}
+
+.payment-icon-img {
+    height: 26px;
+    object-fit: contain;
+    display: block;
+}
+
+.payment-cod {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #111;
+}
+
+.place-order-btn {
+    background: #E35926;
+    border: none;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 14px 16px;
+    font-weight: 700;
+    border-radius: 4px;
+}
+
+.place-order-btn:hover {
+    background: #cc4e21;
+    color: var(--brand-white);
+}
+
+.summary-card {
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    padding: 16px;
+    background: #fff;
+    position: sticky;
+    top: 24px;
+    color: #111;
+}
+
+.summary-title {
+    font-size: 1.40rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    margin-bottom: 14px;
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.summary-link {
+    font-size: 0.85rem;
+    color: #5f5f5f;
+    text-decoration: underline;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.summary-row span:last-child {
+    font-weight: 600;
+}
+
+.summary-total span:first-child,
+.summary-total span:last-child {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.summary-divider {
+    border: none;
+    border-top: 1px solid #e5e5e5;
+    margin: 16px 0 18px;
+}
+
+.summary-question {
+    font-size: 0.95rem;
+    color: #6d6d6d;
+}
+
+.est-title {
+    font-size: 1rem;
+    color: #6d6d6d;
+    margin-bottom: 12px;
+}
+
+.mini-product {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.mini-thumb {
+    width: 140px;
+    height: 110px;
+    object-fit: contain;
+    border: 1px solid #e5e5e5;
+    background: #fafafa;
+}
+
+.mini-meta {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #444;
+}
+
+.mini-meta .mini-brand {
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #6d6d6d;
+}
+
+.mini-meta .mini-name {
+    text-transform: uppercase;
+    font-weight: 800;
+    color: #111;
+    font-size: 1rem;
+}
+
+.mini-meta .mini-attr {
+    color: #6d6d6d;
+    font-size: 0.95rem;
+}
+
+.mini-price {
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: right;
+    color: #111;
+}
+
+.section-block {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 18px;
+}
+
+.return-link {
+    opacity: 0.85;
+}
+
+.return-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.return-text {
+    color: #fff;
+    opacity: 0.85;
+}
+
+.return-text:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.checkout-secure-bar {
+    background: #121212;
+    color: #fff;
+    padding: 20px 0;
+}
+
+.checkout-secure-footer {
+    background: #000;
+    color: #f5f5f5;
+    padding: 22px 0;
+    font-size: 0.95rem;
+}
+
+.checkout-footer-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+    .checkout-footer-inner {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.footer-left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    color: #f5f5f5;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-links a {
+    color: #f5f5f5;
+    font-weight: 300;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}
+
+.footer-dot {
+    opacity: 0.6;
+}
+
+.footer-payments {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+@media (min-width: 768px) {
+    .footer-payments {
+        justify-content: flex-end;
+    }
+}
+
+.footer-pay-icon {
+    height: 22px;
+    width: auto;
+    display: block;
+}
