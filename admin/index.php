@@ -1,10 +1,10 @@
 <?php
 session_start();
+require_once '../includes/connect.php';
 
-// Mock admin check - replace with actual authentication
-$isAdmin = true;
-if (!$isAdmin) {
-    header('Location: ../login.php');
+// Security gate: only admins
+if (empty($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header('Location: ../index.php');
     exit;
 }
 

@@ -46,6 +46,10 @@ $userName = $_SESSION['user_name'] ?? 'Account';
 									<span class="d-none d-md-inline">Hello, <?php echo htmlspecialchars($userName); ?></span>
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end">
+									<?php if (!empty($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+										<li><a class="dropdown-item" href="admin/index.php">Admin Panel</a></li>
+										<li><hr class="dropdown-divider"></li>
+									<?php endif; ?>
 									<li><a class="dropdown-item" href="profile.php">Profile</a></li>
 									<li><a class="dropdown-item" href="orders.php">Orders</a></li>
 									<li><hr class="dropdown-divider"></li>
