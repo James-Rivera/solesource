@@ -20,7 +20,7 @@ $userStmt = $conn->prepare('SELECT full_name, email FROM users WHERE id = ? LIMI
 $userStmt->bind_param('i', $userId);
 $userStmt->execute();
 $userResult = $userStmt->get_result();
-$userData = $userResult ? $userResult->fetch_assoc() : [];
+$user = $userResult ? $userResult->fetch_assoc() : [];
 $userStmt->close();
 
 // Build cart details
@@ -84,25 +84,25 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
-    $firstName = trim($_POST['first_name'] ?? '');
-    $lastName = trim($_POST['last_name'] ?? '');
-    $address1 = trim($_POST['address1'] ?? '');
-    $address2 = trim($_POST['address2'] ?? '');
-    $province = trim($_POST['province'] ?? '');
+    $fullName = trim($_POST['full_name'] ?? ($user['full_name'] ?? ''));
+    $address = trim($_POST['address'] ?? '');
+    $region = trim($_POST['region'] ?? '');
     $city = trim($_POST['city'] ?? '');
-    $postal = trim($_POST['postal'] ?? '');
+    $province = trim($_POST['province'] ?? '');
+    $postal = trim($_POST['zip_code'] ?? '');
     $barangay = trim($_POST['barangay'] ?? '');
-    $country = trim($_POST['country'] ?? '');
+    $country = 'Philippines';
     $paymentMethod = trim($_POST['payment'] ?? 'COD');
 
     $required = [
         'Email' => $email,
         'Phone' => $phone,
-        'First Name' => $firstName,
-        'Last Name' => $lastName,
-        'Address Line 1' => $address1,
+        'Full Name' => $fullName,
+        'Address (Street/House No.)' => $address,
+        'Region' => $region,
         'Province/State' => $province,
         'City/Municipality' => $city,
+        'Barangay' => $barangay,
         'Postal Code' => $postal,
         'Country' => $country,
     ];
@@ -113,12 +113,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $shippingAddress = trim("$address1\n$address2\n$barangay $city, $province $postal\n$country");
         $orderNumber = 'SO-' . date('YmdHis') . '-' . rand(1000, 9999);
         $totalAmount = $subtotal;
 
-        $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, payment_method, shipping_phone, shipping_address) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmtOrder->bind_param('isdsss', $userId, $orderNumber, $totalAmount, $paymentMethod, $phone, $shippingAddress);
+        $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, payment_method, phone, full_name, address, city, province, zip_code, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmtOrder->bind_param('isdssssssss', $userId, $orderNumber, $totalAmount, $paymentMethod, $phone, $fullName, $address, $city, $province, $postal, $country);
         $stmtOrder->execute();
         $orderId = $stmtOrder->insert_id;
         $stmtOrder->close();
@@ -148,6 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/checkout.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css">
+    
     <?php include 'includes/head-meta.php'; ?>
 </head>
 
@@ -184,13 +185,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
+            <div class="d-flex justify-content-center align-items-center mb-5 text-uppercase fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
+                <span class="text-muted">Bag</span>
+                <span class="mx-3 text-muted">/</span>
+                <span class="text-dark">Checkout</span>
+                <span class="mx-3 text-muted">/</span>
+                <span class="text-muted">Confirmation</span>
+            </div>
             <form method="post">
                 <div class="row g-5">
                     <div class="col-lg-7">
                         <div class="section-block mb-4">
                             <div class="section-title">Personal Details</div>
                             <div class="mb-3">
-                                <input type="email" name="email" class="form-control" placeholder="Email" value="<?php echo htmlspecialchars($userData['email'] ?? ''); ?>" required>
+                                <input type="email" name="email" class="form-control" placeholder="Email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" required>
                             </div>
                             <div class="mb-3">
                                 <input type="text" name="phone" class="form-control" placeholder="Phone" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>" required>
@@ -202,20 +210,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="section-block mb-4">
                             <div class="section-title">Shipping Details</div>
+                            <input type="hidden" name="region" id="region_text" required>
+                            <input type="hidden" name="province" id="province_text" required>
+                            <input type="hidden" name="city" id="city_text" required>
+                            <input type="hidden" name="barangay" id="barangay_text" required>
                             <div class="row g-3 mb-1">
-                                <div class="col-md-6"><input type="text" name="first_name" class="form-control" placeholder="First Name" value="<?php echo htmlspecialchars($_POST['first_name'] ?? ($userData['full_name'] ?? '')); ?>" required></div>
-                                <div class="col-md-6"><input type="text" name="last_name" class="form-control" placeholder="Last Name" value="<?php echo htmlspecialchars($_POST['last_name'] ?? ''); ?>" required></div>
-                                <div class="col-12"><input type="text" name="address1" class="form-control" placeholder="Address Line 1" value="<?php echo htmlspecialchars($_POST['address1'] ?? ''); ?>" required></div>
-                                <div class="col-12"><input type="text" name="address2" class="form-control" placeholder="Address Line 2" value="<?php echo htmlspecialchars($_POST['address2'] ?? ''); ?>"></div>
-                                <div class="col-md-6"><input type="text" name="province" class="form-control" placeholder="Province/State" value="<?php echo htmlspecialchars($_POST['province'] ?? ''); ?>" required></div>
-                                <div class="col-md-6"><input type="text" name="city" class="form-control" placeholder="City/Municipality" value="<?php echo htmlspecialchars($_POST['city'] ?? ''); ?>" required></div>
-                                <div class="col-md-6"><input type="text" name="postal" class="form-control" placeholder="Postal Code" value="<?php echo htmlspecialchars($_POST['postal'] ?? ''); ?>" required></div>
-                                <div class="col-md-6"><input type="text" name="barangay" class="form-control" placeholder="Barangay/District" value="<?php echo htmlspecialchars($_POST['barangay'] ?? ''); ?>"></div>
-                                <div class="col-12"><input type="text" name="country" class="form-control" placeholder="Country" value="<?php echo htmlspecialchars($_POST['country'] ?? ''); ?>" required></div>
-                            </div>
-                            <div class="form-check mt-4">
-                                <input class="form-check-input orange-check" type="checkbox" value="" id="sameInfo" checked>
-                                <label class="form-check-label" for="sameInfo" style="margin-top: 8px; margin-left: 7px; font-size: 0.9rem;">Billing address is same as shipping.</label>
+                                <div class="col-12"><input type="text" name="full_name" class="form-control" placeholder="Full Name" value="<?php echo htmlspecialchars($_POST['full_name'] ?? ($user['full_name'] ?? '')); ?>" required></div>
+                                <div class="col-12"><input type="text" name="address" class="form-control" placeholder="Address (Street/House No.)" value="<?php echo htmlspecialchars($_POST['address'] ?? ''); ?>" required></div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Region</label>
+                                    <select id="region_select" class="form-select" autocomplete="off" placeholder="Select Region..."></select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Province</label>
+                                    <select id="province_select" class="form-select" autocomplete="off" placeholder="Select Province..." disabled></select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">City / Municipality</label>
+                                    <select id="city_select" class="form-select" autocomplete="off" placeholder="Select City..." disabled></select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Barangay</label>
+                                    <select id="barangay_select" class="form-select" autocomplete="off" placeholder="Select Barangay..." disabled></select>
+                                </div>
+                                <div class="col-md-6"><input type="text" name="zip_code" class="form-control" placeholder="Postal Code" value="<?php echo htmlspecialchars($_POST['zip_code'] ?? ''); ?>" required></div>
+                                <div class="col-md-6"><input type="text" name="country" class="form-control" placeholder="Country" value="Philippines" readonly></div>
                             </div>
                         </div>
 
@@ -360,20 +379,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </footer>
 
+        <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                const sameInfo = document.getElementById('sameInfo');
-                const billing = document.getElementById('billingDetails');
-                const toggleBilling = () => {
-                    if (!billing || !sameInfo) return;
-                    billing.classList.toggle('d-none', sameInfo.checked);
-                };
-                sameInfo?.addEventListener('change', toggleBilling);
-                toggleBilling();
-
                 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+                const regionText = document.getElementById('region_text');
+                const provinceText = document.getElementById('province_text');
+                const cityText = document.getElementById('city_text');
+                const barangayText = document.getElementById('barangay_text');
+
+                const regionSelectEl = document.getElementById('region_select');
+                const provinceSelectEl = document.getElementById('province_select');
+                const citySelectEl = document.getElementById('city_select');
+                const barangaySelectEl = document.getElementById('barangay_select');
+
+                const tomDefaults = {
+                    valueField: 'code',
+                    labelField: 'name',
+                    searchField: 'name',
+                    maxItems: 1,
+                    create: false,
+                    persist: false,
+                    allowEmptyOption: true,
+                    placeholder: 'Select...',
+                };
+
+                const regionSelect = new TomSelect(regionSelectEl, { ...tomDefaults, placeholder: 'Select Region...' });
+                const provinceSelect = new TomSelect(provinceSelectEl, { ...tomDefaults, placeholder: 'Select Province...' });
+                const citySelect = new TomSelect(citySelectEl, { ...tomDefaults, placeholder: 'Select City...' });
+                const barangaySelect = new TomSelect(barangaySelectEl, { ...tomDefaults, placeholder: 'Select Barangay...' });
+
+                const dataSources = {
+                    regions: 'https://raw.githubusercontent.com/isaacdarcilla/philippine-addresses/main/region.json',
+                    provinces: 'https://raw.githubusercontent.com/isaacdarcilla/philippine-addresses/main/province.json',
+                    cities: 'https://raw.githubusercontent.com/isaacdarcilla/philippine-addresses/main/city.json',
+                    barangays: 'https://raw.githubusercontent.com/isaacdarcilla/philippine-addresses/main/barangay.json',
+                };
+
+                let provincesData = [];
+                let citiesData = [];
+                let barangaysData = [];
+
+                const fetchJson = async (url) => {
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('Failed to load ' + url);
+                    return res.json();
+                };
+
+                const resetSelect = (ts, disable = true) => {
+                    ts.clear(true);
+                    ts.clearOptions();
+                    if (disable) {
+                        ts.disable();
+                    } else {
+                        ts.enable();
+                    }
+                };
+
+                const setHidden = (input, value) => {
+                    if (input) {
+                        input.value = value || '';
+                    }
+                };
+
+                const loadRegions = async () => {
+                    try {
+                        const regions = await fetchJson(dataSources.regions);
+                        regionSelect.addOptions(regions.map(r => ({ code: r.region_code, name: r.region_name })));
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+
+                const onRegionChange = async (regionCode) => {
+                    const selected = regionSelect.options[regionCode];
+                    setHidden(regionText, selected ? selected.name : '');
+                    setHidden(provinceText, '');
+                    setHidden(cityText, '');
+                    setHidden(barangayText, '');
+
+                    resetSelect(provinceSelect, true);
+                    resetSelect(citySelect, true);
+                    resetSelect(barangaySelect, true);
+
+                    if (!regionCode) return;
+
+                    try {
+                        if (!provincesData.length) {
+                            provincesData = await fetchJson(dataSources.provinces);
+                        }
+                        const filtered = provincesData.filter(p => p.region_code === regionCode).map(p => ({ code: p.province_code, name: p.province_name }));
+                        provinceSelect.addOptions(filtered);
+                        provinceSelect.enable();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+
+                const onProvinceChange = async (provinceCode) => {
+                    const selected = provinceSelect.options[provinceCode];
+                    setHidden(provinceText, selected ? selected.name : '');
+                    setHidden(cityText, '');
+                    setHidden(barangayText, '');
+
+                    resetSelect(citySelect, true);
+                    resetSelect(barangaySelect, true);
+
+                    if (!provinceCode) return;
+
+                    try {
+                        if (!citiesData.length) {
+                            citiesData = await fetchJson(dataSources.cities);
+                        }
+                        const filtered = citiesData.filter(c => c.province_code === provinceCode).map(c => ({ code: c.city_code, name: c.city_name }));
+                        citySelect.addOptions(filtered);
+                        citySelect.enable();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+
+                const onCityChange = async (cityCode) => {
+                    const selected = citySelect.options[cityCode];
+                    setHidden(cityText, selected ? selected.name : '');
+                    setHidden(barangayText, '');
+
+                    resetSelect(barangaySelect, true);
+
+                    if (!cityCode) return;
+
+                    try {
+                        if (!barangaysData.length) {
+                            barangaysData = await fetchJson(dataSources.barangays);
+                        }
+                        const filtered = barangaysData.filter(b => b.city_code === cityCode).map(b => ({ code: b.brgy_code, name: b.brgy_name }));
+                        barangaySelect.addOptions(filtered);
+                        barangaySelect.enable();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                };
+
+                const onBarangayChange = (barangayCode) => {
+                    const selected = barangaySelect.options[barangayCode];
+                    setHidden(barangayText, selected ? selected.name : '');
+                };
+
+                regionSelect.on('change', onRegionChange);
+                provinceSelect.on('change', onProvinceChange);
+                citySelect.on('change', onCityChange);
+                barangaySelect.on('change', onBarangayChange);
+
+                loadRegions();
             });
         </script>
 </body>

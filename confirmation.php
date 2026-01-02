@@ -36,7 +36,14 @@ $primaryItem = $orderItems[0] ?? null;
 $displayOrderId = '#SS-2026-' . $order['id'];
 $orderDate = $order['created_at'] ? date('F j, Y', strtotime($order['created_at'])) : '';
 $customerName = $order['full_name'] ?? '';
-$shippingAddress = $order['shipping_address'] ?? '';
+$cityProvince = trim(($order['city'] ?? '') . (($order['province'] ?? '') ? ', ' . $order['province'] : ''));
+$postalCountry = trim(($order['zip_code'] ?? '') . (($order['country'] ?? '') ? ' ' . $order['country'] : ''));
+$composedAddress = implode("\n", array_filter([
+    $order['address'] ?? '',
+    $cityProvince,
+    $postalCountry,
+]));
+$shippingAddress = $composedAddress ?: ($order['shipping_address'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="en">

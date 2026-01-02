@@ -38,14 +38,14 @@ $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
 						</li>
 						<li class="nav-item position-relative">
 							<?php if ($isCartFlow): ?>
-								<a class="nav-link px-0 text-white position-relative" href="cart.php" aria-label="Cart">
+								<a class="nav-link px-0 btn btn-link text-decoration-none text-white position-relative cart-trigger" href="cart.php" aria-label="Cart">
 									<i class="bi bi-cart3 fs-5"></i>
 									<span id="header-cart-count" class="position-absolute badge rounded-pill bg-danger header-cart-badge <?php echo $cartCount === 0 ? 'd-none' : ''; ?>">
 										<?php echo $cartCount; ?>
 									</span>
 								</a>
 							<?php else: ?>
-								<button class="nav-link px-0 btn btn-link text-decoration-none text-white position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer" aria-controls="cartDrawer" aria-label="Open cart">
+								<button class="nav-link px-0 btn btn-link text-decoration-none text-white position-relative cart-trigger" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer" aria-controls="cartDrawer" aria-label="Open cart">
 									<i class="bi bi-cart3 fs-5"></i>
 									<span id="header-cart-count" class="position-absolute badge rounded-pill bg-danger header-cart-badge <?php echo $cartCount === 0 ? 'd-none' : ''; ?>">
 										<?php echo $cartCount; ?>
@@ -63,7 +63,7 @@ $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
 							<div class="dropdown">
 								<button class="btn account-btn d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 									<i class="bi bi-person-circle fs-5"></i>
-									<span class="d-none d-md-inline">Hello, <?php echo htmlspecialchars($userName); ?></span>
+									<span class="d-none d-md-inline"><?php echo htmlspecialchars($userName); ?></span>
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end">
 									<?php if (!empty($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
@@ -126,10 +126,11 @@ $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
 	color: #f2f2f2;
 	border-color: #3a3a3a;
 }
+.cart-trigger { position: relative; display: inline-flex; align-items: center; }
 .header-cart-badge {
 	position: absolute;
 	top: -8px;
-	right: -8px;
+	right: -10px;
 	z-index: 10;
 }
 </style>
