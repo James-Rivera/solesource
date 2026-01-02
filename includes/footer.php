@@ -76,7 +76,7 @@
                 <div class="fw-bold text-uppercase small">Subtotal</div>
                 <div id="cartSubtotal" class="fw-bold text-brand-black">₱0.00</div>
             </div>
-            <button class="btn btn-primary-orange w-100 fw-bold" type="button">Checkout</button>
+            <a class="btn btn-primary-orange w-100 fw-bold" href="cart.php">View Shopping Bag</a>
         </div>
     </div>
 </div>

@@ -1,3 +1,122 @@
+<?php
+session_start();
+require_once 'includes/connect.php';
+
+// Handle quantity updates and removals submitted from the page
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $action = $_POST['action'] ?? '';
+  $id = isset($_POST['id']) ? (int) $_POST['id'] : null;
+  $size = isset($_POST['size']) ? trim($_POST['size']) : '';
+  $qty = isset($_POST['qty']) ? (int) $_POST['qty'] : null;
+
+  if ($id && $size && isset($_SESSION['cart'])) {
+    $key = $id . ':' . $size;
+
+    if ($action === 'remove' && isset($_SESSION['cart'][$key])) {
+      unset($_SESSION['cart'][$key]);
+    } elseif ($action === 'update' && $qty !== null && isset($_SESSION['cart'][$key])) {
+      if ($qty <= 0) {
+        unset($_SESSION['cart'][$key]);
+      } else {
+        $_SESSION['cart'][$key]['qty'] = $qty;
+      }
+    }
+  }
+
+  header('Location: cart.php');
+  exit;
+}
+
+// Build cart dataset from session and DB
+$sessionCart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+$cartItems = [];
+$grandTotal = 0;
+$cartProductIds = [];
+
+if (!empty($sessionCart)) {
+  $productIds = array_unique(array_map(fn($item) => (int) ($item['id'] ?? 0), $sessionCart));
+  $productIds = array_filter($productIds, fn($id) => $id > 0);
+  $productIds = array_values($productIds); // reindex for binding refs
+
+  if ($productIds) {
+    $placeholders = implode(',', array_fill(0, count($productIds), '?'));
+    $types = str_repeat('i', count($productIds));
+    $stmt = $conn->prepare("SELECT * FROM products WHERE id IN ($placeholders)");
+
+    $bindParams = [$types];
+    foreach ($productIds as $idx => $pid) {
+      $bindParams[] = &$productIds[$idx];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bindParams);
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $products = [];
+    while ($row = $result->fetch_assoc()) {
+      $products[$row['id']] = $row;
+    }
+    $stmt->close();
+
+    foreach ($sessionCart as $item) {
+      $id = (int) ($item['id'] ?? 0);
+      $size = $item['size'] ?? '';
+      if (!$id || !isset($products[$id])) {
+        continue;
+      }
+      $cartProductIds[] = $id;
+      $product = $products[$id];
+      $qty = max(1, (int) ($item['qty'] ?? 1));
+      $unitPrice = isset($product['price']) ? (float) $product['price'] : (float) ($item['price'] ?? 0);
+      $lineTotal = $unitPrice * $qty;
+      $grandTotal += $lineTotal;
+
+      $cartItems[] = [
+        'id' => $id,
+        'name' => $product['name'] ?? ($item['name'] ?? ''),
+        'brand' => $product['brand'] ?? ($item['brand'] ?? ''),
+        'size' => $size,
+        'price' => $unitPrice,
+        'qty' => $qty,
+        'image' => $product['image'] ?? ($item['image'] ?? ''),
+        'line_total' => $lineTotal,
+      ];
+    }
+  }
+}
+
+$isEmpty = empty($cartItems);
+$recommended = [];
+$excludeIds = array_unique($cartProductIds);
+$excludeIds = array_values($excludeIds);
+
+$whereParts = ["status = 'active'"];
+$typesRec = '';
+$paramsRec = [];
+if (!empty($excludeIds)) {
+  $placeholders = implode(',', array_fill(0, count($excludeIds), '?'));
+  $whereParts[] = "id NOT IN ($placeholders)";
+  $typesRec .= str_repeat('i', count($excludeIds));
+  $paramsRec = $excludeIds;
+}
+
+$whereSql = implode(' AND ', $whereParts);
+$recSql = "SELECT * FROM products WHERE $whereSql ORDER BY RAND() LIMIT 4";
+$stmtRec = $conn->prepare($recSql);
+if ($typesRec) {
+  $bindRec = [$typesRec];
+  foreach ($paramsRec as $idx => $pid) {
+    $bindRec[] = &$paramsRec[$idx];
+  }
+  call_user_func_array([$stmtRec, 'bind_param'], $bindRec);
+}
+
+$stmtRec->execute();
+$recRes = $stmtRec->get_result();
+while ($row = $recRes->fetch_assoc()) {
+  $recommended[] = $row;
+}
+$stmtRec->close();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,36 +131,6 @@
 </head>
 <body class="cart-page">
 <?php include 'includes/header.php'; ?>
-<?php
-  $isEmpty = false; // toggle for mock state
-  $cartItems = [
-    [
-      'name' => 'JORDAN 11 RETRO "COLUMBIA / LEGEND BLUE" 2024',
-      'brand' => 'JORDAN',
-      'size' => 'US MEN SIZE 9.5',
-      'price' => 12000,
-      'image' => 'assets/img/products/new/jordan-11-legend-blue.png'
-    ],
-    [
-      'name' => 'JORDAN 11 RETRO "COLUMBIA / LEGEND BLUE" 2024',
-      'brand' => 'JORDAN',
-      'size' => 'US MEN SIZE 9.5',
-      'price' => 12000,
-      'image' => 'assets/img/products/new/jordan-11-legend-blue.png'
-    ],
-  ];
-  $recommended = [
-    ['brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => 'P4,995.00', 'image' => 'assets/img/products/new/air-force-1.png'],
-    ['brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => 'P4,995.00', 'image' => 'assets/img/products/new/air-force-1.png'],
-    ['brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => 'P4,995.00', 'image' => 'assets/img/products/new/air-force-1.png'],
-    ['brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => 'P4,995.00', 'image' => 'assets/img/products/new/air-force-1.png'],
-    ['brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => 'P4,995.00', 'image' => 'assets/img/products/new/air-force-1.png'],
-    ['brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => 'P4,995.00', 'image' => 'assets/img/products/new/air-force-1.png'],
-    ['brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => 'P4,995.00', 'image' => 'assets/img/products/new/air-force-1.png'],
-    ['brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => 'P4,995.00', 'image' => 'assets/img/products/new/air-force-1.png'],
-  ];
-  $subtotal = $isEmpty ? 0 : array_sum(array_map(fn($i) => $i['price'], $cartItems));
-?>
 
 <section class="py-5">
   <div class="container-xxl mt-4">
@@ -51,29 +140,43 @@
         <div class="cart-card">
           <?php if ($isEmpty): ?>
             <div class="py-5 text-center">
-              <h5 class="fw-bold text-brand-black mb-1">No items yet</h5>
+              <h5 class="fw-bold text-brand-black mb-1">Your cart is empty</h5>
               <p class="text-muted mb-0">Time to start the collection</p>
             </div>
           <?php else: ?>
             <?php foreach ($cartItems as $item): ?>
               <div class="cart-item-row d-flex align-items-start gap-3">
-                <img src="<?php echo $item['image']; ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="cart-item-img">
+                <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="cart-item-img">
                 <div class="flex-grow-1 d-flex flex-column">
                   <div class="d-flex justify-content-between align-items-start">
                     <div class="cart-item-info">
-                      <div class="cart-item-name"><?php echo $item['name']; ?></div>
-                      <div class="cart-item-brand"><?php echo $item['brand']; ?></div>
-                      <div class="cart-item-size"><?php echo $item['size']; ?></div>
+                      <div class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
+                      <div class="cart-item-brand"><?php echo htmlspecialchars($item['brand']); ?></div>
+                      <div class="cart-item-size">Size <?php echo htmlspecialchars($item['size']); ?></div>
                     </div>
-                    <div class="cart-item-price-lg">P<?php echo number_format($item['price'], 2); ?></div>
+                    <div class="cart-item-price-lg">₱<?php echo number_format($item['line_total'], 2); ?></div>
                   </div>
                   <div class="d-flex align-items-center gap-3 mt-2">
                     <div class="cart-qty-box">
-                      <button class="cart-qty-btn" type="button" aria-label="Remove"><i class="bi bi-trash"></i></button>
-                      <span class="fw-bold">1</span>
-                      <button class="cart-qty-btn" type="button" aria-label="Add"><i class="bi bi-plus-lg"></i></button>
+                      <form method="post" class="d-inline">
+                        <input type="hidden" name="action" value="update">
+                        <input type="hidden" name="id" value="<?php echo (int) $item['id']; ?>">
+                        <input type="hidden" name="size" value="<?php echo htmlspecialchars($item['size']); ?>">
+                        <input type="hidden" name="qty" value="<?php echo max(0, $item['qty'] - 1); ?>">
+                        <button class="cart-qty-btn" type="submit" aria-label="Decrease quantity">
+                          <i class="bi <?php echo $item['qty'] > 1 ? 'bi-dash-lg' : 'bi-trash'; ?>"></i>
+                        </button>
+                      </form>
+                      <span class="fw-bold"><?php echo (int) $item['qty']; ?></span>
+                      <form method="post" class="d-inline">
+                        <input type="hidden" name="action" value="update">
+                        <input type="hidden" name="id" value="<?php echo (int) $item['id']; ?>">
+                        <input type="hidden" name="size" value="<?php echo htmlspecialchars($item['size']); ?>">
+                        <input type="hidden" name="qty" value="<?php echo $item['qty'] + 1; ?>">
+                        <button class="cart-qty-btn" type="submit" aria-label="Increase quantity"><i class="bi bi-plus-lg"></i></button>
+                      </form>
                     </div>
-                    <button class="wishlist-btn" type="button" aria-label="Move to wishlist"><i class="bi bi-heart"></i></button>
+                    <button class="wishlist-btn" type="button" aria-label="Wishlist (coming soon)" disabled><i class="bi bi-heart"></i></button>
                   </div>
                 </div>
               </div>
@@ -91,7 +194,7 @@
           <h6 class="summary-title">Summary</h6>
           <div class="summary-row">
             <span>Subtotal</span>
-            <span><?php echo $isEmpty ? '-' : 'P' . number_format($subtotal, 2); ?></span>
+            <span><?php echo $isEmpty ? '-' : '₱' . number_format($grandTotal, 2); ?></span>
           </div>
           <div class="summary-row">
             <span>Delivery &amp; Handling</span>
@@ -100,9 +203,9 @@
           <div class="summary-divider"></div>
           <div class="summary-row summary-total">
             <span>Total</span>
-            <span><?php echo $isEmpty ? '-' : 'P' . number_format($subtotal, 2); ?></span>
+            <span><?php echo $isEmpty ? '-' : '₱' . number_format($grandTotal, 2); ?></span>
           </div>
-          <button class="btn checkout-btn w-100 mb-3" type="button" <?php echo $isEmpty ? 'disabled' : ''; ?>>Go to checkout</button>
+          <a class="btn checkout-btn w-100 mb-3 <?php echo $isEmpty ? 'disabled' : ''; ?>" href="<?php echo $isEmpty ? '#' : 'checkout.php'; ?>" <?php echo $isEmpty ? 'tabindex="-1" aria-disabled="true"' : ''; ?>>Go to checkout</a>
           <div class="small text-muted mb-2">Checkout safely using your preferred payment method</div>
           <div class="d-flex align-items-center gap-2 payment-icons">
             <div class="payment-pill" aria-label="GCash">
@@ -127,12 +230,16 @@
       <div class="recommend-scroller" id="recScroller">
         <?php foreach ($recommended as $rec): ?>
           <div class="recommend-card h-100">
-            <img draggable="false" src="<?php echo $rec['image']; ?>" alt="<?php echo htmlspecialchars($rec['name']); ?>" class="recommend-img">
-            <div class="p-3">
-              <div class="small text-muted text-uppercase mb-1"><?php echo $rec['brand']; ?></div>
-              <div class="fw-bold text-brand-black" style="font-size: 0.95rem; text-transform: uppercase;"> <?php echo $rec['name']; ?> </div>
-              <div class="small text-brand-black mt-1"><?php echo $rec['price']; ?></div>
-            </div>
+            <a href="product-details.php?id=<?php echo urlencode($rec['id']); ?>" class="text-decoration-none text-reset d-flex flex-column h-100">
+              <div class="ratio ratio-1x1 product-media">
+                <img src="<?php echo htmlspecialchars($rec['image']); ?>" alt="<?php echo htmlspecialchars($rec['name']); ?>" class="img-fluid product-image">
+              </div>
+              <div class="product-body flex-grow-1 d-flex flex-column p-3">
+                <div class="product-brand mb-2 text-uppercase small"><?php echo htmlspecialchars($rec['brand']); ?></div>
+                <div class="product-title fw-bold mb-2 text-uppercase"><?php echo htmlspecialchars($rec['name']); ?></div>
+                <div class="mt-auto product-price">₱<?php echo number_format((float) $rec['price'], 2); ?></div>
+              </div>
+            </a>
           </div>
         <?php endforeach; ?>
       </div>
