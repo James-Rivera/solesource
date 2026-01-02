@@ -1,21 +1,31 @@
 <?php
-include 'includes/products.php';
+session_start();
+include 'includes/connect.php';
+include 'includes/products.php'; // still used for recommendations/search
 
-// Locate product by id from query
+// Securely fetch product by id from DB
 $product = null;
 $requested_id = isset($_GET['id']) ? (int) $_GET['id'] : null;
 if ($requested_id) {
-    foreach ($all_products as $p) {
-        if ((int) ($p['id'] ?? 0) === $requested_id) {
-            $product = $p;
-            break;
-        }
-    }
+    $stmt = $conn->prepare("SELECT * FROM products WHERE id = ? LIMIT 1");
+    $stmt->bind_param('i', $requested_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $product = $result ? $result->fetch_assoc() : null;
+    $stmt->close();
 }
 
 if (!$product) {
     header('Location: shop.php');
     exit;
+}
+
+// Dynamic size label based on gender
+$size_label = "SELECT US SIZE (MEN'S SCALE)";
+if (!empty($product['gender']) && strcasecmp($product['gender'], 'Men') === 0) {
+    $size_label = "SELECT US MEN'S SIZE";
+} elseif (!empty($product['gender']) && strcasecmp($product['gender'], 'Women') === 0) {
+    $size_label = "SELECT US WOMEN'S SIZE";
 }
 
 // Gallery images (reuse main if no additional)
@@ -80,9 +90,9 @@ $breadcrumb_active = $product['name'];
                 <div class="col-lg-5">
                     <div class="mb-2 text-uppercase text-muted small fw-semibold"><?php echo htmlspecialchars($product['brand']); ?></div>
                     <h1 class="product-title-detail mb-3"><?php echo htmlspecialchars($product['name']); ?></h1>
-                    <div class="product-price-detail mb-5"><?php echo htmlspecialchars($product['price']); ?></div>
+                    <div class="product-price-detail mb-5">₱<?php echo htmlspecialchars($product['price']); ?></div>
 
-                    <div class="size-label mb-3 text-uppercase small fw-bold">SELECT US MEN'S SIZE</div>
+                    <div class="size-label mb-3 text-uppercase small fw-bold"><?php echo htmlspecialchars($size_label); ?></div>
                     <?php $sizes = ['7','7.5','8','8.5','9','9.5','10','10.5','11','11.5','12','13']; ?>
                     <div class="size-grid mb-4" id="sizeSelector">
                         <?php foreach ($sizes as $i => $size): ?>
@@ -105,12 +115,12 @@ $breadcrumb_active = $product['name'];
 
                     <div class="mb-3 size-label text-uppercase fw-bold small">About This Product</div>
                     <p class="text-description lh-lg mb-3">
-                        Originally released in 1996, the 2024 edition of the Air Jordan 11 Retro 'Legend Blue / Columbia' sports a white leather upper, accented with a matching patent leather mudguard, and contrasted with a Columbia Blue embroidered Jumpman hit on the lateral side. It features an ice-blue translucent outsole and full-length Air for comfort.
+                        <?php echo htmlspecialchars($product['description']); ?>
                     </p>
                     <div class="text-muted small lh-lg">
-                        <div>SKU: CT8012-116</div>
-                        <div>Colorway: White/Legend Blue/Black</div>
-                        <div>Release Date: 12/13/24</div>
+                        <div>SKU: <?php echo htmlspecialchars($product['sku'] ?? ''); ?></div>
+                        <div>Colorway: <?php echo htmlspecialchars($product['colorway'] ?? ''); ?></div>
+                        <div>Release Date: <?php echo htmlspecialchars($product['release_date'] ?? ''); ?></div>
                     </div>
                 </div>
             </div>

@@ -46,6 +46,9 @@
                         <div class="mb-3">
                             <input type="email" class="form-control" placeholder="Email">
                         </div>
+                        <div class="mb-3">
+                            <input type="text" name="phone" class="form-control" placeholder="Phone">
+                        </div>
                         <div class="helper-text">
                             Become a <a href="#">SOLESOURCE Member</a> to get Member benefits. <a href="#">Login</a> or <a href="#">Sign up</a> Now
                         </div>
