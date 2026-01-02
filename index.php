@@ -1,3 +1,4 @@
+<?php require_once 'includes/connect.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,9 +19,27 @@
 
 
     <?php
-    // Use central product list (from header include) so cards carry ids for deep links
-    $new_releases = array_slice($all_products, 0, 4);
-    $best_sellers = array_slice($all_products, 4, 4);
+        $format_price = function($price) {
+            return '₱' . number_format((float)$price, 2, '.', ',');
+        };
+
+        $fetch_products = function($orderClause, $limit = 4) use ($conn, $format_price) {
+            $sql = "SELECT * FROM products WHERE status = 'active' ORDER BY $orderClause LIMIT ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('i', $limit);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            $items = [];
+            while ($row = $res->fetch_assoc()) {
+                $row['price'] = $format_price($row['price']);
+                $items[] = $row;
+            }
+            $stmt->close();
+            return $items;
+        };
+
+        $new_releases = $fetch_products("release_date DESC, created_at DESC", 4);
+        $best_sellers = $fetch_products("total_sold DESC, is_featured DESC, created_at DESC", 4);
 
         $brands = [
             ['name' => 'Nike', 'logo' => 'assets/img/brands/nike.svg'],

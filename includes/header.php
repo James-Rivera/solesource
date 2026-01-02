@@ -104,16 +104,13 @@ $isLoggedIn = !empty($_SESSION['user']);
 </style>
 
 <script>
-// Expose products to JS
-const allProducts = <?php echo json_encode($all_products, JSON_UNESCAPED_SLASHES); ?>;
-
 const input = document.getElementById('globalSearchInput');
 const dropdown = document.getElementById('globalSearchResults');
 
 function renderResults(items) {
 	if (!items.length) { dropdown.classList.add('d-none'); dropdown.innerHTML = ''; return; }
 	dropdown.innerHTML = items.slice(0,5).map(p => `
-		<a class="global-search-item" href="shop.php?search=${encodeURIComponent(p.name)}">
+		<a class="global-search-item" href="product-details.php?id=${encodeURIComponent(p.id)}">
 			<img class="global-search-thumb" src="${p.image}" alt="${p.name}">
 			<div>
 				<div class="global-search-name">${p.name}</div>
@@ -125,17 +122,26 @@ function renderResults(items) {
 	dropdown.classList.remove('d-none');
 }
 
-function filterProducts(q) {
-	const term = q.trim().toLowerCase();
+let searchController = null;
+
+async function queryProducts(term) {
 	if (!term) { dropdown.classList.add('d-none'); dropdown.innerHTML=''; return; }
-	const results = allProducts.filter(p =>
-		(p.name || '').toLowerCase().includes(term) ||
-		(p.brand || '').toLowerCase().includes(term)
-	);
-	renderResults(results);
+	if (searchController) { searchController.abort(); }
+	searchController = new AbortController();
+
+	try {
+		const res = await fetch(`includes/search.php?q=${encodeURIComponent(term)}`, { signal: searchController.signal });
+		if (!res.ok) throw new Error('search failed');
+		const data = await res.json();
+		renderResults(data.results || []);
+	} catch (err) {
+		console.error(err);
+		dropdown.classList.add('d-none');
+		dropdown.innerHTML='';
+	}
 }
 
-input?.addEventListener('input', (e) => filterProducts(e.target.value));
-input?.addEventListener('focus', (e) => filterProducts(e.target.value));
+input?.addEventListener('input', (e) => queryProducts(e.target.value.trim()));
+input?.addEventListener('focus', (e) => queryProducts(e.target.value.trim()));
 input?.addEventListener('blur', () => setTimeout(() => { dropdown.classList.add('d-none'); }, 150));
 </script>

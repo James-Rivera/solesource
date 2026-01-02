@@ -1,3 +1,6 @@
+<?php
+require_once 'includes/connect.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,56 +19,81 @@
     <?php include 'includes/header.php'; ?>
 
     <?php
-        // Get filter parameters (products are loaded globally via header include)
-        $current_brand = isset($_GET['brand']) ? $_GET['brand'] : null;
-        $current_sort = isset($_GET['sort']) ? $_GET['sort'] : null;
-        $search_term = isset($_GET['search']) ? trim($_GET['search']) : null;
+        // Helpers
+        $format_price = function($price) {
+            return '₱' . number_format((float)$price, 2, '.', ',');
+        };
+
+        // Get filter parameters
+        $current_brand = isset($_GET['brand']) ? trim($_GET['brand']) : null;
+        $current_sort  = isset($_GET['sort'])  ? trim($_GET['sort'])  : null;
+        $search_term   = isset($_GET['search']) ? trim($_GET['search']) : null;
+        $price_min     = isset($_GET['min']) && is_numeric($_GET['min']) ? (float) $_GET['min'] : null;
+        $price_max     = isset($_GET['max']) && is_numeric($_GET['max']) ? (float) $_GET['max'] : null;
 
         // Initialize hero defaults and breadcrumb data
         $hero_title = "THE COLLECTION";
         $hero_desc = "Choose from a variety of premium sneakers. Verified Authentic.";
         $breadcrumb_active = "Shop";
 
-        // Scenario A: Search (Priority)
+        $conditions = ["status = 'active'"];
+        $params = [];
+        $types = '';
+
         if ($search_term) {
             $hero_title = "SEARCH RESULTS";
             $hero_desc = "Showing results for \"" . htmlspecialchars($search_term) . "\". Verified authentic sneakers ready to ship.";
             $breadcrumb_active = "Search Results";
-            $display_items = array_filter($all_products, function($product) use ($search_term) {
-                return stripos($product['name'], $search_term) !== false || 
-                       stripos($product['brand'], $search_term) !== false;
-            });
+            $conditions[] = "(name LIKE ? OR brand LIKE ?)";
+            $like = "%{$search_term}%";
+            $params[] = $like; $types .= 's';
+            $params[] = $like; $types .= 's';
         }
-        // Scenario B: Brand Filter
         elseif ($current_brand) {
             $hero_title = strtoupper(htmlspecialchars($current_brand));
             $hero_desc = "Explore our collection of authentic " . htmlspecialchars($current_brand) . " sneakers. Premium quality, verified authentic.";
             $breadcrumb_active = htmlspecialchars($current_brand);
-            $display_items = array_filter($all_products, function($product) use ($current_brand) {
-                return strcasecmp($product['brand'], $current_brand) === 0;
-            });
+            $conditions[] = "brand = ?";
+            $params[] = $current_brand; $types .= 's';
         }
-        // Scenario C: Sort = New Releases
         elseif ($current_sort === 'new') {
             $hero_title = "NEW RELEASES";
             $hero_desc = "The freshest drops. Secure your pair before they're gone.";
             $breadcrumb_active = "New Releases";
-            $display_items = $all_products; // In production, filter by release date
         }
-        // Scenario D: Sort = Best Sellers
         elseif ($current_sort === 'best') {
             $hero_title = "BEST SELLERS";
             $hero_desc = "The community's favorites. Verified authentic and ready to ship.";
             $breadcrumb_active = "Best Sellers";
-            $display_items = $all_products; // In production, filter by sales volume
-        }
-        // Scenario E: Default (All)
-        else {
-            $display_items = $all_products;
         }
 
-        // Reindex array after filtering
-        $display_items = array_values($display_items);
+        if ($price_min !== null) { $conditions[] = "price >= ?"; $params[] = $price_min; $types .= 'd'; }
+        if ($price_max !== null) { $conditions[] = "price <= ?"; $params[] = $price_max; $types .= 'd'; }
+
+        $where = 'WHERE ' . implode(' AND ', $conditions);
+
+        // Sorting
+        $order = "ORDER BY created_at DESC";
+        if ($current_sort === 'new') {
+            $order = "ORDER BY release_date DESC, created_at DESC";
+        } elseif ($current_sort === 'best') {
+            $order = "ORDER BY total_sold DESC, is_featured DESC, created_at DESC";
+        }
+
+        $sql = "SELECT * FROM products $where $order";
+        $stmt = $conn->prepare($sql);
+        if ($types) {
+            $stmt->bind_param($types, ...$params);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $display_items = [];
+        while ($row = $result->fetch_assoc()) {
+            $row['price'] = $format_price($row['price']);
+            $display_items[] = $row;
+        }
+        $stmt->close();
     ?>
 
     <!-- Hero Section -->
