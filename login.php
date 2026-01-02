@@ -7,6 +7,7 @@ $error_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
+    $redirect = $_POST['redirect'] ?? '';
 
     if ($email === '' || $password === '') {
         $error_message = 'Email and password are required.';
@@ -24,7 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_name'] = $user['full_name'];
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['user_email'] = $user['email'];
-            header('Location: index.php');
+            if ($redirect === 'checkout') {
+                header('Location: checkout.php');
+            } else {
+                header('Location: index.php');
+            }
             exit;
         } else {
             $error_message = 'Invalid email or password.';
@@ -65,6 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     <?php endif; ?>
                     <form method="POST">
+                        <?php if (isset($_GET['redirect'])): ?>
+                            <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($_GET['redirect']); ?>">
+                        <?php endif; ?>
                         <div class="mb-3">
                             <input type="email" name="email" class="form-control" placeholder="Email address" aria-label="Email address" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                         </div>

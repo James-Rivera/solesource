@@ -89,7 +89,22 @@ document.addEventListener('DOMContentLoaded', () => {
       qty: 1
     };
 
-    await addToServerCart(payload);
+    const data = await addToServerCart(payload);
+
+    const badge = document.getElementById('header-cart-count');
+    if (badge && data?.cart) {
+      const totalQty = data.cart.reduce((sum, item) => sum + (item.qty || 0), 0);
+      badge.textContent = totalQty;
+      if (totalQty > 0) {
+        badge.classList.remove('d-none');
+      }
+    } else if (badge) {
+      const current = parseInt(badge.textContent || '0', 10) || 0;
+      const next = current + 1;
+      badge.textContent = next;
+      badge.classList.remove('d-none');
+    }
+
     window.cartDrawer?.refreshCart?.();
     window.cartDrawer?.open?.();
   });

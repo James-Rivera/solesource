@@ -1,3 +1,43 @@
+<?php
+session_start();
+require_once 'includes/connect.php';
+
+if (!isset($_GET['order_id']) || !isset($_SESSION['user_id'])) {
+    header('Location: index.php');
+    exit;
+}
+
+$orderId = (int) $_GET['order_id'];
+$userId = (int) $_SESSION['user_id'];
+
+$stmtOrder = $conn->prepare('SELECT o.*, u.full_name FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ? AND o.user_id = ? LIMIT 1');
+$stmtOrder->bind_param('ii', $orderId, $userId);
+$stmtOrder->execute();
+$orderRes = $stmtOrder->get_result();
+$order = $orderRes ? $orderRes->fetch_assoc() : null;
+$stmtOrder->close();
+
+if (!$order) {
+    header('Location: index.php');
+    exit;
+}
+
+$stmtItems = $conn->prepare('SELECT oi.*, p.name, p.brand, p.image FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?');
+$stmtItems->bind_param('i', $orderId);
+$stmtItems->execute();
+$itemsRes = $stmtItems->get_result();
+$orderItems = [];
+while ($row = $itemsRes->fetch_assoc()) {
+    $orderItems[] = $row;
+}
+$stmtItems->close();
+
+$primaryItem = $orderItems[0] ?? null;
+$displayOrderId = '#SS-2026-' . $order['id'];
+$orderDate = $order['created_at'] ? date('F j, Y', strtotime($order['created_at'])) : '';
+$customerName = $order['full_name'] ?? '';
+$shippingAddress = $order['shipping_address'] ?? '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -24,7 +64,7 @@
                         <div class="confirmation-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                             <div>
                                 <div class="label">ORDER CONFIRMATION ID</div>
-                                <div class="order-id">#SS-2401-9821</div>
+                                <div class="order-id"><?php echo htmlspecialchars($displayOrderId); ?></div>
                             </div>
                             <div>
                                 <button class="status-btn" type="button">ORDER STATUS</button>
@@ -48,8 +88,8 @@
                             <hr class="section-divider my-4">
 
                             <div class="text-start mb-4">
-                                <div class="shipping-label text-uppercase">Shipping to: Juan Dela Cruz</div>
-                                <div class="shipping-address">123 MAKATI AVE, MANILA, PHILIPPINES</div>
+                                <div class="shipping-label text-uppercase">Shipping to: <?php echo htmlspecialchars($customerName); ?></div>
+                                <div class="shipping-address"><?php echo nl2br(htmlspecialchars($shippingAddress)); ?></div>
                             </div>
 
                             <hr class="section-divider my-4">
@@ -58,15 +98,15 @@
                                 <div class="order-summary-title mb-4 text-uppercase">Order Summary</div>
                                 <div class="d-flex flex-column flex-md-row align-items-start gap-4">
                                     <div class="flex-shrink-0 text-center" style="width: 220px; max-width: 100%;">
-                                        <img src="assets/img/products/new/jordan-11-legend-blue.png" alt="Jordan 11 Retro 'Columbia / Legend Blue' 2024" style="width: 100%; height: auto; object-fit: contain;">
+                                        <img src="<?php echo htmlspecialchars($primaryItem['image'] ?? 'assets/img/products/new/jordan-11-legend-blue.png'); ?>" alt="<?php echo htmlspecialchars($primaryItem['name'] ?? 'Product'); ?>" style="width: 100%; height: auto; object-fit: contain;">
                                     </div>
                                     <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
                                         <div>
-                                            <div class="product-name">Jordan 11 Retro 'Columbia / Legend Blue' 2024</div>
-                                            <div class="product-meta">Jordan</div>
-                                            <div class="product-meta">US MEN SIZE 9.5</div>
+                                            <div class="product-name"><?php echo htmlspecialchars($primaryItem['name'] ?? ''); ?></div>
+                                            <div class="product-meta"><?php echo htmlspecialchars($primaryItem['brand'] ?? ''); ?></div>
+                                            <div class="product-meta">Size <?php echo htmlspecialchars($primaryItem['size'] ?? ''); ?></div>
                                         </div>
-                                        <div class="product-price fw-bold fs-4 text-start">P12,000.00</div>
+                                        <div class="product-price fw-bold fs-4 text-start">₱<?php echo number_format((float) ($primaryItem['price_at_purchase'] ?? $order['total_amount'] ?? 0), 2); ?></div>
                                     </div>
                                 </div>
                             </div>
@@ -80,23 +120,23 @@
                                 <div>
                                     <div class="summary-row d-flex align-items-center">
                                         <div class="summary-label">ORDER NUMBER</div>
-                                        <div class="summary-value text-uppercase ms-auto">#SS-2401-9821</div>
+                                        <div class="summary-value text-uppercase ms-auto"><?php echo htmlspecialchars($order['order_number'] ?? $displayOrderId); ?></div>
                                     </div>
                                     <div class="summary-row d-flex align-items-center">
                                         <div class="summary-label">ORDER DATE</div>
-                                        <div class="summary-value text-uppercase ms-auto">DECEMBER 29, 2025</div>
+                                        <div class="summary-value text-uppercase ms-auto"><?php echo htmlspecialchars($orderDate); ?></div>
                                     </div>
                                     <div class="summary-row d-flex align-items-center">
                                         <div class="summary-label">CUSTOMER</div>
-                                        <div class="summary-value text-uppercase ms-auto">JUAN DELA CRUZ</div>
+                                        <div class="summary-value text-uppercase ms-auto"><?php echo htmlspecialchars($customerName); ?></div>
                                     </div>
                                     <div class="summary-row d-flex align-items-center">
                                         <div class="summary-label">SHIPPING ADDRESS</div>
-                                        <div class="summary-value text-uppercase ms-auto">123 MAKATI AVE, MANILA, PHILIPPINES</div>
+                                        <div class="summary-value text-uppercase ms-auto"><?php echo nl2br(htmlspecialchars($shippingAddress)); ?></div>
                                     </div>
                                     <div class="summary-row d-flex align-items-center">
                                         <div class="summary-label">PAYMENT</div>
-                                        <div class="summary-value text-uppercase ms-auto">VISA ENDING IN 4242</div>
+                                        <div class="summary-value text-uppercase ms-auto"><?php echo htmlspecialchars($order['payment_method'] ?? ''); ?></div>
                                     </div>
                                 </div>
                             </div>

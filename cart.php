@@ -100,7 +100,7 @@ if (!empty($excludeIds)) {
 }
 
 $whereSql = implode(' AND ', $whereParts);
-$recSql = "SELECT * FROM products WHERE $whereSql ORDER BY RAND() LIMIT 4";
+$recSql = "SELECT * FROM products WHERE $whereSql ORDER BY RAND() LIMIT 10";
 $stmtRec = $conn->prepare($recSql);
 if ($typesRec) {
   $bindRec = [$typesRec];
@@ -176,7 +176,7 @@ $stmtRec->close();
                         <button class="cart-qty-btn" type="submit" aria-label="Increase quantity"><i class="bi bi-plus-lg"></i></button>
                       </form>
                     </div>
-                    <button class="wishlist-btn" type="button" aria-label="Wishlist (coming soon)" disabled><i class="bi bi-heart"></i></button>
+                    <button class="wishlist-btn btn-wishlist" type="button" aria-label="Wishlist (coming soon)" data-product-id="<?php echo (int) $item['id']; ?>"><i class="bi bi-heart"></i></button>
                   </div>
                 </div>
               </div>

@@ -5,6 +5,14 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $isLoggedIn = isset($_SESSION['user_id']);
 $userName = $_SESSION['user_name'] ?? 'Account';
+$cartCount = 0;
+if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+	foreach ($_SESSION['cart'] as $line) {
+		$cartCount += isset($line['qty']) ? (int)$line['qty'] : 0;
+	}
+}
+$currentPage = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+$isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
 ?>
 <header>
 	<nav class="navbar navbar-expand-lg navbar-dark bg-brand-black py-3 border-bottom border-brand-dark-gray">
@@ -28,10 +36,22 @@ $userName = $_SESSION['user_name'] ?? 'Account';
 						<li class="nav-item">
 							<a class="nav-link px-0" href="#">About</a>
 						</li>
-						<li class="nav-item">
-							<button class="nav-link px-0 btn btn-link text-decoration-none text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer" aria-controls="cartDrawer" aria-label="Open cart">
-								<i class="bi bi-cart3 fs-5"></i>
-							</button>
+						<li class="nav-item position-relative">
+							<?php if ($isCartFlow): ?>
+								<a class="nav-link px-0 text-white position-relative" href="cart.php" aria-label="Cart">
+									<i class="bi bi-cart3 fs-5"></i>
+									<span id="header-cart-count" class="position-absolute badge rounded-pill bg-danger header-cart-badge <?php echo $cartCount === 0 ? 'd-none' : ''; ?>">
+										<?php echo $cartCount; ?>
+									</span>
+								</a>
+							<?php else: ?>
+								<button class="nav-link px-0 btn btn-link text-decoration-none text-white position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartDrawer" aria-controls="cartDrawer" aria-label="Open cart">
+									<i class="bi bi-cart3 fs-5"></i>
+									<span id="header-cart-count" class="position-absolute badge rounded-pill bg-danger header-cart-badge <?php echo $cartCount === 0 ? 'd-none' : ''; ?>">
+										<?php echo $cartCount; ?>
+									</span>
+								</button>
+							<?php endif; ?>
 						</li>
 					</ul>
 
@@ -105,6 +125,12 @@ $userName = $_SESSION['user_name'] ?? 'Account';
 .account-btn:hover {
 	color: #f2f2f2;
 	border-color: #3a3a3a;
+}
+.header-cart-badge {
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	z-index: 10;
 }
 </style>
 

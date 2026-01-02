@@ -88,11 +88,11 @@ $breadcrumb_active = $product['name'];
 
                 <!-- Right: Details -->
                 <div class="col-lg-5">
-                    <div class="mb-2 text-uppercase text-muted small fw-semibold"><?php echo htmlspecialchars($product['brand']); ?></div>
+                    <div class="mb-3 text-uppercase text-muted small fw-semibold"><?php echo htmlspecialchars($product['brand']); ?></div>
                     <h1 class="product-title-detail mb-3"><?php echo htmlspecialchars($product['name']); ?></h1>
-                    <div class="product-price-detail mb-5">₱<?php echo htmlspecialchars($product['price']); ?></div>
+                    <div class="product-price-detail mb-4">₱<?php echo htmlspecialchars($product['price']); ?></div>
 
-                    <div class="size-label mb-3 text-uppercase small fw-bold"><?php echo htmlspecialchars($size_label); ?></div>
+                    <div class="size-label mb-3 text-uppercase small"><?php echo htmlspecialchars($size_label); ?></div>
                     <?php $sizes = ['7','7.5','8','8.5','9','9.5','10','10.5','11','11.5','12','13']; ?>
                     <div class="size-grid mb-4" id="sizeSelector">
                         <?php foreach ($sizes as $i => $size): ?>
