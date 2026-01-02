@@ -1,0 +1,199 @@
+<?php
+session_start();
+require_once 'includes/connect.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php?redirect=orders');
+    exit;
+}
+
+if (!isset($_GET['id'])) {
+    header('Location: orders.php');
+    exit;
+}
+
+$orderId = (int) $_GET['id'];
+$userId = (int) $_SESSION['user_id'];
+
+// Fetch order with ownership check
+$orderStmt = $conn->prepare('SELECT * FROM orders WHERE id = ? AND user_id = ? LIMIT 1');
+$orderStmt->bind_param('ii', $orderId, $userId);
+$orderStmt->execute();
+$orderRes = $orderStmt->get_result();
+$order = $orderRes ? $orderRes->fetch_assoc() : null;
+$orderStmt->close();
+
+if (!$order) {
+    header('Location: orders.php');
+    exit;
+}
+
+// Fetch order items with product details
+$itemStmt = $conn->prepare('SELECT oi.*, p.name, p.brand, p.image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?');
+$itemStmt->bind_param('i', $orderId);
+$itemStmt->execute();
+$items = $itemStmt->get_result();
+$orderItems = [];
+while ($row = $items->fetch_assoc()) {
+    $orderItems[] = $row;
+}
+$itemStmt->close();
+
+$orderDisplayId = $order['order_number'] ?: ('#SS-2026-' . $order['id']);
+$status = strtolower($order['status'] ?? 'pending');
+$statusLabel = 'PENDING';
+if ($status === 'confirmed') {
+    $statusLabel = 'CONFIRMED';
+} elseif ($status === 'shipped') {
+    $statusLabel = 'SHIPPING';
+} elseif ($status === 'delivered') {
+    $statusLabel = 'DELIVERED';
+} elseif ($status === 'cancelled') {
+    $statusLabel = 'CANCELLED';
+}
+
+$orderDate = $order['created_at'] ? date('F d, Y', strtotime($order['created_at'])) : '';
+
+$addressParts = [];
+if (!empty($order['address'])) {
+    $addressParts[] = $order['address'];
+}
+$cityProvince = trim(($order['city'] ?? '') . (($order['province'] ?? '') ? ', ' . $order['province'] : ''));
+if ($cityProvince) {
+    $addressParts[] = $cityProvince;
+}
+$zipCountry = trim(($order['zip_code'] ?? '') . (($order['country'] ?? '') ? ' ' . $order['country'] : ''));
+if ($zipCountry) {
+    $addressParts[] = $zipCountry;
+}
+$shippingAddress = implode("\n", $addressParts);
+
+$totalAmount = (float) ($order['total_amount'] ?? 0);
+$primaryItem = $orderItems[0] ?? null;
+$primaryImage = $primaryItem['image'] ?? 'assets/img/products/new/jordan-11-legend-blue.png';
+$primaryName = $primaryItem['name'] ?? '';
+$primaryBrand = $primaryItem['brand'] ?? '';
+$primarySize = $primaryItem['size'] ?? '';
+$primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $totalAmount;
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SoleSource | Order Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/confirmation.css">
+    <?php include 'includes/head-meta.php'; ?>
+    <style>
+        .status-btn {
+            display: inline-block;
+            padding: 0.65rem 1.4rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            border-radius: 4px;
+        }
+        .other-item + .other-item { border-top: 1px solid #eee; }
+    </style>
+</head>
+
+<body class="confirmation-page">
+    <?php include 'includes/header.php'; ?>
+
+    <main class="py-5 py-md-6">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-9 col-xl-8">
+                    <div class="confirmation-card">
+                        <div class="confirmation-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                            <div>
+                                <div class="label">ORDER ID</div>
+                                <div class="order-id"><?php echo htmlspecialchars($orderDisplayId); ?></div>
+                            </div>
+                            <div>
+                                <span class="status-btn bg-white text-dark"><?php echo htmlspecialchars($statusLabel); ?></span>
+                            </div>
+                        </div>
+
+                        <div class="confirmation-body mt-3">
+                            <div class="mb-4">
+                                <div class="order-summary-title mb-3 text-uppercase">Order Summary</div>
+                                <div class="d-flex flex-column flex-md-row align-items-start gap-4">
+                                    <div class="flex-shrink-0 text-center" style="width: 250px; max-width: 100%;">
+                                        <img src="<?php echo htmlspecialchars($primaryImage); ?>" alt="<?php echo htmlspecialchars($primaryName); ?>" style="width: 100%; height: auto; object-fit: contain;">
+                                    </div>
+                                    <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
+                                        <div>
+                                            <div class="product-name" style="font-weight: 700; font-size: 1.2rem; line-height: 1.3;"><?php echo htmlspecialchars($primaryName); ?></div>
+                                            <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Brand: <?php echo htmlspecialchars($primaryBrand); ?></div>
+                                            <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem; text-decoration: underline;">Size: <?php echo htmlspecialchars($primarySize); ?></div>
+                                            <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Qty: <?php echo (int) ($primaryItem['quantity'] ?? 1); ?></div>
+                                        </div>
+                                        <div class="product-price fw-bold fs-4 text-md-end">₱<?php echo number_format($totalAmount ?: $primaryPrice, 2); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <?php if (count($orderItems) > 1): ?>
+                                <div class="mb-4">
+                                    <div class="text-uppercase small text-muted mb-3">Other Items</div>
+                                    <?php foreach ($orderItems as $idx => $item): ?>
+                                        <?php if ($idx === 0) { continue; } ?>
+                                        <div class="d-flex align-items-center gap-3 py-2 other-item">
+                                            <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 72px; height: 72px; object-fit: contain;">
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
+                                                <div class="text-muted small text-uppercase">Brand: <?php echo htmlspecialchars($item['brand']); ?></div>
+                                                <div class="text-muted small text-uppercase">Size: <?php echo htmlspecialchars($item['size']); ?> • Qty: <?php echo (int) $item['quantity']; ?></div>
+                                            </div>
+                                            <div class="fw-bold">₱<?php echo number_format((float) $item['price_at_purchase'] * (int) $item['quantity'], 2); ?></div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="mb-4">
+                                <div class="order-summary-title mb-3 text-uppercase">Complete Order Details</div>
+                                <div class="d-flex flex-column gap-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Order Number</div>
+                                        <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars($order['order_number'] ?: $orderDisplayId); ?></div>
+                                    </div>
+                                    <div class="d-flex align-items-start">
+                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Order Date</div>
+                                        <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars($orderDate); ?></div>
+                                    </div>
+                                    <div class="d-flex align-items-start">
+                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Customer</div>
+                                        <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars($order['full_name'] ?? ''); ?></div>
+                                    </div>
+                                    <div class="d-flex align-items-start">
+                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Shipping Address</div>
+                                        <div class="summary-value fw-bold ms-auto text-end" style="white-space: pre-line;"><?php echo nl2br(htmlspecialchars($shippingAddress)); ?></div>
+                                    </div>
+                                    <div class="d-flex align-items-start">
+                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Payment</div>
+                                        <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars(($order['payment_method'] ?? '') === 'COD' ? 'Cash on Delivery' : ($order['payment_method'] ?? '')); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-5">
+                                <a href="#" class="btn w-100 cta-btn" style="background: var(--brand-orange, #f5804e); color: #fff; font-weight: 700;">Download</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <?php include 'includes/footer.php'; ?>
+</body>
+
+</html>

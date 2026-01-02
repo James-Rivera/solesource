@@ -1,5 +1,14 @@
 <?php
 session_start();
+require_once 'includes/connect.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php?redirect=profile');
+    exit;
+}
+
+$userId = (int) $_SESSION['user_id'];
+
 // Mock user data - replace with actual database query
 $user = [
     'name' => 'JUAN DELA CRUZ',
@@ -16,33 +25,17 @@ $wishlist_products = [
     ['id' => 3, 'brand' => 'JORDAN', 'name' => 'AIR JORDAN 1 HIGH', 'price' => '₱8,295.00', 'image' => 'assets/img/products/best/jordan-1-high.png'],
 ];
 
-// Mock order history
-$recent_orders = [
-    [
-        'order_number' => '#2401-9921',
-        'date' => 'Dec 30, 2025',
-        'status' => 'Processing',
-        'status_class' => 'bg-warning text-dark',
-        'image' => 'assets/img/products/new/jordan-11-legend-blue.png'
-    ],
-    [
-        'order_number' => '#2401-9820',
-        'date' => 'Dec 28, 2025',
-        'status' => 'Shipped',
-        'status_class' => 'bg-info text-dark',
-        'image' => 'assets/img/products/best/air-force-1.png'
-    ],
-    [
-        'order_number' => '#2401-9819',
-        'date' => 'Dec 25, 2025',
-        'status' => 'Delivered',
-        'status_class' => 'bg-success text-white',
-        'image' => 'assets/img/products/new/adidas-gazelle.png'
-    ],
-];
-
 $purchases_ids = [1, 2, 3, 4, 5, 6, 7, 8];
-$hasOrders = true; // Toggle to show/hide order history
+
+$ordersResult = null;
+$orderCount = 0;
+$orderStmt = $conn->prepare("SELECT o.id, o.order_number, o.total_amount, o.status, o.created_at, MIN(p.image) AS product_image FROM orders o LEFT JOIN order_items oi ON oi.order_id = o.id LEFT JOIN products p ON p.id = oi.product_id WHERE o.user_id = ? GROUP BY o.id ORDER BY o.created_at DESC");
+$orderStmt->bind_param('i', $userId);
+$orderStmt->execute();
+$ordersResult = $orderStmt->get_result();
+$orderCount = $ordersResult ? $ordersResult->num_rows : 0;
+$orderStmt->close();
+$hasOrders = $orderCount > 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -165,44 +158,65 @@ $hasOrders = true; // Toggle to show/hide order history
                     <h2 class="account-section-title">ORDERS</h2>
                     <hr class="mb-5">
                     
-                    <?php if ($hasOrders): ?>
+                    <?php if ($hasOrders && $ordersResult): ?>
                         <!-- Recent Orders List -->
                         <div class="mb-5">
                             <div class="order-history-list">
-                                <?php foreach ($recent_orders as $index => $order): ?>
-                                    <div class="order-history-row d-flex align-items-center py-4 <?php echo $index !== count($recent_orders) - 1 ? 'border-bottom border-light' : ''; ?>">
+                                <?php $rowIndex = 0; $lastIndex = $orderCount - 1; ?>
+                                <?php while ($order = $ordersResult->fetch_assoc()): ?>
+                                    <?php
+                                        $rowIndex++;
+                                        $isLast = ($rowIndex === $orderCount);
+                                        $status = $order['status'] ?? '';
+                                        $statusClass = 'text-secondary';
+                                        switch ($status) {
+                                            case 'pending':
+                                                $statusClass = 'text-warning';
+                                                break;
+                                            case 'confirmed':
+                                                $statusClass = 'text-primary';
+                                                break;
+                                            case 'shipped':
+                                                $statusClass = 'text-info';
+                                                break;
+                                            case 'delivered':
+                                                $statusClass = 'text-success';
+                                                break;
+                                            case 'cancelled':
+                                                $statusClass = 'text-danger';
+                                                break;
+                                        }
+                                        $orderDate = $order['created_at'] ? date('M d, Y', strtotime($order['created_at'])) : '';
+                                        $orderImage = $order['product_image'] ?? '';
+                                        if (!$orderImage) {
+                                            $orderImage = 'assets/img/products/new/jordan-11-legend-blue.png';
+                                        }
+                                    ?>
+                                    <div class="order-history-row d-flex align-items-center py-4 <?php echo !$isLast ? 'border-bottom border-light' : ''; ?>">
                                         <!-- Product Image -->
                                         <div class="order-history-image flex-shrink-0 me-4">
-                                            <img src="<?php echo $order['image']; ?>" alt="Order Item" class="rounded">
+                                            <img src="<?php echo htmlspecialchars($orderImage); ?>" alt="Order Item" class="rounded">
                                         </div>
                                         
                                         <!-- Order Details -->
                                         <div class="order-history-details flex-grow-1">
-                                            <div class="order-history-number fw-bold text-brand-black mb-1">Order <?php echo $order['order_number']; ?></div>
-                                            <div class="order-history-meta text-muted small mb-2"><?php echo $order['date']; ?> • 1 Item</div>
+                                            <div class="order-history-number fw-bold text-brand-black mb-1">Order <?php echo htmlspecialchars($order['order_number']); ?></div>
+                                            <div class="order-history-meta text-muted small mb-2"><?php echo htmlspecialchars($orderDate); ?> • 1 Item</div>
                                             <div class="order-history-status">
-                                                <?php if ($order['status'] === 'Processing'): ?>
-                                                    <span class="text-warning fs-6 me-1">●</span><span class="small">Processing</span>
-                                                <?php elseif ($order['status'] === 'Shipped'): ?>
-                                                    <span class="text-info fs-6 me-1">●</span><span class="small">Shipped</span>
-                                                <?php elseif ($order['status'] === 'Delivered'): ?>
-                                                    <span class="text-success fs-6 me-1">●</span><span class="small">Delivered</span>
-                                                <?php else: ?>
-                                                    <span class="text-secondary fs-6 me-1">●</span><span class="small"><?php echo $order['status']; ?></span>
-                                                <?php endif; ?>
+                                                <span class="<?php echo $statusClass; ?> fs-6 me-1">●</span><span class="small"><?php echo htmlspecialchars(ucfirst($status)); ?></span>
                                             </div>
                                         </div>
                                         
                                         <!-- Price & Action -->
                                         <div class="order-history-right ms-auto text-end">
-                                            <div class="order-history-price fw-bold text-brand-black mb-2">₱12,000</div>
-                                            <a href="order-details.php?id=<?php echo urlencode($order['order_number']); ?>" class="order-history-link text-brand-black text-decoration-underline small d-inline-flex align-items-center gap-1">
+                                            <div class="order-history-price fw-bold text-brand-black mb-2">₱<?php echo number_format((float) ($order['total_amount'] ?? 0), 2); ?></div>
+                                            <a href="view_order.php?id=<?php echo urlencode($order['id']); ?>" class="order-history-link text-brand-black text-decoration-underline small d-inline-flex align-items-center gap-1">
                                                 View Details
                                                 <i class="bi bi-chevron-right"></i>
                                             </a>
                                         </div>
                                     </div>
-                                <?php endforeach; ?>
+                                <?php endwhile; ?>
                             </div>
                         </div>
                     <?php else: ?>
@@ -486,7 +500,6 @@ $hasOrders = true; // Toggle to show/hide order history
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Wishlist remove functionality
         document.querySelectorAll('.wishlist-remove-btn').forEach(btn => {
