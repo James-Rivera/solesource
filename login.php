@@ -1,3 +1,37 @@
+<?php
+session_start();
+require_once 'includes/connect.php';
+
+$error_message = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if ($email === '' || $password === '') {
+        $error_message = 'Email and password are required.';
+    } else {
+        $sql = "SELECT id, full_name, email, password, role FROM users WHERE email = ? LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result ? $result->fetch_assoc() : null;
+        $stmt->close();
+
+        if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['full_name'];
+            $_SESSION['user_role'] = $user['role'];
+            $_SESSION['user_email'] = $user['email'];
+            header('Location: index.php');
+            exit;
+        } else {
+            $error_message = 'Invalid email or password.';
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,12 +59,17 @@
             <div class="login-wrapper">
                 <div class="login-card">
                     <div class="login-title">LOG IN</div>
-                    <form>
+                    <?php if (!empty($error_message)): ?>
+                        <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                            <?php echo htmlspecialchars($error_message); ?>
+                        </div>
+                    <?php endif; ?>
+                    <form method="POST">
                         <div class="mb-3">
-                            <input type="email" class="form-control" placeholder="Email address" aria-label="Email address">
+                            <input type="email" name="email" class="form-control" placeholder="Email address" aria-label="Email address" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                         </div>
                         <div class="mb-2 position-relative">
-                            <input id="passwordInput" type="password" class="form-control pe-5" placeholder="Password" aria-label="Password">
+                            <input id="passwordInput" type="password" name="password" class="form-control pe-5" placeholder="Password" aria-label="Password">
                             <button id="togglePassword" class="toggle-eye-btn" type="button" aria-label="Show password">
                                 <i class="bi bi-eye"></i>
                             </button>
@@ -38,7 +77,7 @@
                         <div class="mb-4 text-start">
                             <a href="#" class="forgot-link">forgot password?</a>
                         </div>
-                        <a class="btn btn-login-primary w-100" href="index.php">LOG IN</a>
+                        <button class="btn btn-login-primary w-100" type="submit">LOG IN</button>
                         <div class="small text-muted mb-3" style="line-height: 1.4;">By logging in, you agree to the Terms of Service and Privacy Policy.</div>
                         <div class="mb-2 small text-muted">Not a fellow Sole Member?</div>
                         <a class="btn btn-login-secondary w-100" href="signup.php">CREATE ACCOUNT</a>

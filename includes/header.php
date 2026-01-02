@@ -3,7 +3,8 @@ include __DIR__ . '/products.php';
 if (session_status() === PHP_SESSION_NONE) {
 	session_start();
 }
-$isLoggedIn = !empty($_SESSION['user']);
+$isLoggedIn = isset($_SESSION['user_id']);
+$userName = $_SESSION['user_name'] ?? 'Account';
 ?>
 <header>
 	<nav class="navbar navbar-expand-lg navbar-dark bg-brand-black py-3 border-bottom border-brand-dark-gray">
@@ -42,7 +43,7 @@ $isLoggedIn = !empty($_SESSION['user']);
 							<div class="dropdown">
 								<button class="btn account-btn d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 									<i class="bi bi-person-circle fs-5"></i>
-									<span class="d-none d-md-inline">Account</span>
+									<span class="d-none d-md-inline">Hello, <?php echo htmlspecialchars($userName); ?></span>
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end">
 									<li><a class="dropdown-item" href="profile.php">Profile</a></li>
