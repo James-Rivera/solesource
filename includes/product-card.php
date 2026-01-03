@@ -11,7 +11,12 @@ $href = $productId ? 'product-details.php?id=' . urlencode($productId) : '#';
             </div>
             <div class="product-body flex-grow-1 d-flex flex-column">
                 <div class="product-brand mb-2 text-uppercase small"><?php echo htmlspecialchars($shoe['brand']); ?></div>
-                <div class="product-title fw-bold mb-2 text-uppercase"><?php echo htmlspecialchars($shoe['name']); ?></div>
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                    <div class="product-title fw-bold text-uppercase mb-0"><?php echo htmlspecialchars($shoe['name']); ?></div>
+                    <?php if (!empty($shoe['gender'])): ?>
+                        <span class="badge-gender"><?php echo htmlspecialchars($shoe['gender']); ?></span>
+                    <?php endif; ?>
+                </div>
                 <div class="mt-auto product-price"><?php echo htmlspecialchars($shoe['price']); ?></div>
             </div>
         </a>

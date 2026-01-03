@@ -13,6 +13,20 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 }
 $currentPage = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
+$megaBrands = [];
+foreach ($all_products as $prod) {
+	$brand = isset($prod['brand']) ? trim($prod['brand']) : '';
+	if ($brand !== '') { $megaBrands[$brand] = true; }
+}
+$megaBrands = array_keys($megaBrands);
+sort($megaBrands);
+$megaSports = [];
+foreach ($all_products as $prod) {
+	$sport = isset($prod['sport']) ? trim($prod['sport']) : '';
+	if ($sport !== '') { $megaSports[$sport] = true; }
+}
+$megaSports = array_keys($megaSports);
+sort($megaSports);
 ?>
 <header>
 	<nav class="navbar navbar-expand-lg navbar-dark bg-brand-black py-3 border-bottom border-brand-dark-gray">
@@ -85,17 +99,105 @@ $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
 		</div>
 	</nav>
 
-	<nav class="bg-brand-black border-bottom border-brand-dark-gray py-1">
+	<nav class="bg-brand-black border-bottom border-brand-dark-gray py-1 mega-nav-wrapper">
 		<div class="container-xxl">
-			<div class="d-flex justify-content-center gap-4 gap-md-5 py-3 small category-links flex-wrap">
-				<a class="text-inactive text-decoration-none" href="shop.php">All</a>
-				<a class="text-inactive text-decoration-none" href="shop.php?brand=Nike">Nike</a>
-				<a class="text-inactive text-decoration-none" href="shop.php?brand=Adidas">Adidas</a>
-				<a class="text-inactive text-decoration-none" href="shop.php?brand=Puma">Puma</a>
-				<a class="text-inactive text-decoration-none" href="shop.php?brand=Onitsuka">Onitsuka Tiger</a>
-				<a class="text-inactive text-decoration-none" href="shop.php?brand=Asics">Asics</a>
-				<a class="text-inactive text-decoration-none" href="shop.php?brand=Fila">Fila</a>
-			</div>
+			<ul class="mega-nav">
+				<li class="mega-item has-panel">
+					<a href="shop.php?gender=Men" class="mega-link">Men</a>
+					<div class="mega-panel">
+						<div class="mega-panel-inner">
+							<div class="mega-col">
+								<div class="mega-title">Spotlight</div>
+								<a href="shop.php?gender=Men&sort=new">New Releases</a>
+								<a href="shop.php?gender=Men&sort=best">Best Sellers</a>
+								<a href="shop.php?gender=Men&is_featured=1">Featured</a>
+							</div>
+							<div class="mega-col">
+								<div class="mega-title">Shoes</div>
+								<?php foreach ($megaBrands as $brand): ?>
+									<a href="shop.php?gender=Men&brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
+								<?php endforeach; ?>
+							</div>
+							<div class="mega-col">
+								<div class="mega-title">Sport</div>
+								<?php foreach ($megaSports as $sport): ?>
+									<a href="shop.php?gender=Men&sport=<?php echo urlencode($sport); ?>"><?php echo htmlspecialchars($sport); ?></a>
+								<?php endforeach; ?>
+							</div>
+						</div>
+					</div>
+				</li>
+				<li class="mega-item has-panel">
+					<a href="shop.php?gender=Women" class="mega-link">Women</a>
+					<div class="mega-panel">
+						<div class="mega-panel-inner">
+							<div class="mega-col">
+								<div class="mega-title">Spotlight</div>
+								<a href="shop.php?gender=Women&sort=new">New Releases</a>
+								<a href="shop.php?gender=Women&sort=best">Best Sellers</a>
+								<a href="shop.php?gender=Women&is_featured=1">Featured</a>
+							</div>
+							<div class="mega-col">
+								<div class="mega-title">Shoes</div>
+								<?php foreach ($megaBrands as $brand): ?>
+									<a href="shop.php?gender=Women&brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
+								<?php endforeach; ?>
+							</div>
+							<div class="mega-col">
+								<div class="mega-title">Sport</div>
+								<?php foreach ($megaSports as $sport): ?>
+									<a href="shop.php?gender=Women&sport=<?php echo urlencode($sport); ?>"><?php echo htmlspecialchars($sport); ?></a>
+								<?php endforeach; ?>
+							</div>
+						</div>
+					</div>
+				</li>
+				<li class="mega-item has-panel">
+					<a href="shop.php?gender=Unisex" class="mega-link">Unisex</a>
+					<div class="mega-panel">
+						<div class="mega-panel-inner">
+							<div class="mega-col">
+								<div class="mega-title">Spotlight</div>
+								<a href="shop.php?gender=Unisex&sort=new">New Releases</a>
+								<a href="shop.php?gender=Unisex&sort=best">Best Sellers</a>
+							</div>
+							<div class="mega-col">
+								<div class="mega-title">Brands</div>
+								<?php foreach ($megaBrands as $brand): ?>
+									<a href="shop.php?gender=Unisex&brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
+								<?php endforeach; ?>
+							</div>
+							<?php if (!empty($megaSports)): ?>
+							<div class="mega-col">
+								<div class="mega-title">Sport</div>
+								<?php foreach ($megaSports as $sport): ?>
+									<a href="shop.php?gender=Unisex&sport=<?php echo urlencode($sport); ?>"><?php echo htmlspecialchars($sport); ?></a>
+								<?php endforeach; ?>
+							</div>
+							<?php endif; ?>
+						</div>
+					</div>
+				</li>
+				<li class="mega-item has-panel">
+					<a href="shop.php" class="mega-link">Brands</a>
+					<div class="mega-panel">
+						<div class="mega-panel-inner">
+							<div class="mega-col">
+								<div class="mega-title">Top Brands</div>
+								<?php foreach ($megaBrands as $brand): ?>
+									<a href="shop.php?brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
+								<?php endforeach; ?>
+							</div>
+							<div class="mega-col">
+								<div class="mega-title">Shop by Gender</div>
+								<a href="shop.php?gender=Men">Men</a>
+								<a href="shop.php?gender=Women">Women</a>
+								<a href="shop.php?gender=Unisex">Unisex</a>
+							</div>
+						</div>
+					</div>
+				</li>
+			</ul>
 		</div>
 	</nav>
 </header>
@@ -137,6 +239,56 @@ $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
 }
 .dropdown-menu {
 	z-index: 1200;
+}
+.mega-nav-wrapper { position: relative; }
+.mega-nav { list-style: none; margin: 0; padding: 0; display: flex; gap: 2rem; justify-content: center; align-items: center; }
+.mega-link { color: #fff; text-decoration: none; font-weight: 700; letter-spacing: 0.4px; }
+.mega-item { position: relative; padding: 0.75rem 0; }
+.mega-panel {
+	position: fixed;
+	left: 0;
+	right: 0;
+	width: 100vw;
+	top: var(--mega-top, 110px);
+	background: #fff;
+	padding: 2.5rem 0;
+	box-shadow: 0 16px 36px rgba(0,0,0,0.2);
+	border-radius: 0;
+	border: 1px solid #e5e5e5;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transform: translateY(14px);
+	transition: opacity 180ms ease, transform 180ms ease, visibility 0ms linear 180ms;
+	z-index: 1400;
+}
+.mega-panel-inner {
+	width: min(1200px, 92vw);
+	margin: 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 1.75rem 2.25rem;
+}
+.mega-col { min-width: 200px; flex: 1 1 220px; }
+.mega-col a {
+	display: block;
+	padding: 6px 0;
+	color: #757575;
+	font-weight: 400;
+	line-height: 1.3;
+	transition: color 0.2s ease-in-out;
+}
+.mega-col a:hover { color: #000; }
+.mega-title { text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.6px; font-weight: 800; color: #000; margin-bottom: 0.6rem; }
+.mega-item:hover > .mega-panel,
+.mega-item:focus-within > .mega-panel { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); transition-delay: 0ms; }
+@media (max-width: 992px) {
+	.mega-nav { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+	.mega-item { width: 100%; }
+	.mega-panel { position: static; width: 100%; padding: 1.5rem 0; box-shadow: none; border-left: 0; border-right: 0; opacity: 0; visibility: hidden; pointer-events: none; transform: translate(0, 10px); }
+	.mega-panel-inner { width: 100%; padding: 0 1.25rem; justify-content: flex-start; }
+	.mega-item.open > .mega-panel { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(0, 0); transition: opacity 160ms ease, transform 160ms ease; }
 }
 </style>
 
@@ -181,4 +333,28 @@ async function queryProducts(term) {
 input?.addEventListener('input', (e) => queryProducts(e.target.value.trim()));
 input?.addEventListener('focus', (e) => queryProducts(e.target.value.trim()));
 input?.addEventListener('blur', () => setTimeout(() => { dropdown.classList.add('d-none'); }, 150));
+
+// Mega menu mobile toggle
+document.querySelectorAll('.mega-item.has-panel > a').forEach(link => {
+	link.addEventListener('click', (e) => {
+		if (window.innerWidth <= 992) {
+			e.preventDefault();
+			const li = link.parentElement;
+			li.classList.toggle('open');
+		}
+	});
+});
+
+// Position mega menu overlay relative to nav height
+function updateMegaTop() {
+	const anchor = document.querySelector('.mega-nav-wrapper');
+	if (!anchor) return;
+	const rect = anchor.getBoundingClientRect();
+	const top = rect.bottom + window.scrollY;
+	document.documentElement.style.setProperty('--mega-top', `${top}px`);
+}
+
+window.addEventListener('resize', updateMegaTop);
+window.addEventListener('load', updateMegaTop);
+updateMegaTop();
 </script>

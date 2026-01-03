@@ -62,17 +62,27 @@ if (empty($sizeOptions)) {
 
 $selectedSizeId = null;
 $selectedSizeLabel = '';
+$selectedSystem = $sizeOptions[0]['size_system'] ?? 'US';
+$selectedGender = $sizeOptions[0]['gender'] ?? ($product['gender'] ?? 'Unisex');
 foreach ($sizeOptions as $opt) {
     if ((int) ($opt['stock_quantity'] ?? 0) > 0 && (int) ($opt['is_active'] ?? 0) === 1) {
         $selectedSizeId = $opt['id'];
         $selectedSizeLabel = $opt['size_label'];
+        $selectedSystem = $opt['size_system'];
+        $selectedGender = $opt['gender'];
         break;
     }
 }
 if ($selectedSizeLabel === '' && !empty($sizeOptions)) {
     $selectedSizeId = $sizeOptions[0]['id'];
     $selectedSizeLabel = $sizeOptions[0]['size_label'];
+    $selectedSystem = $sizeOptions[0]['size_system'];
+    $selectedGender = $sizeOptions[0]['gender'];
 }
+
+// Build unique lists for system and gender toggles
+$availableSystems = array_values(array_unique(array_map(fn($o) => $o['size_system'], $sizeOptions)));
+$availableGenders = array_values(array_unique(array_map(fn($o) => $o['gender'], $sizeOptions)));
 
 $breadcrumb_active = $product['name'];
 ?>
@@ -124,11 +134,30 @@ $breadcrumb_active = $product['name'];
 
                 <!-- Right: Details -->
                 <div class="col-lg-5">
-                    <div class="mb-3 text-uppercase text-muted small fw-semibold"><?php echo htmlspecialchars($product['brand']); ?></div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="text-uppercase text-muted small fw-semibold mb-0"><?php echo htmlspecialchars($product['brand']); ?></div>
+                        <?php if (!empty($product['gender'])): ?>
+                            <span class="badge-gender"><?php echo htmlspecialchars($product['gender']); ?></span>
+                        <?php endif; ?>
+                    </div>
                     <h1 class="product-title-detail mb-3"><?php echo htmlspecialchars($product['name']); ?></h1>
                     <div class="product-price-detail mb-4">₱<?php echo number_format((float)$product['price'], 2); ?></div>
 
-                    <div class="size-label mb-3 text-uppercase small"><?php echo htmlspecialchars($size_label); ?></div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <?php if (count($availableSystems) > 1): ?>
+                            <div class="size-label text-uppercase small mb-0">Size System:</div>
+                            <?php foreach ($availableSystems as $sys): ?>
+                                <button type="button" class="size-toggle btn-system<?php echo $sys === $selectedSystem ? ' active' : ''; ?>" data-system="<?php echo htmlspecialchars($sys); ?>"><?php echo htmlspecialchars($sys); ?></button>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        <?php if (count($availableGenders) > 1): ?>
+                            <div class="size-label text-uppercase small mb-0 ms-2">Gender:</div>
+                            <?php foreach ($availableGenders as $g): ?>
+                                <button type="button" class="size-toggle btn-gender<?php echo $g === $selectedGender ? ' active' : ''; ?>" data-gender="<?php echo htmlspecialchars($g); ?>"><?php echo htmlspecialchars($g); ?></button>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+
                     <div class="size-grid mb-4" id="sizeSelector">
                         <?php foreach ($sizeOptions as $opt): 
                             $outOfStock = (int) ($opt['stock_quantity'] ?? 0) <= 0;
@@ -150,6 +179,8 @@ $breadcrumb_active = $product['name'];
                     </div>
                     <input type="hidden" id="selectedSize" name="size" value="<?php echo htmlspecialchars($selectedSizeLabel); ?>">
                     <input type="hidden" id="selectedSizeId" name="size_id" value="<?php echo htmlspecialchars((string) $selectedSizeId); ?>">
+                    <input type="hidden" id="selectedSystem" name="size_system" value="<?php echo htmlspecialchars($selectedSystem); ?>">
+                    <input type="hidden" id="selectedGender" name="size_gender" value="<?php echo htmlspecialchars($selectedGender); ?>">
 
                     <button
                         class="btn-cta mb-5"

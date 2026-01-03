@@ -20,6 +20,7 @@ a {
   transition: opacity 0.2s ease;
 }
 
+
 a:hover {
   opacity: 0.8;
 }
@@ -183,6 +184,32 @@ a:hover {
   font-size: 0.95rem;
   line-height: 1.2;
   text-transform: uppercase;
+}
+.badge-gender {
+  display: inline-block;
+  background: #111;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.size-toggle {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.size-toggle.active {
+  border-color: #111;
+  background: #111;
+  color: #fff;
 }
 
 .text-description {

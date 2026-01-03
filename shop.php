@@ -1,5 +1,77 @@
 <?php
 require_once 'includes/connect.php';
+
+$brand_options = [];
+$sport_options = [];
+$size_options = [];
+$gender_options = [];
+$gender_counts = [];
+$brand_counts = [];
+$sport_counts = [];
+$price_ranges = [
+    ['label' => '₱0 - ₱3000', 'min' => 0, 'max' => 3000],
+    ['label' => '₱3000 - ₱6000', 'min' => 3000, 'max' => 6000],
+    ['label' => '₱6000 and up', 'min' => 6000, 'max' => null],
+];
+$price_counts = [];
+
+$brand_rs = $conn->query("SELECT DISTINCT brand FROM products WHERE status='active' ORDER BY brand ASC");
+if ($brand_rs) {
+    while ($row = $brand_rs->fetch_assoc()) {
+        if (!empty($row['brand'])) { $brand_options[] = $row['brand']; }
+    }
+}
+
+$sport_rs = $conn->query("SELECT DISTINCT sport FROM products WHERE status='active' AND sport IS NOT NULL ORDER BY sport ASC");
+if ($sport_rs) {
+    while ($row = $sport_rs->fetch_assoc()) {
+        if (!empty($row['sport'])) { $sport_options[] = $row['sport']; }
+    }
+}
+
+$size_rs = $conn->query("SELECT DISTINCT size_label FROM product_sizes WHERE is_active = 1 ORDER BY size_label ASC");
+if ($size_rs) {
+    while ($row = $size_rs->fetch_assoc()) {
+        if (!empty($row['size_label'])) { $size_options[] = $row['size_label']; }
+    }
+}
+
+$gender_rs = $conn->query("SELECT gender, COUNT(*) AS c FROM products WHERE status='active' GROUP BY gender");
+if ($gender_rs) {
+    while ($row = $gender_rs->fetch_assoc()) {
+        $gender_options[] = $row['gender'];
+        $gender_counts[$row['gender']] = (int)$row['c'];
+    }
+}
+
+$brand_rs_counts = $conn->query("SELECT brand, COUNT(*) AS c FROM products WHERE status='active' GROUP BY brand");
+if ($brand_rs_counts) {
+    while ($row = $brand_rs_counts->fetch_assoc()) {
+        $brand_counts[$row['brand']] = (int)$row['c'];
+    }
+}
+
+$sport_rs_counts = $conn->query("SELECT sport, COUNT(*) AS c FROM products WHERE status='active' AND sport IS NOT NULL GROUP BY sport");
+if ($sport_rs_counts) {
+    while ($row = $sport_rs_counts->fetch_assoc()) {
+        $sport_counts[$row['sport']] = (int)$row['c'];
+    }
+}
+
+foreach ($price_ranges as $range) {
+    $min = (float)$range['min'];
+    $max = $range['max'];
+    $sql = "SELECT COUNT(*) AS c FROM products WHERE status='active' AND price >= ?";
+    $params = [$min];
+    $types = 'd';
+    if ($max !== null) { $sql .= " AND price < ?"; $params[] = $max; $types .= 'd'; }
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $price_counts[$range['label']] = (int)($res->fetch_assoc()['c'] ?? 0);
+    $stmt->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,6 +84,7 @@ require_once 'includes/connect.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/filter.css">
     <?php include 'includes/head-meta.php'; ?>
 </head>
 <body>
@@ -25,11 +98,15 @@ require_once 'includes/connect.php';
         };
 
         // Get filter parameters
-        $current_brand = isset($_GET['brand']) ? trim($_GET['brand']) : null;
+        $selected_brands  = isset($_GET['brand']) ? array_filter((array)$_GET['brand']) : [];
+        $selected_genders = isset($_GET['gender']) ? array_filter((array)$_GET['gender']) : [];
+        $selected_sports  = isset($_GET['sport']) ? array_filter((array)$_GET['sport']) : [];
         $current_sort  = isset($_GET['sort'])  ? trim($_GET['sort'])  : null;
         $search_term   = isset($_GET['search']) ? trim($_GET['search']) : null;
         $price_min     = isset($_GET['min']) && is_numeric($_GET['min']) ? (float) $_GET['min'] : null;
         $price_max     = isset($_GET['max']) && is_numeric($_GET['max']) ? (float) $_GET['max'] : null;
+        $selected_sizes = isset($_GET['size']) && is_array($_GET['size']) ? array_filter($_GET['size']) : [];
+        $selected_price_ranges = isset($_GET['prange']) ? array_filter((array)$_GET['prange']) : [];
 
         // Initialize hero defaults and breadcrumb data
         $hero_title = "THE COLLECTION";
@@ -49,12 +126,29 @@ require_once 'includes/connect.php';
             $params[] = $like; $types .= 's';
             $params[] = $like; $types .= 's';
         }
-        elseif ($current_brand) {
-            $hero_title = strtoupper(htmlspecialchars($current_brand));
-            $hero_desc = "Explore our collection of authentic " . htmlspecialchars($current_brand) . " sneakers. Premium quality, verified authentic.";
-            $breadcrumb_active = htmlspecialchars($current_brand);
-            $conditions[] = "brand = ?";
-            $params[] = $current_brand; $types .= 's';
+        if (!empty($selected_brands)) {
+            $hero_title = "BRANDS";
+            $hero_desc = "Explore our collection of authentic brands curated for you.";
+            $breadcrumb_active = "Brands";
+            $placeholders = implode(',', array_fill(0, count($selected_brands), '?'));
+            $conditions[] = "brand IN ($placeholders)";
+            foreach ($selected_brands as $b) { $params[] = $b; $types .= 's'; }
+        }
+        if (!empty($selected_sports)) {
+            $hero_title = "SPORT";
+            $hero_desc = "Shop silhouettes curated for your sport preferences.";
+            $breadcrumb_active = "Sport";
+            $placeholders = implode(',', array_fill(0, count($selected_sports), '?'));
+            $conditions[] = "sport IN ($placeholders)";
+            foreach ($selected_sports as $s) { $params[] = $s; $types .= 's'; }
+        }
+        if (!empty($selected_genders)) {
+            $hero_title = "GENDER COLLECTION";
+            $hero_desc = "Shop styles curated for your selection.";
+            $breadcrumb_active = "Gender";
+            $placeholders = implode(',', array_fill(0, count($selected_genders), '?'));
+            $conditions[] = "gender IN ($placeholders)";
+            foreach ($selected_genders as $g) { $params[] = $g; $types .= 's'; }
         }
         elseif ($current_sort === 'new') {
             $hero_title = "NEW RELEASES";
@@ -67,8 +161,36 @@ require_once 'includes/connect.php';
             $breadcrumb_active = "Best Sellers";
         }
 
+        if (!empty($selected_price_ranges)) {
+            $range_clauses = [];
+            foreach ($selected_price_ranges as $label) {
+                foreach ($price_ranges as $range) {
+                    if ($range['label'] === $label) {
+                        $clause = "(price >= ?";
+                        $params[] = (float)$range['min'];
+                        $types .= 'd';
+                        if ($range['max'] !== null) {
+                            $clause .= " AND price < ?";
+                            $params[] = (float)$range['max'];
+                            $types .= 'd';
+                        }
+                        $clause .= ")";
+                        $range_clauses[] = $clause;
+                    }
+                }
+            }
+            if (!empty($range_clauses)) {
+                $conditions[] = '(' . implode(' OR ', $range_clauses) . ')';
+            }
+        }
+
         if ($price_min !== null) { $conditions[] = "price >= ?"; $params[] = $price_min; $types .= 'd'; }
         if ($price_max !== null) { $conditions[] = "price <= ?"; $params[] = $price_max; $types .= 'd'; }
+        if (!empty($selected_sizes)) {
+            $placeholders = implode(',', array_fill(0, count($selected_sizes), '?'));
+            $conditions[] = "id IN (SELECT product_id FROM product_sizes WHERE size_label IN ($placeholders) AND is_active = 1)";
+            foreach ($selected_sizes as $sz) { $params[] = $sz; $types .= 's'; }
+        }
 
         $where = 'WHERE ' . implode(' AND ', $conditions);
 
@@ -80,11 +202,35 @@ require_once 'includes/connect.php';
             $order = "ORDER BY total_sold DESC, is_featured DESC, created_at DESC";
         }
 
-        $sql = "SELECT * FROM products $where $order";
-        $stmt = $conn->prepare($sql);
-        if ($types) {
-            $stmt->bind_param($types, ...$params);
+        // Pagination
+        $per_page = 12;
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $offset = ($page - 1) * $per_page;
+
+        // Total count with current filters
+        $count_sql = "SELECT COUNT(*) AS total FROM products $where";
+        $count_stmt = $conn->prepare($count_sql);
+        if ($types) { $count_stmt->bind_param($types, ...$params); }
+        $count_stmt->execute();
+        $count_result = $count_stmt->get_result();
+        $total_rows = (int) ($count_result->fetch_assoc()['total'] ?? 0);
+        $count_stmt->close();
+
+        $total_pages = max(1, (int)ceil($total_rows / $per_page));
+        if ($page > $total_pages) {
+            $page = $total_pages;
+            $offset = ($page - 1) * $per_page;
         }
+
+        $sql = "SELECT * FROM products $where $order LIMIT ? OFFSET ?";
+        $stmt = $conn->prepare($sql);
+
+        $select_params = $params;
+        $select_types = $types . 'ii';
+        $select_params[] = $per_page;
+        $select_params[] = $offset;
+
+        $stmt->bind_param($select_types, ...$select_params);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -94,6 +240,12 @@ require_once 'includes/connect.php';
             $display_items[] = $row;
         }
         $stmt->close();
+
+        $build_page_link = function($targetPage) {
+            $query = $_GET;
+            $query['page'] = $targetPage;
+            return 'shop.php?' . http_build_query($query);
+        };
     ?>
 
     <!-- Hero Section -->
@@ -108,7 +260,7 @@ require_once 'includes/connect.php';
                     <li class="breadcrumb-item">
                         <a href="shop.php" class="text-white-50 text-decoration-none text-uppercase" style="font-size: 0.85rem;">Shop</a>
                     </li>
-                    <?php if ($search_term || $current_brand || $current_sort): ?>
+                    <?php if ($breadcrumb_active && $breadcrumb_active !== 'Shop'): ?>
                         <li class="breadcrumb-item active text-white text-uppercase" aria-current="page" style="font-size: 0.85rem;">
                             <?php echo htmlspecialchars($breadcrumb_active); ?>
                         </li>
@@ -123,45 +275,147 @@ require_once 'includes/connect.php';
         </div>
     </section>
 
-    <!-- Filter Bar (Global search lives in header) -->
-    <section class="py-4 bg-light">
+    <!-- Product Grid with Sidebar Filters -->
+    <section class="py-5">
         <div class="container">
-            <div class="row align-items-center g-3">
-                <div class="col-12">
-                    <div class="d-flex justify-content-center flex-wrap gap-2">
-                        <a href="shop.php" class="filter-pill <?php echo !$current_brand ? 'active' : ''; ?>">ALL</a>
-                        <a href="shop.php?brand=Nike" class="filter-pill <?php echo $current_brand === 'Nike' ? 'active' : ''; ?>">NIKE</a>
-                        <a href="shop.php?brand=Adidas" class="filter-pill <?php echo $current_brand === 'Adidas' ? 'active' : ''; ?>">ADIDAS</a>
-                        <a href="shop.php?brand=Asics" class="filter-pill <?php echo $current_brand === 'Asics' ? 'active' : ''; ?>">ASICS</a>
-                        <a href="shop.php?brand=Puma" class="filter-pill <?php echo $current_brand === 'Puma' ? 'active' : ''; ?>">PUMA</a>
+            <div class="row g-4">
+
+                <!-- Sidebar Filters -->
+                <div class="col-12 col-lg-3">
+                    <div class="filters-sidebar">
+                        <h5 class="mb-3">Filters</h5>
+                        <form class="filters-form" id="filtersForm" method="get">
+                            <?php if ($search_term): ?><input type="hidden" name="search" value="<?php echo htmlspecialchars($search_term); ?>"><?php endif; ?>
+                            <?php if ($current_sort): ?><input type="hidden" name="sort" value="<?php echo htmlspecialchars($current_sort); ?>"><?php endif; ?>
+
+                            <div class="accordion-item">
+                                <button type="button" class="accordion-button" data-target="#acc-gender">Gender<span class="caret">+</span></button>
+                                <div id="acc-gender" class="accordion-body">
+                                    <?php foreach (['Men','Women','Unisex'] as $g): ?>
+                                        <?php $checked = in_array($g, $selected_genders, true) ? 'checked' : ''; ?>
+                                        <label><input type="checkbox" name="gender[]" value="<?php echo htmlspecialchars($g); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($g); ?> (<?php echo $gender_counts[$g] ?? 0; ?>)</label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <button type="button" class="accordion-button" data-target="#acc-sport">Sport<span class="caret">+</span></button>
+                                <div id="acc-sport" class="accordion-body">
+                                    <?php foreach ($sport_options as $sport): ?>
+                                        <?php $checked = in_array($sport, $selected_sports, true) ? 'checked' : ''; ?>
+                                        <label><input type="checkbox" name="sport[]" value="<?php echo htmlspecialchars($sport); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($sport); ?> (<?php echo $sport_counts[$sport] ?? 0; ?>)</label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <button type="button" class="accordion-button" data-target="#acc-brand">Brand<span class="caret">+</span></button>
+                                <div id="acc-brand" class="accordion-body">
+                                    <?php foreach ($brand_counts as $brand => $count): ?>
+                                        <?php $checked = in_array($brand, $selected_brands, true) ? 'checked' : ''; ?>
+                                        <label><input type="checkbox" name="brand[]" value="<?php echo htmlspecialchars($brand); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($brand); ?> (<?php echo $count; ?>)</label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <button type="button" class="accordion-button" data-target="#acc-price">Price Range<span class="caret">+</span></button>
+                                <div id="acc-price" class="accordion-body">
+                                    <div class="price-range mb-2">
+                                        <input type="number" step="0.01" name="min" placeholder="Min" value="<?php echo htmlspecialchars($price_min ?? ''); ?>">
+                                        <span>-</span>
+                                        <input type="number" step="0.01" name="max" placeholder="Max" value="<?php echo htmlspecialchars($price_max ?? ''); ?>">
+                                    </div>
+                                    <?php foreach ($price_ranges as $range): ?>
+                                        <?php $checked = in_array($range['label'], $selected_price_ranges, true) ? 'checked' : ''; ?>
+                                        <label><input type="checkbox" name="prange[]" value="<?php echo htmlspecialchars($range['label']); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($range['label']); ?> (<?php echo $price_counts[$range['label']] ?? 0; ?>)</label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <button type="button" class="accordion-button" data-target="#acc-size">Size<span class="caret">+</span></button>
+                                <div id="acc-size" class="accordion-body">
+                                    <div class="size-grid">
+                                        <?php foreach ($size_options as $size): ?>
+                                            <?php $checked = in_array($size, $selected_sizes, true) ? 'checked' : ''; ?>
+                                            <label><input type="checkbox" name="size[]" value="<?php echo htmlspecialchars($size); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($size); ?></label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-actions">
+                                <button type="submit" class="btn-apply">Apply</button>
+                                <a class="btn-reset" href="shop.php">Reset</a>
+                            </div>
+                        </form>
                     </div>
                 </div>
+
+                <!-- Product Grid -->
+                <div class="col-12 col-lg-9">
+                    <div class="row g-4">
+                        <?php foreach ($display_items as $shoe): ?>
+                            <?php include 'includes/product-card.php'; ?>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
 
-    <!-- Product Grid -->
-    <section class="py-5">
-        <div class="container">
-            <div class="row g-4">
-                <?php foreach ($display_items as $shoe): ?>
-                    <?php include 'includes/product-card.php'; ?>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </section>
+    <script>
+    document.querySelectorAll('.accordion-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = document.querySelector(btn.dataset.target);
+            if (!target) return;
+            target.classList.toggle('open');
+            target.style.display = target.classList.contains('open') ? 'block' : 'none';
+        });
+    });
+
+    const filterForm = document.getElementById('filtersForm');
+    if (filterForm) {
+        filterForm.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => filterForm.submit());
+        });
+        filterForm.querySelectorAll('input[type="number"]').forEach(inp => {
+            inp.addEventListener('change', () => filterForm.submit());
+        });
+    }
+
+    // Open all accordions by default on load
+    document.querySelectorAll('.accordion-body').forEach(body => {
+        body.classList.add('open');
+        body.style.display = 'block';
+    });
+    </script>
 
     <!-- Pagination -->
     <section class="py-4">
         <div class="container">
             <div class="pagination-wrapper d-flex justify-content-between align-items-center">
-                <a href="#" class="pagination-arrow text-brand-black text-decoration-none">
-                    <i class="bi bi-chevron-left"></i> Back
-                </a>
-                <span class="pagination-info text-brand-black fw-semibold">1 of 7</span>
-                <a href="#" class="pagination-arrow text-brand-black text-decoration-none">
-                    Next <i class="bi bi-chevron-right"></i>
-                </a>
+                <?php if ($page > 1): ?>
+                    <a href="<?php echo htmlspecialchars($build_page_link($page - 1)); ?>" class="pagination-arrow text-brand-black text-decoration-none">
+                        <i class="bi bi-chevron-left"></i> Back
+                    </a>
+                <?php else: ?>
+                    <span class="pagination-arrow text-muted text-decoration-none opacity-50">
+                        <i class="bi bi-chevron-left"></i> Back
+                    </span>
+                <?php endif; ?>
+                <span class="pagination-info text-brand-black fw-semibold">Page <?php echo $page; ?> of <?php echo $total_pages; ?></span>
+                <?php if ($page < $total_pages): ?>
+                    <a href="<?php echo htmlspecialchars($build_page_link($page + 1)); ?>" class="pagination-arrow text-brand-black text-decoration-none">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                <?php else: ?>
+                    <span class="pagination-arrow text-muted text-decoration-none opacity-50">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </span>
+                <?php endif; ?>
             </div>
         </div>
     </section>

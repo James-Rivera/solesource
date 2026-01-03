@@ -16,6 +16,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const cartSizePreview = document.getElementById('cartSizePreview');
   const hiddenSize = document.getElementById('selectedSize');
   const hiddenSizeId = document.getElementById('selectedSizeId');
+  const hiddenSystem = document.getElementById('selectedSystem');
+  const hiddenGender = document.getElementById('selectedGender');
+  const systemBtns = document.querySelectorAll('.btn-system');
+  const genderBtns = document.querySelectorAll('.btn-gender');
+
+  function filterSizes() {
+    const sys = hiddenSystem?.value || systemBtns?.[0]?.dataset.system || '';
+    const gen = hiddenGender?.value || genderBtns?.[0]?.dataset.gender || '';
+    let firstSelectable = null;
+    sizeBtns.forEach(btn => {
+      const match = (!sys || btn.dataset.sizeSystem === sys) && (!gen || btn.dataset.sizeGender === gen);
+      btn.style.display = match ? '' : 'none';
+      if (match && !btn.classList.contains('disabled') && !firstSelectable) {
+        firstSelectable = btn;
+      }
+    });
+    // ensure one size is active
+    const activeVisible = Array.from(sizeBtns).find(b => b.classList.contains('active') && b.style.display !== 'none');
+    if (!activeVisible && firstSelectable) {
+      sizeBtns.forEach(b => b.classList.remove('active'));
+      firstSelectable.classList.add('active');
+      hiddenSize.value = firstSelectable.dataset.size || '';
+      hiddenSizeId.value = firstSelectable.dataset.sizeId || '';
+    }
+  }
   sizeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       sizeBtns.forEach(b => b.classList.remove('active'));
@@ -23,6 +48,24 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cartSizePreview) cartSizePreview.textContent = btn.dataset.size;
       if (hiddenSize) hiddenSize.value = btn.dataset.size;
       if (hiddenSizeId) hiddenSizeId.value = btn.dataset.sizeId || '';
+    });
+  });
+
+  systemBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      systemBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (hiddenSystem) hiddenSystem.value = btn.dataset.system || '';
+      filterSizes();
+    });
+  });
+
+  genderBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      genderBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (hiddenGender) hiddenGender.value = btn.dataset.gender || '';
+      filterSizes();
     });
   });
 
@@ -83,12 +126,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeSizeBtn = document.querySelector('.btn-size.active');
     const size = activeSizeBtn?.dataset.size || '';
     const sizeId = activeSizeBtn?.dataset.sizeId || '';
+    const sizeSystem = activeSizeBtn?.dataset.sizeSystem || '';
+    const sizeGender = activeSizeBtn?.dataset.sizeGender || '';
     const payload = {
       id: addToCartBtn.dataset.productId || Date.now(),
       name: addToCartBtn.dataset.productName || productNameEl?.textContent?.trim() || '',
       brand: addToCartBtn.dataset.productBrand || '',
       size,
       size_id: sizeId,
+      size_system: sizeSystem,
+      size_gender: sizeGender,
       price: parseFloat(addToCartBtn.dataset.productPrice?.replace(/[^0-9.]/g, '') || itemPrice || 0) || 0,
       image: addToCartBtn.dataset.productImage || mainImg?.src || '',
       qty: 1
@@ -115,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   renderQty();
+  filterSizes();
 
   // Simple carousel nav (cycles thumbs)
   const prevBtn = document.querySelector('.product-gallery-nav.prev');
