@@ -63,6 +63,15 @@ $shippingAddress = $composedAddress ?: ($order['shipping_address'] ?? '');
 <body class="confirmation-page">
     <?php include 'includes/header.php'; ?>
 
+    <header class="checkout-hero py-4 bg-light">
+        <div class="container-xxl">
+            <div class="d-flex justify-content-center align-items-center text-uppercase fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
+                <span class="text-muted">Bag</span>
+                <span class="mx-3 text-muted">/</span>
+                <span class="text-muted">Checkout</span>
+                <span class="mx-3 text-muted">/</span>
+                <span class="text-dark">Confirmation</span>
+    </header>
     <main class="py-5 py-md-6">
         <div class="container">
             <div class="row justify-content-center">
@@ -74,7 +83,7 @@ $shippingAddress = $composedAddress ?: ($order['shipping_address'] ?? '');
                                 <div class="order-id"><?php echo htmlspecialchars($displayOrderId); ?></div>
                             </div>
                             <div>
-                                <button class="status-btn" type="button">ORDER STATUS</button>
+                                <button class="status-btn" type="button"><a style="color: inherit; text-decoration: none;" href="profile.php?tab=orders">ORDER STATUS</a></button>
                             </div>
                         </div>
 

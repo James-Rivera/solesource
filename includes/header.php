@@ -34,7 +34,9 @@ $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
 
 					<ul class="navbar-nav align-items-center gap-lg-3 order-lg-3 flex-row flex-lg-row gap-3 mb-2 mb-lg-0 ms-lg-3 small">
 						<li class="nav-item">
-							<a class="nav-link px-0" href="#">About</a>
+							<a class="nav-link px-0 d-inline-flex align-items-center" href="profile.php?tab=profile#wishlist" aria-label="Wishlist">
+								<i class="bi bi-heart fs-5"></i>
+							</a>
 						</li>
 						<li class="nav-item position-relative">
 							<?php if ($isCartFlow): ?>
@@ -71,7 +73,7 @@ $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
 										<li><hr class="dropdown-divider"></li>
 									<?php endif; ?>
 									<li><a class="dropdown-item" href="profile.php">Profile</a></li>
-									<li><a class="dropdown-item" href="orders.php">Orders</a></li>
+									<li><a class="dropdown-item" href="profile.php?tab=orders">Orders</a></li>
 									<li><hr class="dropdown-divider"></li>
 									<li><a class="dropdown-item" href="logout.php">Log out</a></li>
 								</ul>
