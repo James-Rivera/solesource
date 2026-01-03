@@ -8,6 +8,10 @@ $gender_options = [];
 $gender_counts = [];
 $brand_counts = [];
 $sport_counts = [];
+$current_brand = null;
+$current_sport = null;
+$price_min = null;
+$price_max = null;
 $price_ranges = [
     ['label' => '₱0 - ₱3000', 'min' => 0, 'max' => 3000],
     ['label' => '₱3000 - ₱6000', 'min' => 3000, 'max' => 6000],
@@ -246,6 +250,16 @@ foreach ($price_ranges as $range) {
             $query['page'] = $targetPage;
             return 'shop.php?' . http_build_query($query);
         };
+
+        $gender_labels = array_keys($gender_counts);
+        sort($gender_labels);
+        if (empty($gender_labels) && !empty($gender_options)) {
+            $gender_labels = $gender_options;
+            sort($gender_labels);
+        }
+        if (empty($gender_labels)) {
+            $gender_labels = ['Men','Women','Unisex'];
+        }
     ?>
 
     <!-- Hero Section -->
@@ -291,7 +305,7 @@ foreach ($price_ranges as $range) {
                             <div class="accordion-item">
                                 <button type="button" class="accordion-button" data-target="#acc-gender">Gender<span class="caret">+</span></button>
                                 <div id="acc-gender" class="accordion-body">
-                                    <?php foreach (['Men','Women','Unisex'] as $g): ?>
+                                    <?php foreach ($gender_labels as $g): ?>
                                         <?php $checked = in_array($g, $selected_genders, true) ? 'checked' : ''; ?>
                                         <label><input type="checkbox" name="gender[]" value="<?php echo htmlspecialchars($g); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($g); ?> (<?php echo $gender_counts[$g] ?? 0; ?>)</label>
                                     <?php endforeach; ?>

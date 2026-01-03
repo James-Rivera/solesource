@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $brand = trim($_POST['brand'] ?? '');
     $price = trim($_POST['price'] ?? '');
     $gender = trim($_POST['gender'] ?? 'Unisex');
+    $sport = trim($_POST['sport'] ?? '');
     $colorway = trim($_POST['colorway'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $release_date = trim($_POST['release_date'] ?? '');
@@ -40,33 +41,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         $image_path = '';
         if (!empty($_FILES['image']['name'])) {
-            $upload_dir = '../assets/img/products/';
-            $basename = basename($_FILES['image']['name']);
-            $ext = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
-            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
-            if (!in_array($ext, $allowed)) {
-                $error_message = 'Invalid image type. Allowed: jpg, jpeg, png, webp.';
+            if (!empty($_FILES['image']['error']) && $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+                $error_message = 'Image upload failed. Please try again.';
             } else {
-                $newname = uniqid('prod_', true) . '.' . $ext;
-                $target = $upload_dir . $newname;
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
-                    // Save relative path for frontend
-                    $image_path = 'assets/img/products/' . $newname;
+                $upload_dir = '../assets/img/products/';
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
+                }
+                $basename = basename($_FILES['image']['name']);
+                $ext = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
+                $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+                if (!in_array($ext, $allowed)) {
+                    $error_message = 'Invalid image type. Allowed: jpg, jpeg, png, webp.';
                 } else {
-                    $error_message = 'Failed to upload image.';
+                    $newname = uniqid('prod_', true) . '.' . $ext;
+                    $target = $upload_dir . $newname;
+                    if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+                        // Save relative path for frontend
+                        $image_path = 'assets/img/products/' . $newname;
+                    } else {
+                        $error_message = 'Failed to upload image.';
+                    }
                 }
             }
         }
 
         if ($error_message === '') {
-            $sql = "INSERT INTO products (sku, name, brand, gender, colorway, description, release_date, image, price, stock_quantity, is_featured, total_sold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'active')";
+            $sql = "INSERT INTO products (sku, name, brand, gender, sport, colorway, description, release_date, image, price, stock_quantity, is_featured, total_sold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'active')";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param(
-                'ssssssssdid',
+                'sssssssssdii',
                 $sku,
                 $name,
                 $brand,
                 $gender,
+                $sport,
                 $colorway,
                 $description,
                 $release_date,
@@ -151,7 +160,7 @@ if ($result && $result->num_rows > 0) {
                             <label class="form-label">Price</label>
                             <input type="number" step="0.01" name="price" class="form-control" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Gender</label>
                             <select name="gender" class="form-select">
                                 <option value="Men">Men</option>
@@ -159,7 +168,17 @@ if ($result && $result->num_rows > 0) {
                                 <option value="Unisex" selected>Unisex</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label">Sport</label>
+                            <select name="sport" class="form-select">
+                                <option value="">-- Optional --</option>
+                                <option value="Running">Running</option>
+                                <option value="Training">Training</option>
+                                <option value="Lifestyle">Lifestyle</option>
+                                <option value="Basketball">Basketball</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Stock Quantity</label>
                             <input type="number" name="stock_quantity" class="form-control" value="0" min="0">
                         </div>

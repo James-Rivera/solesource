@@ -13,20 +13,33 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 }
 $currentPage = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
-$megaBrands = [];
-foreach ($all_products as $prod) {
-	$brand = isset($prod['brand']) ? trim($prod['brand']) : '';
-	if ($brand !== '') { $megaBrands[$brand] = true; }
+$navBrands = [];
+$navSports = [];
+$navGenders = [];
+
+$brands_rs = $conn->query("SELECT DISTINCT brand FROM products WHERE status='active' AND brand <> '' ORDER BY brand ASC");
+if ($brands_rs) {
+	while ($row = $brands_rs->fetch_assoc()) {
+		$navBrands[] = $row['brand'];
+	}
 }
-$megaBrands = array_keys($megaBrands);
-sort($megaBrands);
-$megaSports = [];
-foreach ($all_products as $prod) {
-	$sport = isset($prod['sport']) ? trim($prod['sport']) : '';
-	if ($sport !== '') { $megaSports[$sport] = true; }
+
+$sports_rs = $conn->query("SELECT DISTINCT sport FROM products WHERE status='active' AND sport IS NOT NULL AND sport <> '' ORDER BY sport ASC");
+if ($sports_rs) {
+	while ($row = $sports_rs->fetch_assoc()) {
+		$navSports[] = $row['sport'];
+	}
 }
-$megaSports = array_keys($megaSports);
-sort($megaSports);
+
+$genders_rs = $conn->query("SELECT DISTINCT gender FROM products WHERE status='active' AND gender <> '' ORDER BY gender ASC");
+if ($genders_rs) {
+	while ($row = $genders_rs->fetch_assoc()) {
+		$navGenders[] = $row['gender'];
+	}
+}
+
+if (empty($navGenders)) { $navGenders = ['Men','Women','Unisex']; }
+if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 ?>
 <header>
 	<nav class="navbar navbar-expand-lg navbar-dark bg-brand-black py-3 border-bottom border-brand-dark-gray">
@@ -102,97 +115,54 @@ sort($megaSports);
 	<nav class="bg-brand-black border-bottom border-brand-dark-gray py-1 mega-nav-wrapper">
 		<div class="container-xxl">
 			<ul class="mega-nav">
+				<?php foreach ($navGenders as $gender): ?>
 				<li class="mega-item has-panel">
-					<a href="shop.php?gender=Men" class="mega-link">Men</a>
+					<a href="shop.php?gender=<?php echo urlencode($gender); ?>" class="mega-link"><?php echo htmlspecialchars($gender); ?></a>
 					<div class="mega-panel">
 						<div class="mega-panel-inner">
 							<div class="mega-col">
 								<div class="mega-title">Spotlight</div>
-								<a href="shop.php?gender=Men&sort=new">New Releases</a>
-								<a href="shop.php?gender=Men&sort=best">Best Sellers</a>
-								<a href="shop.php?gender=Men&is_featured=1">Featured</a>
+								<a href="shop.php?gender=<?php echo urlencode($gender); ?>&sort=new">New Releases</a>
+								<a href="shop.php?gender=<?php echo urlencode($gender); ?>&sort=best">Best Sellers</a>
+								<a href="shop.php?gender=<?php echo urlencode($gender); ?>&is_featured=1">Featured</a>
 							</div>
-							<div class="mega-col">
-								<div class="mega-title">Shoes</div>
-								<?php foreach ($megaBrands as $brand): ?>
-									<a href="shop.php?gender=Men&brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
-								<?php endforeach; ?>
-							</div>
-							<div class="mega-col">
-								<div class="mega-title">Sport</div>
-								<?php foreach ($megaSports as $sport): ?>
-									<a href="shop.php?gender=Men&sport=<?php echo urlencode($sport); ?>"><?php echo htmlspecialchars($sport); ?></a>
-								<?php endforeach; ?>
-							</div>
-						</div>
-					</div>
-				</li>
-				<li class="mega-item has-panel">
-					<a href="shop.php?gender=Women" class="mega-link">Women</a>
-					<div class="mega-panel">
-						<div class="mega-panel-inner">
-							<div class="mega-col">
-								<div class="mega-title">Spotlight</div>
-								<a href="shop.php?gender=Women&sort=new">New Releases</a>
-								<a href="shop.php?gender=Women&sort=best">Best Sellers</a>
-								<a href="shop.php?gender=Women&is_featured=1">Featured</a>
-							</div>
-							<div class="mega-col">
-								<div class="mega-title">Shoes</div>
-								<?php foreach ($megaBrands as $brand): ?>
-									<a href="shop.php?gender=Women&brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
-								<?php endforeach; ?>
-							</div>
-							<div class="mega-col">
-								<div class="mega-title">Sport</div>
-								<?php foreach ($megaSports as $sport): ?>
-									<a href="shop.php?gender=Women&sport=<?php echo urlencode($sport); ?>"><?php echo htmlspecialchars($sport); ?></a>
-								<?php endforeach; ?>
-							</div>
-						</div>
-					</div>
-				</li>
-				<li class="mega-item has-panel">
-					<a href="shop.php?gender=Unisex" class="mega-link">Unisex</a>
-					<div class="mega-panel">
-						<div class="mega-panel-inner">
-							<div class="mega-col">
-								<div class="mega-title">Spotlight</div>
-								<a href="shop.php?gender=Unisex&sort=new">New Releases</a>
-								<a href="shop.php?gender=Unisex&sort=best">Best Sellers</a>
-							</div>
+							<?php if (!empty($navBrands)): ?>
 							<div class="mega-col">
 								<div class="mega-title">Brands</div>
-								<?php foreach ($megaBrands as $brand): ?>
-									<a href="shop.php?gender=Unisex&brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
+								<?php foreach ($navBrands as $brand): ?>
+									<a href="shop.php?gender=<?php echo urlencode($gender); ?>&brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
 								<?php endforeach; ?>
 							</div>
-							<?php if (!empty($megaSports)): ?>
+							<?php endif; ?>
+							<?php if (!empty($navSports)): ?>
 							<div class="mega-col">
 								<div class="mega-title">Sport</div>
-								<?php foreach ($megaSports as $sport): ?>
-									<a href="shop.php?gender=Unisex&sport=<?php echo urlencode($sport); ?>"><?php echo htmlspecialchars($sport); ?></a>
+								<?php foreach ($navSports as $sport): ?>
+									<a href="shop.php?gender=<?php echo urlencode($gender); ?>&sport=<?php echo urlencode($sport); ?>"><?php echo htmlspecialchars($sport); ?></a>
 								<?php endforeach; ?>
 							</div>
 							<?php endif; ?>
 						</div>
 					</div>
 				</li>
+				<?php endforeach; ?>
 				<li class="mega-item has-panel">
 					<a href="shop.php" class="mega-link">Brands</a>
 					<div class="mega-panel">
 						<div class="mega-panel-inner">
+							<?php if (!empty($navBrands)): ?>
 							<div class="mega-col">
 								<div class="mega-title">Top Brands</div>
-								<?php foreach ($megaBrands as $brand): ?>
+								<?php foreach ($navBrands as $brand): ?>
 									<a href="shop.php?brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
 								<?php endforeach; ?>
 							</div>
+							<?php endif; ?>
 							<div class="mega-col">
 								<div class="mega-title">Shop by Gender</div>
-								<a href="shop.php?gender=Men">Men</a>
-								<a href="shop.php?gender=Women">Women</a>
-								<a href="shop.php?gender=Unisex">Unisex</a>
+								<?php foreach ($navGenders as $gender): ?>
+									<a href="shop.php?gender=<?php echo urlencode($gender); ?>"><?php echo htmlspecialchars($gender); ?></a>
+								<?php endforeach; ?>
 							</div>
 						</div>
 					</div>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 03, 2026 at 03:12 PM
+-- Generation Time: Jan 03, 2026 at 04:12 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -64,20 +64,6 @@ CREATE TABLE `orders` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `orders`
---
-
-INSERT INTO `orders` (`id`, `user_id`, `order_number`, `total_amount`, `payment_method`, `status`, `phone`, `shipping_phone`, `full_name`, `address`, `city`, `province`, `region`, `barangay`, `zip_code`, `country`, `shipping_address`, `tracking_number`, `courier`, `created_at`) VALUES
-(1, 2, 'SO-20260103042623-1035', 16700.00, 'PayPal', 'pending', '09457996892', NULL, 'James Carlo', 'POLBACION 4 STO TOMAS BATANGAS', 'Angadanan', 'Isabela', NULL, NULL, '4294', 'Philippines', NULL, NULL, NULL, '2026-01-03 03:26:23'),
-(2, 2, 'SO-20260103052221-8042', 12000.00, 'COD', 'pending', '09457996892', NULL, 'James Carlo', 'POLBACION 4 STO TOMAS BATANGAS', 'Abulug', 'Cagayan', NULL, NULL, '4294', 'Philippines', NULL, NULL, NULL, '2026-01-03 04:22:21'),
-(3, 2, 'SO-20260103052533-5120', 12000.00, 'COD', 'pending', '09457996892', NULL, 'James Carlo', 'POLBACION 4 STO TOMAS BATANGAS', 'Alilem', 'Ilocos Sur', NULL, NULL, '4294', 'Philippines', NULL, NULL, NULL, '2026-01-03 04:25:33'),
-(4, 2, 'SO-20260103062551-2575', 12000.00, 'COD', 'pending', '09457996892', NULL, 'James Carlo', 'BLK 27 LOT 25 WINE CUP ST', 'Santo Tomas', 'Batangas', 'Region IV-A (CALABARZON)', 'San Rafael', '4234', 'Philippines', 'BLK 27 LOT 25 WINE CUP ST, San Rafael, Santo Tomas, Batangas, Region IV-A (CALABARZON), 4234, Philippines', NULL, NULL, '2026-01-03 05:25:51'),
-(5, 2, 'SO-20260103064140-5081', 4700.00, 'COD', 'shipped', '09457996892', NULL, 'James Carlo', 'BLK 27 LOT 25 WINE CUP ST', 'Santo Tomas', 'Batangas', 'Region IV-A (CALABARZON)', 'San Rafael', '4234', 'Philippines', 'BLK 27 LOT 25 WINE CUP ST, San Rafael, Santo Tomas, Batangas, Region IV-A (CALABARZON), 4234, Philippines', 'MOCK-5E87B086', 'MockExpress', '2026-01-03 05:41:40'),
-(6, 2, 'SO-20260103081635-6473', 4999.00, 'COD', 'delivered', '09457996892', NULL, 'Admin User', 'BLK 27 LOT 25 WINE CUP ST', 'Itbayat', 'Batanes', 'Region II (Cagayan Valley)', 'Raele', '4294', 'Philippines', 'BLK 27 LOT 25 WINE CUP ST, Raele, Itbayat, Batanes, Region II (Cagayan Valley), 4294, Philippines', 'MOCK-C618239C', 'MockExpress', '2026-01-03 07:16:35'),
-(7, 2, 'SO-20260103131545-3704', 4700.00, 'COD', 'pending', '09457996892', NULL, 'Admin User', 'BLK 27 LOT 25 WINE CUP ST', 'Itbayat', 'Batanes', 'Region II (Cagayan Valley)', 'Raele', '4294', 'Philippines', 'BLK 27 LOT 25 WINE CUP ST, Raele, Itbayat, Batanes, Region II (Cagayan Valley), 4294, Philippines', NULL, NULL, '2026-01-03 12:15:45'),
-(8, 2, 'SO-20260103151130-2402', 4999.00, 'COD', 'pending', '09457996892', NULL, 'Admin User', 'BLK 27 LOT 25 WINE CUP ST', 'Itbayat', 'Batanes', 'Region II (Cagayan Valley)', 'Raele', '4294', 'Philippines', 'BLK 27 LOT 25 WINE CUP ST, Raele, Itbayat, Batanes, Region II (Cagayan Valley), 4294, Philippines', NULL, NULL, '2026-01-03 14:11:30');
-
 -- --------------------------------------------------------
 
 --
@@ -94,21 +80,6 @@ CREATE TABLE `order_items` (
   `price_at_purchase` decimal(10,2) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `order_items`
---
-
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_size_id`, `size`, `quantity`, `price_at_purchase`, `created_at`) VALUES
-(1, 1, 5, NULL, '7.5', 1, 12000.00, '2026-01-03 03:26:23'),
-(2, 1, 2, NULL, '11', 1, 4700.00, '2026-01-03 03:26:23'),
-(3, 2, 5, NULL, '7', 1, 12000.00, '2026-01-03 04:22:21'),
-(4, 3, 5, NULL, '11', 1, 12000.00, '2026-01-03 04:25:34'),
-(5, 4, 5, NULL, '11.5', 1, 12000.00, '2026-01-03 05:25:52'),
-(6, 5, 2, NULL, '11.5', 1, 4700.00, '2026-01-03 05:41:40'),
-(7, 6, 1, NULL, '12', 1, 4999.00, '2026-01-03 07:16:35'),
-(8, 7, 2, NULL, 'US W 6', 1, 4700.00, '2026-01-03 12:15:45'),
-(9, 8, 1, 13, 'US M 7', 1, 4999.00, '2026-01-03 14:11:30');
 
 -- --------------------------------------------------------
 
@@ -154,18 +125,24 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `sku`, `name`, `brand`, `gender`, `colorway`, `description`, `release_date`, `image`, `price`, `stock_quantity`, `is_featured`, `total_sold`, `status`, `created_at`, `sport`) VALUES
-(1, 'NK-AF1-001', 'AIR FORCE 1', 'Nike', 'Unisex', 'White/White', 'The legend lives on in the Nike Air Force 1.', '2024-01-15', 'assets/img/products/air-force-1.png', 4999.00, 25, 1, 0, 'active', '2026-01-03 03:05:28', 'Lifestyle'),
-(2, 'AD-GAZ-IND', 'GAZELLE INDOOR', 'Adidas', 'Unisex', 'Blue Fusion/White', 'Reviving a 1979 classic with premium suede.', '2024-03-10', 'assets/img/products/adidas-gazelle-indoor.jpg', 4700.00, 20, 0, 0, 'active', '2026-01-03 03:05:28', 'Lifestyle'),
-(3, 'AS-GK14-001', 'GEL-KAYANO 14', 'Asics', 'Men', 'Cream/Pure Silver', 'Late 2000s aesthetic with retro running shape.', '2024-02-20', 'assets/img/products/asics-gel-kayano-14.png', 9490.00, 15, 0, 0, 'active', '2026-01-03 03:05:28', 'Running'),
-(4, 'PM-SUE-CLS', 'SUEDE CLASSIC', 'Puma', 'Unisex', 'Black/White', 'Game-changing suede icon since 1968.', '2023-11-05', 'assets/img/products/puma-suede-classic.png', 3999.00, 30, 0, 0, 'active', '2026-01-03 03:05:28', 'Lifestyle'),
-(5, 'CT8012-116', 'Jordan 11 Retro Legend Blue', 'Jordan', 'Men', 'White/Legend Blue/Black', 'Patent mudguard with Legend Blue hits.', '2024-12-13', 'assets/img/products/jordan-11-legend-blue.png', 12000.00, 8, 1, 0, 'active', '2026-01-03 03:05:28', 'Basketball'),
-(6, 'AD-SAM-OG', 'SAMBA OG', 'Adidas', 'Unisex', 'Cloud White/Core Black', 'Timeless icon with soft leather upper.', '2024-01-05', 'assets/img/products/adidas-samba-og.png', 5200.00, 18, 0, 0, 'active', '2026-01-03 03:05:28', 'Lifestyle'),
-(7, 'AS-GL3-001', 'GEL-LYTE III', 'Asics', 'Men', 'Grey/Black', 'Famous split-tongue runner from the 90s.', '2023-12-15', 'assets/img/products/asics-gel-lyte-iii.png', 7990.00, 12, 0, 0, 'active', '2026-01-03 03:05:28', 'Lifestyle'),
-(8, 'PM-RSX-001', 'RS-X', 'Puma', 'Unisex', 'White/Royal/Red', 'Bulky silhouette with retro palette.', '2024-04-01', 'assets/img/products/puma-rsx.png', 5499.00, 16, 0, 0, 'active', '2026-01-03 03:05:28', 'Lifestyle'),
-(9, 'NK-DNK-LOW', 'DUNK LOW', 'Nike', 'Unisex', 'Black/White', 'Crisp overlays and original team colors.', '2024-02-28', 'assets/img/products/nike-dunk-low.png', 5795.00, 22, 1, 0, 'active', '2026-01-03 03:05:28', 'Basketball'),
-(10, 'AD-SUP-STAR', 'SUPERSTAR', 'Adidas', 'Unisex', 'White/Black', 'Shell-toe icon from court to stage.', '2023-10-20', 'assets/img/products/adidas-superstar.png', 4500.00, 28, 0, 0, 'active', '2026-01-03 03:05:28', 'Lifestyle'),
-(11, 'AS-GT2-160', 'GT-2160', 'Asics', 'Men', 'White/Illusion Blue', 'GT-2000 series homage with tech language.', '2024-03-25', 'assets/img/products/asics-gt-2160.png', 6890.00, 14, 0, 0, 'active', '2026-01-03 03:05:28', 'Running'),
-(12, 'NK-BLZ-MID', 'BLAZER MID', 'Nike', 'Unisex', 'White/Black', '70s hardwood classic with vintage midsole.', '2023-09-10', 'assets/img/products/nike-blazer-mid.png', 5295.00, 19, 0, 0, 'active', '2026-01-03 03:05:28', 'Basketball');
+(1, 'NK-AF1-001', 'AIR FORCE 1', 'Nike', 'Unisex', 'White/White', 'Legendary leather icon with everyday cushioning.', '2024-01-15', 'assets/img/products/air-force-1.png', 4999.00, 28, 1, 0, 'active', '2026-01-03 14:28:54', 'Lifestyle'),
+(2, 'AD-GAZ-IND', 'GAZELLE INDOOR', 'Adidas', 'Unisex', 'Blue Fusion/White', '1979 indoor classic with soft suede and gum tooling.', '2024-03-10', 'assets/img/products/adidas-gazelle-indoor.jpg', 4700.00, 20, 0, 0, 'active', '2026-01-03 14:28:54', 'Lifestyle'),
+(3, 'AS-GK14-001', 'GEL-KAYANO 14', 'Asics', 'Men', 'Cream/Pure Silver', 'Retro runner revived with GEL cushioning.', '2024-02-20', 'assets/img/products/asics-gel-kayano-14.png', 9490.00, 14, 0, 0, 'active', '2026-01-03 14:28:54', 'Running'),
+(4, 'PM-SUE-CLS', 'SUEDE CLASSIC', 'Puma', 'Unisex', 'Black/White', 'Street staple since 1968 with soft suede upper.', '2023-11-05', 'assets/img/products/puma-suede-classic.png', 3999.00, 23, 0, 0, 'active', '2026-01-03 14:28:54', 'Lifestyle'),
+(5, 'CT8012-116', 'Jordan 11 Retro Legend Blue', 'Jordan', 'Men', 'White/Legend Blue/Black', 'Patent mudguard shine with icy outsole.', '2024-12-13', 'assets/img/products/jordan-11-legend-blue.png', 12000.00, 10, 1, 0, 'active', '2026-01-03 14:28:54', 'Basketball'),
+(6, 'AD-SAM-OG', 'SAMBA OG', 'Adidas', 'Unisex', 'Cloud White/Core Black', 'Timeless indoor silhouette with suede toe cap.', '2024-01-05', 'assets/img/products/adidas-samba-og.png', 5200.00, 19, 0, 0, 'active', '2026-01-03 14:28:54', 'Lifestyle'),
+(7, 'AS-GL3-001', 'GEL-LYTE III', 'Asics', 'Men', 'Grey/Black', '90s split-tongue icon with cushioned ride.', '2023-12-15', 'assets/img/products/asics-gel-lyte-iii.png', 7990.00, 12, 0, 0, 'active', '2026-01-03 14:28:54', 'Lifestyle'),
+(8, 'NK-DNK-LOW', 'DUNK LOW', 'Nike', 'Unisex', 'Black/White', 'Crisp overlays and heritage hoops DNA.', '2024-02-28', 'assets/img/products/nike-dunk-low.png', 5795.00, 21, 1, 0, 'active', '2026-01-03 14:28:54', 'Basketball'),
+(9, 'AD-SUP-STAR', 'SUPERSTAR', 'Adidas', 'Unisex', 'White/Black', 'Shell-toe legend from court to stage.', '2023-10-20', 'assets/img/products/adidas-superstar.png', 4500.00, 22, 0, 0, 'active', '2026-01-03 14:28:54', 'Lifestyle'),
+(10, 'AS-GT2-160', 'GT-2160', 'Asics', 'Men', 'White/Illusion Blue', 'GT-2000 lineage with modern tooling.', '2024-03-25', 'assets/img/products/asics-gt-2160.png', 6890.00, 14, 0, 0, 'active', '2026-01-03 14:28:54', 'Running'),
+(11, 'NK-BLZ-MID', 'BLAZER MID', 'Nike', 'Unisex', 'White/Black', '70s hardwood staple with vintage foxing.', '2023-09-10', 'assets/img/products/nike-blazer-mid.png', 5295.00, 18, 0, 0, 'active', '2026-01-03 14:28:54', 'Basketball'),
+(12, 'NK-PEG-41-W', 'AIR ZOOM PEGASUS 41 W', 'Nike', 'Women', 'Photon Dust/Volt', 'Daily trainer with ReactX foam for lively miles.', '2024-06-01', 'assets/img/products/nike-pegasus-41-w.png', 6795.00, 16, 0, 0, 'active', '2026-01-03 14:28:54', 'Running'),
+(13, 'NK-MTC-9-W', 'METCON 9 W', 'Nike', 'Women', 'Black/Anthracite', 'Stable platform with rope-guard wrap for lifts and WODs.', '2024-05-15', 'assets/img/products/nike-metcon-9-w.png', 8200.00, 13, 0, 0, 'active', '2026-01-03 14:28:54', 'Training'),
+(14, 'AD-UB-LGT-W', 'ULTRABOOST LIGHT W', 'Adidas', 'Women', 'Halo Blue/White', 'Max-cushioned trainer with Light BOOST midsole.', '2024-04-12', 'assets/img/products/adidas-ultraboost-light-w.png', 10500.00, 12, 1, 0, 'active', '2026-01-03 14:28:54', 'Running'),
+(15, 'AD-ASTIR-W', 'ASTIR W', 'Adidas', 'Women', 'Silver Dawn/Black', 'Chunky lifestyle runner with playful overlays.', '2024-02-05', 'assets/img/products/adidas-astir-w.png', 5500.00, 12, 0, 0, 'active', '2026-01-03 14:28:54', 'Lifestyle'),
+(16, 'AS-GT2000-12W', 'GT-2000 12 W', 'Asics', 'Women', 'White/Light Sage', 'Stability trainer with 3D Guidance System.', '2024-03-08', 'assets/img/products/asics-gt-2000-12-w.png', 7600.00, 12, 0, 0, 'active', '2026-01-03 14:28:54', 'Running'),
+(17, 'AS-NOVA-3W', 'NOVABLAST 3 W', 'Asics', 'Women', 'Mint Tint/White', 'Bouncy FF BLAST PLUS foam for daily tempo.', '2024-01-25', 'assets/img/products/asics-novablast-3-w.png', 8500.00, 10, 1, 0, 'active', '2026-01-03 14:28:54', 'Running'),
+(18, 'NK-SAB-1-W', 'SABRINA 1 W', 'Nike', 'Women', 'Oxygen Purple/Black', 'Lightweight guard shoe tuned for quick cuts.', '2024-07-18', 'assets/img/products/nike-sabrina-1-w.png', 8900.00, 9, 0, 0, 'active', '2026-01-03 14:28:54', 'Basketball');
 
 -- --------------------------------------------------------
 
@@ -189,18 +166,100 @@ CREATE TABLE `product_sizes` (
 --
 
 INSERT INTO `product_sizes` (`id`, `product_id`, `size_label`, `size_system`, `gender`, `stock_quantity`, `is_active`, `created_at`) VALUES
-(13, 1, 'US M 7', 'US', 'Men', 4, 1, '2026-01-03 10:58:07'),
-(14, 1, 'US M 8', 'US', 'Men', 8, 1, '2026-01-03 10:58:07'),
-(15, 1, 'US M 9', 'US', 'Men', 2, 1, '2026-01-03 10:58:07'),
-(16, 1, 'US M 10', 'US', 'Men', 0, 1, '2026-01-03 10:58:07'),
-(21, 3, 'EU 39', 'EU', 'Unisex', 3, 1, '2026-01-03 10:58:07'),
-(22, 3, 'EU 40', 'EU', 'Unisex', 7, 1, '2026-01-03 10:58:07'),
-(23, 3, 'EU 41', 'EU', 'Unisex', 0, 1, '2026-01-03 10:58:07'),
-(24, 3, 'EU 42', 'EU', 'Unisex', 5, 1, '2026-01-03 10:58:07'),
-(25, 2, 'US 6', 'US', 'Unisex', 4, 1, '2026-01-03 12:40:14'),
-(26, 2, 'US 7', 'US', 'Unisex', 6, 1, '2026-01-03 12:40:14'),
-(27, 2, 'US 8', 'US', 'Unisex', 1, 1, '2026-01-03 12:40:14'),
-(28, 2, 'US 9', 'US', 'Unisex', 0, 1, '2026-01-03 12:40:14');
+(1, 1, 'US M 7', 'US', 'Men', 5, 1, '2026-01-03 14:28:54'),
+(2, 1, 'US M 8', 'US', 'Men', 8, 1, '2026-01-03 14:28:54'),
+(3, 1, 'US M 9', 'US', 'Men', 6, 1, '2026-01-03 14:28:54'),
+(4, 1, 'US M 10', 'US', 'Men', 4, 1, '2026-01-03 14:28:54'),
+(5, 1, 'EU 41', 'EU', 'Unisex', 3, 1, '2026-01-03 14:28:54'),
+(6, 1, 'EU 42', 'EU', 'Unisex', 2, 1, '2026-01-03 14:28:54'),
+(7, 2, 'US 6', 'US', 'Unisex', 4, 1, '2026-01-03 14:28:54'),
+(8, 2, 'US 7', 'US', 'Unisex', 6, 1, '2026-01-03 14:28:54'),
+(9, 2, 'US 8', 'US', 'Unisex', 5, 1, '2026-01-03 14:28:54'),
+(10, 2, 'US 9', 'US', 'Unisex', 3, 1, '2026-01-03 14:28:54'),
+(11, 2, 'EU 40', 'EU', 'Unisex', 2, 1, '2026-01-03 14:28:54'),
+(12, 3, 'EU 40', 'EU', 'Men', 3, 1, '2026-01-03 14:28:54'),
+(13, 3, 'EU 41', 'EU', 'Men', 4, 1, '2026-01-03 14:28:54'),
+(14, 3, 'EU 42', 'EU', 'Men', 5, 1, '2026-01-03 14:28:54'),
+(15, 3, 'US 10', 'US', 'Men', 2, 1, '2026-01-03 14:28:54'),
+(16, 3, 'US 11', 'US', 'Men', 0, 1, '2026-01-03 14:28:54'),
+(17, 4, 'US 7', 'US', 'Unisex', 6, 1, '2026-01-03 14:28:54'),
+(18, 4, 'US 8', 'US', 'Unisex', 7, 1, '2026-01-03 14:28:54'),
+(19, 4, 'US 9', 'US', 'Unisex', 5, 1, '2026-01-03 14:28:54'),
+(20, 4, 'US 10', 'US', 'Unisex', 3, 1, '2026-01-03 14:28:54'),
+(21, 4, 'EU 41', 'EU', 'Unisex', 2, 1, '2026-01-03 14:28:54'),
+(22, 5, 'US 9', 'US', 'Men', 2, 1, '2026-01-03 14:28:54'),
+(23, 5, 'US 10', 'US', 'Men', 3, 1, '2026-01-03 14:28:54'),
+(24, 5, 'US 11', 'US', 'Men', 3, 1, '2026-01-03 14:28:54'),
+(25, 5, 'US 12', 'US', 'Men', 0, 1, '2026-01-03 14:28:54'),
+(26, 5, 'EU 44', 'EU', 'Men', 2, 1, '2026-01-03 14:28:54'),
+(27, 6, 'US 6', 'US', 'Unisex', 4, 1, '2026-01-03 14:28:54'),
+(28, 6, 'US 7', 'US', 'Unisex', 5, 1, '2026-01-03 14:28:54'),
+(29, 6, 'US 8', 'US', 'Unisex', 6, 1, '2026-01-03 14:28:54'),
+(30, 6, 'US 9', 'US', 'Unisex', 3, 1, '2026-01-03 14:28:54'),
+(31, 6, 'EU 41', 'EU', 'Unisex', 1, 1, '2026-01-03 14:28:54'),
+(32, 7, 'EU 40', 'EU', 'Men', 3, 1, '2026-01-03 14:28:54'),
+(33, 7, 'EU 41', 'EU', 'Men', 3, 1, '2026-01-03 14:28:54'),
+(34, 7, 'EU 42', 'EU', 'Men', 3, 1, '2026-01-03 14:28:54'),
+(35, 7, 'US 9', 'US', 'Men', 2, 1, '2026-01-03 14:28:54'),
+(36, 7, 'US 10', 'US', 'Men', 1, 1, '2026-01-03 14:28:54'),
+(37, 8, 'US 6', 'US', 'Unisex', 4, 1, '2026-01-03 14:28:54'),
+(38, 8, 'US 7', 'US', 'Unisex', 5, 1, '2026-01-03 14:28:54'),
+(39, 8, 'US 8', 'US', 'Unisex', 4, 1, '2026-01-03 14:28:54'),
+(40, 8, 'US 9', 'US', 'Unisex', 5, 1, '2026-01-03 14:28:54'),
+(41, 8, 'EU 42', 'EU', 'Unisex', 3, 1, '2026-01-03 14:28:54'),
+(42, 9, 'US 6', 'US', 'Unisex', 5, 1, '2026-01-03 14:28:54'),
+(43, 9, 'US 7', 'US', 'Unisex', 6, 1, '2026-01-03 14:28:54'),
+(44, 9, 'US 8', 'US', 'Unisex', 5, 1, '2026-01-03 14:28:54'),
+(45, 9, 'US 9', 'US', 'Unisex', 4, 1, '2026-01-03 14:28:54'),
+(46, 9, 'EU 42', 'EU', 'Unisex', 2, 1, '2026-01-03 14:28:54'),
+(47, 10, 'EU 40', 'EU', 'Men', 3, 1, '2026-01-03 14:28:54'),
+(48, 10, 'EU 41', 'EU', 'Men', 4, 1, '2026-01-03 14:28:54'),
+(49, 10, 'EU 42', 'EU', 'Men', 4, 1, '2026-01-03 14:28:54'),
+(50, 10, 'US 9', 'US', 'Men', 2, 1, '2026-01-03 14:28:54'),
+(51, 10, 'US 10', 'US', 'Men', 1, 1, '2026-01-03 14:28:54'),
+(52, 11, 'US 7', 'US', 'Unisex', 4, 1, '2026-01-03 14:28:54'),
+(53, 11, 'US 8', 'US', 'Unisex', 5, 1, '2026-01-03 14:28:54'),
+(54, 11, 'US 9', 'US', 'Unisex', 4, 1, '2026-01-03 14:28:54'),
+(55, 11, 'US 10', 'US', 'Unisex', 3, 1, '2026-01-03 14:28:54'),
+(56, 11, 'EU 42', 'EU', 'Unisex', 2, 1, '2026-01-03 14:28:54'),
+(57, 12, 'US W 6', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(58, 12, 'US W 7', 'US', 'Women', 4, 1, '2026-01-03 14:28:54'),
+(59, 12, 'US W 8', 'US', 'Women', 4, 1, '2026-01-03 14:28:54'),
+(60, 12, 'EU 38', 'EU', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(61, 12, 'EU 39', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(62, 13, 'US W 6.5', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(63, 13, 'US W 7.5', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(64, 13, 'US W 8.5', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(65, 13, 'EU 38', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(66, 13, 'EU 39', 'EU', 'Women', 1, 1, '2026-01-03 14:28:54'),
+(67, 13, 'EU 40', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(68, 14, 'US W 6', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(69, 14, 'US W 7', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(70, 14, 'US W 8', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(71, 14, 'US W 9', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(72, 14, 'EU 38', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(73, 14, 'EU 39', 'EU', 'Women', 1, 1, '2026-01-03 14:28:54'),
+(74, 15, 'US W 6', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(75, 15, 'US W 7', 'US', 'Women', 4, 1, '2026-01-03 14:28:54'),
+(76, 15, 'US W 8', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(77, 15, 'EU 38', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(78, 15, 'EU 39', 'EU', 'Women', 0, 1, '2026-01-03 14:28:54'),
+(79, 16, 'US W 6', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(80, 16, 'US W 7', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(81, 16, 'US W 8', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(82, 16, 'EU 38', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(83, 16, 'EU 39', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(84, 17, 'US W 6', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(85, 17, 'US W 7', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(86, 17, 'US W 8', 'US', 'Women', 3, 1, '2026-01-03 14:28:54'),
+(87, 17, 'EU 38', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(88, 17, 'EU 39', 'EU', 'Women', 1, 1, '2026-01-03 14:28:54'),
+(89, 17, 'EU 40', 'EU', 'Women', 0, 1, '2026-01-03 14:28:54'),
+(90, 18, 'US W 6.5', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(91, 18, 'US W 7.5', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(92, 18, 'US W 8.5', 'US', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(93, 18, 'EU 38', 'EU', 'Women', 2, 1, '2026-01-03 14:28:54'),
+(94, 18, 'EU 39', 'EU', 'Women', 1, 1, '2026-01-03 14:28:54');
 
 -- --------------------------------------------------------
 
@@ -271,13 +330,6 @@ CREATE TABLE `user_wishlist` (
   `product_id` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `user_wishlist`
---
-
-INSERT INTO `user_wishlist` (`id`, `user_id`, `product_id`, `created_at`) VALUES
-(2, 2, 5, '2026-01-03 04:18:11');
 
 --
 -- Indexes for dumped tables
@@ -366,13 +418,13 @@ ALTER TABLE `admin_logs`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
@@ -384,13 +436,13 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `product_sizes`
 --
 ALTER TABLE `product_sizes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 
 --
 -- AUTO_INCREMENT for table `users`

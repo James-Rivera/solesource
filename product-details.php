@@ -38,13 +38,14 @@ $recommended = array_values(array_filter($all_products, function($p) use ($reque
 shuffle($recommended);
 $recommended = array_slice($recommended, 0, 4);
 
-// Load available sizes for this product
+// Load available sizes for this product (US as source of truth; EU derived client-side)
 $sizeOptions = [];
-$sizeStmt = $conn->prepare("SELECT id, size_label, size_system, gender, stock_quantity, is_active FROM product_sizes WHERE product_id = ? AND is_active = 1 ORDER BY size_label");
+$sizeStmt = $conn->prepare("SELECT id, size_label, size_system, gender, stock_quantity, is_active FROM product_sizes WHERE product_id = ? AND size_system = 'US' AND is_active = 1 ORDER BY stock_quantity > 0 DESC, size_label ASC");
 $sizeStmt->bind_param('i', $requested_id);
 $sizeStmt->execute();
 $sizeRes = $sizeStmt->get_result();
 while ($row = $sizeRes->fetch_assoc()) {
+    if (empty($row['size_label'])) { continue; }
     $sizeOptions[] = $row;
 }
 $sizeStmt->close();
@@ -62,7 +63,7 @@ if (empty($sizeOptions)) {
 
 $selectedSizeId = null;
 $selectedSizeLabel = '';
-$selectedSystem = $sizeOptions[0]['size_system'] ?? 'US';
+$selectedSystem = 'US';
 $selectedGender = $sizeOptions[0]['gender'] ?? ($product['gender'] ?? 'Unisex');
 foreach ($sizeOptions as $opt) {
     if ((int) ($opt['stock_quantity'] ?? 0) > 0 && (int) ($opt['is_active'] ?? 0) === 1) {
@@ -81,8 +82,11 @@ if ($selectedSizeLabel === '' && !empty($sizeOptions)) {
 }
 
 // Build unique lists for system and gender toggles
-$availableSystems = array_values(array_unique(array_map(fn($o) => $o['size_system'], $sizeOptions)));
+$availableSystems = ['US','EU'];
 $availableGenders = array_values(array_unique(array_map(fn($o) => $o['gender'], $sizeOptions)));
+if (!empty($product['gender']) && strcasecmp($product['gender'], 'Unisex') === 0) {
+    $availableGenders = [];
+}
 
 $breadcrumb_active = $product['name'];
 ?>
@@ -100,6 +104,34 @@ $breadcrumb_active = $product['name'];
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
+
+    <style>
+        /* Stabilize size grid layout and disabled styling */
+        .size-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 10px;
+            justify-content: center;
+        }
+        .size-grid .size-tile { position: relative; }
+        .size-grid .btn-size {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+            width: 100%;
+            padding: 8px 10px;
+        }
+        .size-grid .btn-size.disabled,
+        .size-grid .btn-size:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f4f4f4;
+            color: #9aa0a6;
+            pointer-events: none;
+            text-decoration: line-through;
+        }
+    </style>
 
     <main class="py-5">
         <div class="container">
@@ -136,9 +168,6 @@ $breadcrumb_active = $product['name'];
                 <div class="col-lg-5">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <div class="text-uppercase text-muted small fw-semibold mb-0"><?php echo htmlspecialchars($product['brand']); ?></div>
-                        <?php if (!empty($product['gender'])): ?>
-                            <span class="badge-gender"><?php echo htmlspecialchars($product['gender']); ?></span>
-                        <?php endif; ?>
                     </div>
                     <h1 class="product-title-detail mb-3"><?php echo htmlspecialchars($product['name']); ?></h1>
                     <div class="product-price-detail mb-4">₱<?php echo number_format((float)$product['price'], 2); ?></div>
@@ -163,18 +192,21 @@ $breadcrumb_active = $product['name'];
                             $outOfStock = (int) ($opt['stock_quantity'] ?? 0) <= 0;
                             $isSelected = $selectedSizeId === $opt['id'] && $selectedSizeLabel === $opt['size_label'];
                         ?>
-                            <button
-                                type="button"
-                                class="btn-size<?php echo $isSelected ? ' active' : ''; ?><?php echo $outOfStock ? ' disabled' : ''; ?>"
-                                data-size="<?php echo htmlspecialchars($opt['size_label']); ?>"
-                                data-size-id="<?php echo htmlspecialchars((string) $opt['id']); ?>"
-                                data-size-system="<?php echo htmlspecialchars($opt['size_system']); ?>"
-                                data-size-gender="<?php echo htmlspecialchars($opt['gender']); ?>"
-                                <?php echo $outOfStock ? 'disabled aria-disabled="true"' : ''; ?>
-                            >
-                                <?php echo htmlspecialchars($opt['size_label']); ?>
-                                <?php if ($outOfStock): ?><span class="text-muted small ms-1">(OOS)</span><?php endif; ?>
-                            </button>
+                            <div class="size-tile d-flex flex-column align-items-start gap-1">
+                                <button
+                                    type="button"
+                                    class="btn-size<?php echo $isSelected ? ' active' : ''; ?><?php echo $outOfStock ? ' disabled' : ''; ?>"
+                                    data-size="<?php echo htmlspecialchars($opt['size_label']); ?>"
+                                    data-us-label="<?php echo htmlspecialchars($opt['size_label']); ?>"
+                                    data-size-id="<?php echo htmlspecialchars((string) $opt['id']); ?>"
+                                    data-size-system="<?php echo htmlspecialchars($opt['size_system']); ?>"
+                                    data-size-gender="<?php echo htmlspecialchars($opt['gender']); ?>"
+                                    data-stock="<?php echo (int) ($opt['stock_quantity'] ?? 0); ?>"
+                                    <?php echo $outOfStock ? 'disabled aria-disabled="true"' : ''; ?>
+                                >
+                                    <span class="size-text"><?php echo htmlspecialchars($opt['size_label']); ?></span>
+                                </button>
+                            </div>
                         <?php endforeach; ?>
                     </div>
                     <input type="hidden" id="selectedSize" name="size" value="<?php echo htmlspecialchars($selectedSizeLabel); ?>">
@@ -195,10 +227,14 @@ $breadcrumb_active = $product['name'];
                     >Add to Cart</button>
 
                     <div class="mb-3 size-label text-uppercase fw-bold small">About This Product</div>
+
                     <p class="text-description lh-lg mb-3">
                         <?php echo htmlspecialchars($product['description']); ?>
                     </p>
                     <div class="text-muted small lh-lg">
+                        <?php if (!empty($product['gender'])): ?>
+                            <div>Gender: <?php echo htmlspecialchars($product['gender']); ?></div>
+                        <?php endif; ?>
                         <div>SKU: <?php echo htmlspecialchars($product['sku'] ?? ''); ?></div>
                         <div>Colorway: <?php echo htmlspecialchars($product['colorway'] ?? ''); ?></div>
                         <div>Release Date: <?php echo htmlspecialchars($product['release_date'] ?? ''); ?></div>

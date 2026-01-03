@@ -22,6 +22,12 @@ function handle_upload(?array $file): array {
         return ['path' => '', 'error' => ''];
     }
     $upload_dir = '../assets/img/products/';
+    if (!empty($file['error']) && $file['error'] !== UPLOAD_ERR_OK) {
+        return ['path' => '', 'error' => 'Image upload failed. Please try again.'];
+    }
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0755, true);
+    }
     $basename = basename($file['name']);
     $ext = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
     $allowed = ['jpg', 'jpeg', 'png', 'webp'];
@@ -106,11 +112,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         $stmtAdd->close();
     }
     $productSizes = load_product_sizes($conn, $productId);
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_size') {
+    $deleteId = (int) ($_POST['delete_size_id'] ?? 0);
+    if ($deleteId > 0) {
+        $stmtDel = $conn->prepare("DELETE FROM product_sizes WHERE id = ? AND product_id = ?");
+        $stmtDel->bind_param('ii', $deleteId, $productId);
+        if ($stmtDel->execute()) {
+            $success_message = 'Size deleted.';
+        } else {
+            $error_message = 'Failed to delete size.';
+        }
+        $stmtDel->close();
+    } else {
+        $error_message = 'Invalid size selected for deletion.';
+    }
+    $productSizes = load_product_sizes($conn, $productId);
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_product') {
     $name = trim($_POST['name'] ?? '');
     $brand = trim($_POST['brand'] ?? '');
     $price = trim($_POST['price'] ?? '');
     $gender = trim($_POST['gender'] ?? 'Unisex');
+    $sport = trim($_POST['sport'] ?? '');
     $colorway = trim($_POST['colorway'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $release_date = trim($_POST['release_date'] ?? '');
@@ -127,13 +149,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             $error_message = $upload['error'];
         } else {
             $image_path = $upload['path'] ?: ($product['image'] ?? '');
-            $sql = "UPDATE products SET name = ?, brand = ?, gender = ?, colorway = ?, description = ?, release_date = ?, image = ?, price = ?, stock_quantity = ?, is_featured = ?, status = ?, sku = ? WHERE id = ?";
+            $sql = "UPDATE products SET name = ?, brand = ?, gender = ?, sport = ?, colorway = ?, description = ?, release_date = ?, image = ?, price = ?, stock_quantity = ?, is_featured = ?, status = ?, sku = ? WHERE id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param(
-                'sssssssdisdsi',
+                'ssssssssdiissi',
                 $name,
                 $brand,
                 $gender,
+                $sport,
                 $colorway,
                 $description,
                 $release_date,
@@ -150,6 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                 $product['name'] = $name;
                 $product['brand'] = $brand;
                 $product['gender'] = $gender;
+                $product['sport'] = $sport;
                 $product['colorway'] = $colorway;
                 $product['description'] = $description;
                 $product['release_date'] = $release_date;
@@ -220,6 +244,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                         </select>
                     </div>
                     <div class="col-md-4">
+                        <label class="form-label">Sport</label>
+                        <select name="sport" class="form-select">
+                            <?php $sports = ['', 'Running','Training','Lifestyle','Basketball']; ?>
+                            <?php foreach ($sports as $s): ?>
+                                <option value="<?php echo $s; ?>" <?php echo ($product['sport'] ?? '') === $s ? 'selected' : ''; ?>><?php echo $s === '' ? '-- Optional --' : $s; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">Stock Quantity</label>
                         <input type="number" name="stock_quantity" class="form-control" value="<?php echo (int) $product['stock_quantity']; ?>" min="0">
                     </div>
@@ -272,7 +305,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                     <h5 class="mb-0">Sizes &amp; Stock</h5>
                 </div>
                 <form method="POST" class="table-responsive mb-3">
-                    <input type="hidden" name="action" value="update_sizes">
                     <table class="table align-middle mb-2">
                         <thead>
                             <tr>
@@ -281,11 +313,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                                 <th>Gender</th>
                                 <th>Stock</th>
                                 <th>Active</th>
+                                <th>Delete</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($productSizes)): ?>
-                                <tr><td colspan="5" class="text-muted">No sizes yet.</td></tr>
+                                <tr><td colspan="6" class="text-muted">No sizes yet.</td></tr>
                             <?php else: ?>
                                 <?php foreach ($productSizes as $ps): ?>
                                     <tr>
@@ -313,13 +346,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                                         <td class="text-center">
                                             <input class="form-check-input" type="checkbox" name="size_active[]" value="<?php echo (int) $ps['id']; ?>" <?php echo !empty($ps['is_active']) ? 'checked' : ''; ?>>
                                         </td>
+                                        <td class="text-center">
+                                            <input type="hidden" name="delete_size_id" value="<?php echo (int) $ps['id']; ?>">
+                                            <button type="submit" name="action" value="delete_size" class="btn btn-link text-danger p-0" aria-label="Delete size" onclick="return confirm('Delete this size?');" formaction="edit-product.php?id=<?php echo urlencode($productId); ?>" formmethod="POST" formnovalidate>
+                                                Delete
+                                            </button>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
                     <div class="text-end">
-                        <button type="submit" class="admin-action-btn">Update Sizes</button>
+                        <button type="submit" name="action" value="update_sizes" class="admin-action-btn">Update Sizes</button>
                     </div>
                 </form>
 
