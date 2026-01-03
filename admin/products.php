@@ -221,8 +221,7 @@ if ($result && $result->num_rows > 0) {
                         </div>
                         <div class="status-cell" data-label="Status">
                             <?php $active = strtolower($product['status'] ?? '') === 'active'; ?>
-                            <span class="status-dot <?php echo $active ? 'status-active' : 'status-inactive'; ?>"></span>
-                            <span><?php echo $active ? 'Active' : 'Inactive'; ?></span>
+                            <span class="pill pill-sm <?php echo $active ? 'pill-active' : 'pill-inactive'; ?>"><?php echo $active ? 'Active' : 'Inactive'; ?></span>
                         </div>
                         <div data-label="Action">
                             <a href="edit-product.php?id=<?php echo urlencode($product['id']); ?>" class="action-link">Edit</a>

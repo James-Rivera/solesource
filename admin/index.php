@@ -108,22 +108,13 @@ if ($stmt) {
 
                     <!-- Order Rows -->
                     <?php foreach ($recent_orders as $order): ?>
-                        <?php
-                            $status = strtolower($order['status'] ?? '');
-                            $dotClass = 'text-secondary';
-                            if ($status === 'pending') $dotClass = 'text-warning';
-                            elseif ($status === 'confirmed') $dotClass = 'text-primary';
-                            elseif ($status === 'shipped') $dotClass = 'text-info';
-                            elseif ($status === 'delivered') $dotClass = 'text-success';
-                            elseif ($status === 'cancelled') $dotClass = 'text-danger';
-                        ?>
+                        <?php $status = strtolower($order['status'] ?? ''); ?>
                         <div class="order-row">
                             <div class="order-id" data-label="Order ID"><?php echo htmlspecialchars($order['order_number']); ?></div>
                             <div class="order-customer" data-label="Customer"><?php echo htmlspecialchars($order['full_name']); ?></div>
                             <div class="order-date" data-label="Date"><?php echo htmlspecialchars($order['date_formatted']); ?></div>
                             <div class="order-status" data-label="Status">
-                                <span class="order-status-dot <?php echo $dotClass; ?>">●</span>
-                                <span><?php echo htmlspecialchars(ucfirst($status)); ?></span>
+                                <span class="status-pill status-<?php echo htmlspecialchars($status); ?>"><?php echo htmlspecialchars(ucfirst($status)); ?></span>
                             </div>
                             <div class="order-total" data-label="Total"><?php echo htmlspecialchars($order['total_formatted']); ?></div>
                             <div data-label="Action">

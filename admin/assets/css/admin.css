@@ -260,6 +260,101 @@ body {
     color: var(--brand-black, #000);
 }
 
+.action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.order-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.action-trigger {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+.action-trigger:hover {
+    background: #111;
+    color: #fff;
+}
+
+.action-dropdown-menu {
+    min-width: 260px;
+    padding: 0.35rem 0.25rem;
+}
+
+.dropdown-action {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--brand-black, #000);
+}
+
+.dropdown-action:hover {
+    background: #f2f2f2;
+}
+
+.dropdown-form-group {
+    padding: 0.35rem 0.75rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.dropdown-form-group .form-control-sm {
+    font-size: 0.85rem;
+}
+
+.admin-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border: 1px solid var(--brand-black, #000);
+    color: var(--brand-black, #000);
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.admin-action-btn:hover {
+    background: var(--brand-black, #000);
+    color: #fff;
+    text-decoration: none;
+}
+
+.admin-action-btn.success {
+    border-color: #0f9d58;
+    color: #0f9d58;
+}
+
+.admin-action-btn.success:hover {
+    background: #0f9d58;
+    color: #fff;
+}
+
+.admin-action-btn.danger {
+    border-color: #c0392b;
+    color: #c0392b;
+}
+
+.admin-action-btn.danger:hover {
+    background: #c0392b;
+    color: #fff;
+}
+
 .filter-link.active {
     color: var(--brand-black, #000);
     border-bottom-color: var(--brand-orange, #e35926);
@@ -367,9 +462,9 @@ body {
 /* Order Grid Layout */
 .order-table-row {
     display: grid;
-    grid-template-columns: 140px 2fr 140px 140px 140px 80px; /* ID | Customer | Date | Payment | Fulfillment | Action */
-    gap: 1.5rem;
-    padding: 1.5rem 2rem;
+    grid-template-columns: 170px 2fr 120px 160px 120px 140px; /* ID | Customer | Payment | Fulfillment | Total | Action */
+    gap: 1.25rem;
+    padding: 1.1rem 1.5rem;
     border-bottom: 1px solid #e5e5e5;
     align-items: center;
     transition: background-color 0.2s ease;
@@ -395,8 +490,8 @@ body {
 
 .fulfillment-cell {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
     font-size: 0.875rem;
 }
 
@@ -407,6 +502,49 @@ body {
 }
 .fulfillment-pending { background: var(--brand-orange, #e35926); }
 .fulfillment-shipped { background: #28a745; }
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border: 1px solid transparent;
+}
+
+.status-pending { background: rgba(227, 89, 38, 0.12); color: #d45720; border-color: rgba(227, 89, 38, 0.35); }
+.status-confirmed { background: rgba(0, 102, 204, 0.12); color: #0a63c1; border-color: rgba(0, 102, 204, 0.3); }
+.status-shipped { background: rgba(0, 171, 85, 0.12); color: #0f9d58; border-color: rgba(0, 171, 85, 0.3); }
+.status-delivered { background: rgba(40, 167, 69, 0.12); color: #198754; border-color: rgba(40, 167, 69, 0.3); }
+.status-cancelled { background: rgba(192, 57, 43, 0.12); color: #c0392b; border-color: rgba(192, 57, 43, 0.3); }
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.pill-sm {
+    font-size: 0.72rem;
+    padding: 0.18rem 0.5rem;
+}
+
+.pill-active { background: rgba(25, 135, 84, 0.12); color: #198754; border-color: rgba(25, 135, 84, 0.35); }
+.pill-inactive { background: rgba(108, 117, 125, 0.12); color: #6c757d; border-color: rgba(108, 117, 125, 0.35); }
+.pill-dark { background: #000; color: #fff; border-color: #000; }
+.pill-neutral { background: rgba(0,0,0,0.07); color: #333; border-color: rgba(0,0,0,0.12); }
 
 .action-link {
     color: var(--brand-black, #000);

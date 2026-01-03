@@ -131,53 +131,57 @@ if ($msg === 'updated') {
                             <?php echo htmlspecialchars(strtoupper($order['payment_method'] ?? 'COD')); ?>
                         </div>
                         <div class="fulfillment-cell" data-label="Fulfillment">
-                            <span class="fulfillment-dot <?php echo $fulfillmentClass; ?>"></span>
-                            <span><?php echo htmlspecialchars($statusLabel); ?></span>
+                            <span class="status-pill status-<?php echo htmlspecialchars($status); ?>"><?php echo htmlspecialchars($statusLabel); ?></span>
                             <?php if (!empty($order['tracking_number'])): ?>
-                                <div class="text-muted small mt-1">Tracking: <?php echo htmlspecialchars($order['tracking_number']); ?></div>
+                                <div class="text-muted small">Tracking: <?php echo htmlspecialchars($order['tracking_number']); ?></div>
                             <?php endif; ?>
                         </div>
-                        <div class="total-cell" data-label="Total">
+                        <div class="total-cell text-end" data-label="Total">
                             <?php echo htmlspecialchars($order['total_formatted']); ?>
                         </div>
-                        <div data-label="Action" class="d-flex flex-column gap-1">
-                            <a href="order-details.php?id=<?php echo urlencode($order['id']); ?>" class="action-link">View</a>
-                            <?php if (in_array($status, ['pending', 'confirmed', 'shipped'], true)): ?>
-                                <?php if ($status === 'pending'): ?>
-                                    <form method="POST" action="order-update.php" class="d-inline">
-                                        <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
-                                        <input type="hidden" name="status" value="confirmed">
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">Confirm</button>
-                                    </form>
-                                <?php endif; ?>
-                                <?php if ($status === 'confirmed'): ?>
-                                    <form method="POST" action="order-update.php" class="d-inline w-100">
-                                        <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
-                                        <input type="hidden" name="status" value="shipped">
-                                        <div class="mb-1">
-                                            <input type="text" name="tracking_number" class="form-control form-control-sm" placeholder="Tracking number (optional)" value="<?php echo htmlspecialchars($order['tracking_number'] ?? ''); ?>">
-                                        </div>
-                                    <div class="mb-1">
-                                            <input type="text" name="courier" class="form-control form-control-sm" placeholder="Courier (optional)" value="<?php echo htmlspecialchars($order['courier'] ?? ''); ?>">
-                                        </div>
-                                        <button type="submit" class="btn btn-sm btn-outline-info w-100">Mark Shipped</button>
-                                    </form>
-                                <?php endif; ?>
-                                <?php if ($status === 'shipped'): ?>
-                                    <form method="POST" action="order-update.php" class="d-inline">
-                                        <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
-                                        <input type="hidden" name="status" value="delivered">
-                                        <button type="submit" class="btn btn-sm btn-outline-success">Mark Delivered</button>
-                                    </form>
-                                <?php endif; ?>
-                                <?php if (in_array($status, ['pending', 'confirmed'], true)): ?>
-                                    <form method="POST" action="order-update.php" class="d-inline">
-                                        <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
-                                        <input type="hidden" name="status" value="cancelled">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
-                                    </form>
-                                <?php endif; ?>
-                            <?php endif; ?>
+                        <div data-label="Action" class="order-actions">
+                            <div class="dropdown">
+                                <button class="admin-action-btn action-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Actions <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end action-dropdown-menu">
+                                    <a class="dropdown-item" href="order-details.php?id=<?php echo urlencode($order['id']); ?>">View details</a>
+                                    <?php if (in_array($status, ['pending', 'confirmed', 'shipped'], true)): ?>
+                                        <?php if ($status === 'pending'): ?>
+                                            <form method="POST" action="order-update.php" class="dropdown-item p-0">
+                                                <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
+                                                <input type="hidden" name="status" value="confirmed">
+                                                <button type="submit" class="dropdown-action">Mark Confirmed</button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <?php if ($status === 'confirmed'): ?>
+                                            <form method="POST" action="order-update.php" class="dropdown-item p-0">
+                                                <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
+                                                <input type="hidden" name="status" value="shipped">
+                                                <div class="dropdown-form-group">
+                                                    <input type="text" name="tracking_number" class="form-control form-control-sm" placeholder="Tracking number (optional)" value="<?php echo htmlspecialchars($order['tracking_number'] ?? ''); ?>">
+                                                    <input type="text" name="courier" class="form-control form-control-sm" placeholder="Courier (optional)" value="<?php echo htmlspecialchars($order['courier'] ?? ''); ?>">
+                                                </div>
+                                                <button type="submit" class="dropdown-action">Mark Shipped</button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <?php if ($status === 'shipped'): ?>
+                                            <form method="POST" action="order-update.php" class="dropdown-item p-0">
+                                                <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
+                                                <input type="hidden" name="status" value="delivered">
+                                                <button type="submit" class="dropdown-action">Mark Delivered</button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <?php if (in_array($status, ['pending', 'confirmed'], true)): ?>
+                                            <form method="POST" action="order-update.php" class="dropdown-item p-0">
+                                                <input type="hidden" name="order_id" value="<?php echo (int) $order['id']; ?>">
+                                                <input type="hidden" name="status" value="cancelled">
+                                                <button type="submit" class="dropdown-action text-danger">Cancel Order</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
