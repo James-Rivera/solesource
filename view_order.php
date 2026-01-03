@@ -123,39 +123,26 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
                         <div class="confirmation-body mt-3">
                             <div class="mb-4">
                                 <div class="order-summary-title mb-3 text-uppercase">Order Summary</div>
-                                <div class="d-flex flex-column flex-md-row align-items-start gap-4">
-                                    <div class="flex-shrink-0 text-center" style="width: 250px; max-width: 100%;">
-                                        <img src="<?php echo htmlspecialchars($primaryImage); ?>" alt="<?php echo htmlspecialchars($primaryName); ?>" style="width: 100%; height: auto; object-fit: contain;">
-                                    </div>
-                                    <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
-                                        <div>
-                                            <div class="product-name" style="font-weight: 700; font-size: 1.2rem; line-height: 1.3;"><?php echo htmlspecialchars($primaryName); ?></div>
-                                            <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Brand: <?php echo htmlspecialchars($primaryBrand); ?></div>
-                                            <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem; text-decoration: underline;">Size: <?php echo htmlspecialchars($primarySize); ?></div>
-                                            <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Qty: <?php echo (int) ($primaryItem['quantity'] ?? 1); ?></div>
-                                        </div>
-                                        <div class="product-price fw-bold fs-4 text-md-end">₱<?php echo number_format($totalAmount ?: $primaryPrice, 2); ?></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <?php if (count($orderItems) > 1): ?>
-                                <div class="mb-4">
-                                    <div class="text-uppercase small text-muted mb-3">Other Items</div>
-                                    <?php foreach ($orderItems as $idx => $item): ?>
-                                        <?php if ($idx === 0) { continue; } ?>
-                                        <div class="d-flex align-items-center gap-3 py-2 other-item">
-                                            <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 72px; height: 72px; object-fit: contain;">
-                                            <div class="flex-grow-1">
-                                                <div class="fw-bold"><?php echo htmlspecialchars($item['name']); ?></div>
-                                                <div class="text-muted small text-uppercase">Brand: <?php echo htmlspecialchars($item['brand']); ?></div>
-                                                <div class="text-muted small text-uppercase">Size: <?php echo htmlspecialchars($item['size']); ?> • Qty: <?php echo (int) $item['quantity']; ?></div>
+                                <?php if (!empty($orderItems)): ?>
+                                    <?php foreach ($orderItems as $item): ?>
+                                        <div class="d-flex flex-column flex-md-row align-items-start gap-4 mb-4 pb-4 border-bottom">
+                                            <div class="flex-shrink-0 text-center" style="width: 250px; max-width: 100%;">
+                                                <img src="<?php echo htmlspecialchars($item['image'] ?: 'assets/img/products/new/jordan-11-legend-blue.png'); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 100%; height: auto; object-fit: contain;">
                                             </div>
-                                            <div class="fw-bold">₱<?php echo number_format((float) $item['price_at_purchase'] * (int) $item['quantity'], 2); ?></div>
+                                            <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
+                                                <div>
+                                                    <div class="product-name" style="font-weight: 700; font-size: 1.2rem; line-height: 1.3;"><?php echo htmlspecialchars($item['name']); ?></div>
+                                                    <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Brand: <?php echo htmlspecialchars($item['brand']); ?></div>
+                                                    <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Size: <?php echo htmlspecialchars($item['size']); ?> • Qty: <?php echo (int) $item['quantity']; ?></div>
+                                                </div>
+                                                <div class="product-price fw-bold fs-4 text-md-end">₱<?php echo number_format((float) $item['price_at_purchase'] * (int) $item['quantity'], 2); ?></div>
+                                            </div>
                                         </div>
                                     <?php endforeach; ?>
-                                </div>
-                            <?php endif; ?>
+                                <?php else: ?>
+                                    <div class="text-muted">No items found for this order.</div>
+                                <?php endif; ?>
+                            </div>
 
                             <div class="mb-4">
                                 <div class="order-summary-title mb-3 text-uppercase">Complete Order Details</div>

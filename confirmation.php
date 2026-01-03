@@ -103,19 +103,25 @@ $shippingAddress = $composedAddress ?: ($order['shipping_address'] ?? '');
 
                             <div class="mb-4 text-start">
                                 <div class="order-summary-title mb-4 text-uppercase">Order Summary</div>
-                                <div class="d-flex flex-column flex-md-row align-items-start gap-4">
-                                    <div class="flex-shrink-0 text-center" style="width: 220px; max-width: 100%;">
-                                        <img src="<?php echo htmlspecialchars($primaryItem['image'] ?? 'assets/img/products/new/jordan-11-legend-blue.png'); ?>" alt="<?php echo htmlspecialchars($primaryItem['name'] ?? 'Product'); ?>" style="width: 100%; height: auto; object-fit: contain;">
-                                    </div>
-                                    <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
-                                        <div>
-                                            <div class="product-name"><?php echo htmlspecialchars($primaryItem['name'] ?? ''); ?></div>
-                                            <div class="product-meta"><?php echo htmlspecialchars($primaryItem['brand'] ?? ''); ?></div>
-                                            <div class="product-meta">Size <?php echo htmlspecialchars($primaryItem['size'] ?? ''); ?></div>
+                                <?php if (!empty($orderItems)): ?>
+                                    <?php foreach ($orderItems as $item): ?>
+                                        <div class="d-flex flex-column flex-md-row align-items-start gap-4 mb-4 pb-4 border-bottom">
+                                            <div class="flex-shrink-0 text-center" style="width: 220px; max-width: 100%;">
+                                                <img src="<?php echo htmlspecialchars($item['image'] ?: 'assets/img/products/new/jordan-11-legend-blue.png'); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 100%; height: auto; object-fit: contain;">
+                                            </div>
+                                            <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
+                                                <div>
+                                                    <div class="product-name"><?php echo htmlspecialchars($item['name']); ?></div>
+                                                    <div class="product-meta">Brand: <?php echo htmlspecialchars($item['brand']); ?></div>
+                                                    <div class="product-meta">Size: <?php echo htmlspecialchars($item['size']); ?> • Qty: <?php echo (int) $item['quantity']; ?></div>
+                                                </div>
+                                                <div class="product-price fw-bold fs-4 text-start">₱<?php echo number_format((float) $item['price_at_purchase'] * (int) $item['quantity'], 2); ?></div>
+                                            </div>
                                         </div>
-                                        <div class="product-price fw-bold fs-4 text-start">₱<?php echo number_format((float) ($primaryItem['price_at_purchase'] ?? $order['total_amount'] ?? 0), 2); ?></div>
-                                    </div>
-                                </div>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="text-muted">No items found for this order.</div>
+                                <?php endif; ?>
                             </div>
 
                             <hr class="section-divider my-4">
