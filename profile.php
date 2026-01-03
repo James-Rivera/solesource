@@ -112,17 +112,39 @@ while ($row = $wlRes->fetch_assoc()) {
 }
 $wlStmt->close();
 
-$purchases_ids = [1, 2, 3, 4, 5, 6, 7, 8];
+$purchasedProducts = [];
+$purchasesStmt = $conn->prepare("SELECT p.id, p.name, p.brand, p.image, p.price, MAX(o.created_at) AS last_purchased FROM order_items oi JOIN orders o ON oi.order_id = o.id JOIN products p ON p.id = oi.product_id WHERE o.user_id = ? GROUP BY p.id, p.name, p.brand, p.image, p.price ORDER BY last_purchased DESC LIMIT 12");
+$purchasesStmt->bind_param('i', $userId);
+$purchasesStmt->execute();
+$purchasesRes = $purchasesStmt->get_result();
+while ($row = $purchasesRes->fetch_assoc()) {
+    $row['price'] = '₱' . number_format((float) $row['price'], 2, '.', ',');
+    $purchasedProducts[] = $row;
+}
+$purchasesStmt->close();
 
 $ordersResult = null;
 $orderCount = 0;
-$orderStmt = $conn->prepare("SELECT o.id, o.order_number, o.total_amount, o.status, o.created_at, MIN(p.image) AS product_image FROM orders o LEFT JOIN order_items oi ON oi.order_id = o.id LEFT JOIN products p ON p.id = oi.product_id WHERE o.user_id = ? GROUP BY o.id ORDER BY o.created_at DESC");
+$orderStmt = $conn->prepare("SELECT o.id, o.order_number, o.total_amount, o.status, o.created_at, MIN(p.image) AS product_image, COALESCE(SUM(oi.quantity), 0) AS item_count FROM orders o LEFT JOIN order_items oi ON oi.order_id = o.id LEFT JOIN products p ON p.id = oi.product_id WHERE o.user_id = ? GROUP BY o.id ORDER BY o.created_at DESC");
 $orderStmt->bind_param('i', $userId);
 $orderStmt->execute();
 $ordersResult = $orderStmt->get_result();
 $orderCount = $ordersResult ? $ordersResult->num_rows : 0;
 $orderStmt->close();
 $hasOrders = $orderCount > 0;
+
+// Saved addresses
+$addresses = [];
+$addrStmt = $conn->prepare("SELECT id, label, full_name, phone, address_line, city, province, region, barangay, zip_code, country, is_default, created_at FROM user_addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC");
+$addrStmt->bind_param('i', $userId);
+$addrStmt->execute();
+$addrRes = $addrStmt->get_result();
+while ($row = $addrRes->fetch_assoc()) {
+    $row['id'] = (int) $row['id'];
+    $row['is_default'] = (int) $row['is_default'];
+    $addresses[] = $row;
+}
+$addrStmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -135,6 +157,7 @@ $hasOrders = $orderCount > 0;
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/account.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css">
     <?php include 'includes/head-meta.php'; ?>
     <style>
         /* Force HR visibility */
@@ -221,20 +244,12 @@ $hasOrders = $orderCount > 0;
                 <div class="container-xxl">
                     <h2 class="account-section-title">My purchases</h2>
                     <div class="row g-4">
-                        <?php 
-                        foreach ($purchases_ids as $id) {
-                            $shoe = null;
-                            foreach ($all_products as $p) {
-                                if ($p['id'] == $id) {
-                                    $shoe = $p;
-                                    break;
-                                }
-                            }
-                            if ($shoe):
-                                include 'includes/product-card.php';
-                            endif;
-                        }
-                        ?>
+                        <?php foreach ($purchasedProducts as $shoe): ?>
+                            <?php include 'includes/product-card.php'; ?>
+                        <?php endforeach; ?>
+                        <?php if (empty($purchasedProducts)): ?>
+                            <div class="col-12 text-center text-muted">No purchases yet.</div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </section>
@@ -275,6 +290,8 @@ $hasOrders = $orderCount > 0;
                                                 $statusClass = 'text-danger';
                                                 break;
                                         }
+                                        $itemCount = (int) ($order['item_count'] ?? 0);
+                                        $itemsLabel = $itemCount . ' Item' . ($itemCount === 1 ? '' : 's');
                                         $orderDate = $order['created_at'] ? date('M d, Y', strtotime($order['created_at'])) : '';
                                         $orderImage = $order['product_image'] ?? '';
                                         if (!$orderImage) {
@@ -290,7 +307,7 @@ $hasOrders = $orderCount > 0;
                                         <!-- Order Details -->
                                         <div class="order-history-details flex-grow-1">
                                             <div class="order-history-number fw-bold text-brand-black mb-1">Order <?php echo htmlspecialchars($order['order_number']); ?></div>
-                                            <div class="order-history-meta text-muted small mb-2"><?php echo htmlspecialchars($orderDate); ?> • 1 Item</div>
+                                            <div class="order-history-meta text-muted small mb-2"><?php echo htmlspecialchars($orderDate); ?> • <?php echo htmlspecialchars($itemsLabel); ?></div>
                                             <div class="order-history-status">
                                                 <span class="<?php echo $statusClass; ?> fs-6 me-1">●</span><span class="small"><?php echo htmlspecialchars(ucfirst($status)); ?></span>
                                             </div>
@@ -401,14 +418,53 @@ $hasOrders = $orderCount > 0;
 
                                 <!-- Address View -->
                                 <div class="tab-pane fade" id="address-view">
-                                    <h1 class="settings-content-title">MY ADRESS</h1>
-                                    <p class="settings-subtitle">Please add your address for easier shopping</p>
-
-                                    <div class="address-card-wrapper">
-                                        <button type="button" class="address-add-card" data-bs-toggle="modal" data-bs-target="#addressModal">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <div class="address-card-label">ADDRESS 1</div>
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                        <div>
+                                            <h1 class="settings-content-title mb-1">MY ADDRESS</h1>
+                                            <p class="settings-subtitle mb-0">Please add your address for easier shopping</p>
+                                        </div>
+                                        <button type="button" class="btn btn-dark text-uppercase fw-bold" id="addAddressBtn" data-bs-toggle="modal" data-bs-target="#addressModal">
+                                            <i class="bi bi-plus-circle me-1"></i> Add New Address
                                         </button>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <div id="addressEmpty" class="text-center text-muted py-4 border rounded <?php echo !empty($addresses) ? 'd-none' : ''; ?>">No saved addresses yet. Add one to speed up checkout.</div>
+                                        <div id="addressCards" class="row g-3">
+                                            <?php foreach ($addresses as $addr): ?>
+                                                <?php
+                                                    $addressParts = array_filter([
+                                                        $addr['address_line'] ?? '',
+                                                        $addr['barangay'] ?? '',
+                                                        $addr['city'] ?? '',
+                                                        $addr['province'] ?? '',
+                                                        $addr['region'] ?? '',
+                                                        $addr['zip_code'] ?? '',
+                                                        $addr['country'] ?? '',
+                                                    ]);
+                                                    $addressText = implode(', ', $addressParts);
+                                                    $addrJson = htmlspecialchars(json_encode($addr), ENT_QUOTES, 'UTF-8');
+                                                ?>
+                                                <div class="col-md-6">
+                                                    <div class="border rounded h-100 p-3 position-relative">
+                                                        <?php if (!empty($addr['is_default'])): ?>
+                                                            <span class="badge bg-dark position-absolute top-0 end-0 m-3">Default</span>
+                                                        <?php endif; ?>
+                                                        <div class="fw-bold text-uppercase text-dark mb-1"><?php echo htmlspecialchars($addr['label'] ?: 'Address'); ?></div>
+                                                        <div class="small text-muted mb-2"><?php echo htmlspecialchars($addr['full_name']); ?></div>
+                                                        <div class="small text-brand-black"><?php echo htmlspecialchars($addressText); ?></div>
+                                                        <div class="small text-muted mt-2">Phone: <?php echo htmlspecialchars($addr['phone']); ?></div>
+                                                        <div class="d-flex flex-wrap gap-2 mt-3">
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-action="edit-address" data-address="<?php echo $addrJson; ?>">Edit</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete-address" data-id="<?php echo (int) $addr['id']; ?>">Delete</button>
+                                                            <?php if (empty($addr['is_default'])): ?>
+                                                                <button type="button" class="btn btn-sm btn-outline-dark" data-action="make-default" data-id="<?php echo (int) $addr['id']; ?>">Make Default</button>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -509,57 +565,63 @@ $hasOrders = $orderCount > 0;
                 </div>
                 <div class="modal-body px-4 py-4">
                     <form id="addressForm">
+                        <input type="hidden" name="id" id="address_id">
                         <div class="row g-3">
-                            <!-- First Name -->
                             <div class="col-md-6">
-                                <input type="text" class="form-control" placeholder="First Name" style="height: 60px;">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Label (Home, Work)</label>
+                                <input type="text" class="form-control" name="label" placeholder="Home">
                             </div>
-                            
-                            <!-- Last name -->
                             <div class="col-md-6">
-                                <input type="text" class="form-control" placeholder="Last name" style="height: 60px;">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Full Name</label>
+                                <input type="text" class="form-control" name="full_name" placeholder="Full Name" required>
                             </div>
-                            
-                            <!-- Adress Line 1 -->
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Phone</label>
+                                <input type="text" class="form-control" name="phone" placeholder="09XXXXXXXXX" required>
+                            </div>
                             <div class="col-12">
-                                <input type="text" class="form-control" placeholder="Adress Line 1" style="height: 60px;">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Address Line</label>
+                                <input type="text" class="form-control" name="address_line" placeholder="Street / House / Building" required>
                             </div>
-                            
-                            <!-- Adress Line 2 -->
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Region</label>
+                                <select id="profile_region_select" class="form-select" name="region" autocomplete="off" placeholder="Select Region..." required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Province / State</label>
+                                <select id="profile_province_select" class="form-select" name="province" autocomplete="off" placeholder="Select Province..." disabled required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">City / Municipality</label>
+                                <select id="profile_city_select" class="form-select" name="city" autocomplete="off" placeholder="Select City..." disabled required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Barangay</label>
+                                <select id="profile_barangay_select" class="form-select" name="barangay" autocomplete="off" placeholder="Select Barangay..." disabled required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Postal Code</label>
+                                <input type="text" class="form-control" name="zip_code" placeholder="Postal Code" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Country</label>
+                                <input type="text" class="form-control" name="country" value="Philippines" required>
+                            </div>
                             <div class="col-12">
-                                <input type="text" class="form-control" placeholder="Adress Line 2" style="height: 60px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="addressDefault" name="is_default" value="1">
+                                    <label class="form-check-label" for="addressDefault">Set as default address</label>
+                                </div>
                             </div>
-                            
-                            <!-- Province/State -->
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" placeholder="Province/State" style="height: 60px;">
-                            </div>
-                            
-                            <!-- City/Municipality -->
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" placeholder="City/Municipality" style="height: 60px;">
-                            </div>
-                            
-                            <!-- Postal Code -->
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" placeholder="Postal Code" style="height: 60px;">
-                            </div>
-                            
-                            <!-- Barangay/District -->
-                            <div class="col-md-6">
-                                <input type="text" class="form-control" placeholder="Barangay/District" style="height: 60px;">
-                            </div>
-                            
-                            <!-- Country -->
                             <div class="col-12">
-                                <input type="text" class="form-control" placeholder="Country" style="height: 60px;">
+                                <div id="addressError" class="alert alert-danger py-2 px-3 d-none"></div>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="addressForm" class="btn px-4" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Confirm</button>
+                    <button type="submit" form="addressForm" class="btn px-4" id="addressSubmitBtn" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Save Address</button>
                 </div>
             </div>
         </div>
@@ -578,7 +640,7 @@ $hasOrders = $orderCount > 0;
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn px-4" style="background: #dc3545; color: #fff; font-weight: 600;">Delete Account</button>
+                    <button type="button" id="deleteAccountConfirmBtn" class="btn px-4" style="background: #dc3545; color: #fff; font-weight: 600;">Delete Account</button>
                 </div>
             </div>
         </div>
@@ -604,34 +666,11 @@ $hasOrders = $orderCount > 0;
     </div>
     
     <script>
-        // Wishlist remove (uses wishlist-toggle.php)
-        document.querySelectorAll('.wishlist-remove-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const card = btn.closest('.col');
-                const productId = Number(btn.dataset.productId || 0);
-                try {
-                    const res = await fetch('includes/wishlist-toggle.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ product_id: productId })
-                    });
-                    if (res.status === 401) {
-                        window.location.href = 'login.php?redirect=profile';
-                        return;
-                    }
-                    const data = await res.json();
-                    if (data?.ok && card) {
-                        card.remove();
-                        if (!document.querySelector('.wishlist-product-card')) {
-                            window.location.reload();
-                        }
-                    }
-                } catch (err) {
-                    console.error('Failed to update wishlist', err);
-                }
-            });
-        });
+        window.profilePageData = {
+            addresses: <?php echo json_encode($addresses); ?>
+        };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script src="assets/js/profile.js"></script>
 </body>
 </html>

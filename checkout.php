@@ -23,6 +23,15 @@ $userResult = $userStmt->get_result();
 $user = $userResult ? $userResult->fetch_assoc() : [];
 $userStmt->close();
 
+// Last used address from most recent order
+$lastOrderAddress = null;
+$lastOrderStmt = $conn->prepare('SELECT full_name, phone, address, city, province, region, barangay, zip_code, country FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
+$lastOrderStmt->bind_param('i', $userId);
+$lastOrderStmt->execute();
+$lastOrderRes = $lastOrderStmt->get_result();
+$lastOrderAddress = $lastOrderRes ? $lastOrderRes->fetch_assoc() : null;
+$lastOrderStmt->close();
+
 // Build cart details
 $cartItems = [];
 $productIds = array_unique(array_map(fn($item) => (int) ($item['id'] ?? 0), $sessionCart));
@@ -115,9 +124,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$errors) {
         $orderNumber = 'SO-' . date('YmdHis') . '-' . rand(1000, 9999);
         $totalAmount = $subtotal;
+        $shippingAddress = implode(', ', array_filter([$address, $barangay, $city, $province, $region, $postal, $country]));
 
-        $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, payment_method, phone, full_name, address, city, province, zip_code, country) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmtOrder->bind_param('isdssssssss', $userId, $orderNumber, $totalAmount, $paymentMethod, $phone, $fullName, $address, $city, $province, $postal, $country);
+        $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, payment_method, phone, full_name, address, city, province, region, barangay, zip_code, country, shipping_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmtOrder->bind_param('isdsssssssssss', $userId, $orderNumber, $totalAmount, $paymentMethod, $phone, $fullName, $address, $city, $province, $region, $barangay, $postal, $country, $shippingAddress);
         $stmtOrder->execute();
         $orderId = $stmtOrder->insert_id;
         $stmtOrder->close();
@@ -209,7 +219,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="section-block mb-4">
-                            <div class="section-title">Shipping Details</div>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                <div class="section-title mb-0">Shipping Details</div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-dark btn-sm" id="savedAddressBtn">Select Saved Address</button>
+                                    <?php if ($lastOrderAddress): ?>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="importLastAddressBtn">Import Last Used</button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <input type="hidden" name="address_id" id="address_id">
                             <input type="hidden" name="region" id="region_text" required>
                             <input type="hidden" name="province" id="province_text" required>
                             <input type="hidden" name="city" id="city_text" required>
@@ -379,6 +398,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </footer>
 
+    <!-- Saved Address Selector Modal -->
+    <div class="modal fade" id="addressSelectorModal" tabindex="-1" aria-labelledby="addressSelectorLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-uppercase" id="addressSelectorLabel">Select Saved Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="addressSelectorEmpty" class="text-muted text-center py-4 d-none">No saved addresses yet.</div>
+                    <div id="addressSelectorList" class="list-group list-group-flush"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
         <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
@@ -390,6 +428,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const provinceText = document.getElementById('province_text');
                 const cityText = document.getElementById('city_text');
                 const barangayText = document.getElementById('barangay_text');
+
+                const savedAddressBtn = document.getElementById('savedAddressBtn');
+                const importLastAddressBtn = document.getElementById('importLastAddressBtn');
+                const addressSelectorModalEl = document.getElementById('addressSelectorModal');
+                const addressSelectorList = document.getElementById('addressSelectorList');
+                const addressSelectorEmpty = document.getElementById('addressSelectorEmpty');
+                const addressIdInput = document.getElementById('address_id');
+                const addressInput = document.querySelector('input[name="address"]');
+                const fullNameInput = document.querySelector('input[name="full_name"]');
+                const phoneInput = document.querySelector('input[name="phone"]');
+                const zipInput = document.querySelector('input[name="zip_code"]');
+                const countryInput = document.querySelector('input[name="country"]');
+                const savedAddressModal = addressSelectorModalEl ? new bootstrap.Modal(addressSelectorModalEl) : null;
+                const lastOrderAddress = <?php echo json_encode($lastOrderAddress); ?>;
+                let savedAddresses = [];
 
                 const regionSelectEl = document.getElementById('region_select');
                 const provinceSelectEl = document.getElementById('province_select');
@@ -419,9 +472,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     barangays: 'https://raw.githubusercontent.com/isaacdarcilla/philippine-addresses/main/barangay.json',
                 };
 
+                let regionsData = [];
                 let provincesData = [];
                 let citiesData = [];
                 let barangaysData = [];
+
+                const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (ch) => {
+                    switch (ch) {
+                        case '&': return '&amp;';
+                        case '<': return '&lt;';
+                        case '>': return '&gt;';
+                        case '"': return '&quot;';
+                        case "'": return '&#39;';
+                        default: return ch;
+                    }
+                });
+
+                const formatAddress = (addr) => [addr.address_line || addr.address, addr.barangay, addr.city, addr.province, addr.region, addr.zip_code, addr.country]
+                    .filter(Boolean)
+                    .join(', ');
+
+                const findByName = (collection, nameKey, codeKey, value) => {
+                    const target = (value || '').toLowerCase().trim();
+                    if (!target) return '';
+                    const match = collection.find((item) => (item[nameKey] || '').toLowerCase() === target);
+                    return match ? match[codeKey] : '';
+                };
 
                 const fetchJson = async (url) => {
                     const res = await fetch(url);
@@ -447,8 +523,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 const loadRegions = async () => {
                     try {
-                        const regions = await fetchJson(dataSources.regions);
-                        regionSelect.addOptions(regions.map(r => ({ code: r.region_code, name: r.region_name })));
+                        regionsData = await fetchJson(dataSources.regions);
+                        if (Object.keys(regionSelect.options || {}).length === 0) {
+                            regionSelect.addOptions(regionsData.map(r => ({ code: r.region_code, name: r.region_name })));
+                        }
                     } catch (e) {
                         console.error(e);
                     }
@@ -528,12 +606,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     setHidden(barangayText, selected ? selected.name : '');
                 };
 
+                const ensureOption = (ts, value, name) => {
+                    if (!ts || !value) return false;
+                    const exists = ts.options && ts.options[value];
+                    if (!exists) {
+                        ts.addOption({ code: value, name: name || value, text: name || value, value });
+                    }
+                    ts.setValue(value, true);
+                    return true;
+                };
+
+                const applyAddressToForm = async (addr) => {
+                    if (!addr) return;
+                    if (fullNameInput) fullNameInput.value = addr.full_name || '';
+                    if (phoneInput) phoneInput.value = addr.phone || '';
+                    if (addressInput) addressInput.value = addr.address_line || addr.address || '';
+                    if (zipInput) zipInput.value = addr.zip_code || '';
+                    if (countryInput) countryInput.value = addr.country || 'Philippines';
+                    if (addressIdInput) addressIdInput.value = addr.id || '';
+
+                    setHidden(regionText, addr.region || '');
+                    setHidden(provinceText, addr.province || '');
+                    setHidden(cityText, addr.city || '');
+                    setHidden(barangayText, addr.barangay || '');
+
+                    await loadRegions();
+
+                    // Prefer explicit codes if provided; otherwise fall back to name matching and injected options.
+                    const regionCode = addr.region_code || findByName(regionsData, 'region_name', 'region_code', addr.region);
+                    if (regionCode && ensureOption(regionSelect, regionCode, addr.region)) {
+                        await onRegionChange(regionCode);
+                    } else {
+                        resetSelect(provinceSelect, true);
+                        resetSelect(citySelect, true);
+                        resetSelect(barangaySelect, true);
+                    }
+
+                    const provinceCode = addr.province_code || findByName(provincesData, 'province_name', 'province_code', addr.province);
+                    if (provinceCode && ensureOption(provinceSelect, provinceCode, addr.province)) {
+                        await onProvinceChange(provinceCode);
+                    }
+
+                    const cityCode = addr.city_code || findByName(citiesData, 'city_name', 'city_code', addr.city);
+                    if (cityCode && ensureOption(citySelect, cityCode, addr.city)) {
+                        await onCityChange(cityCode);
+                    }
+
+                    const barangayCode = addr.barangay_code || findByName(barangaysData, 'brgy_name', 'brgy_code', addr.barangay);
+                    if (barangayCode) {
+                        ensureOption(barangaySelect, barangayCode, addr.barangay);
+                        onBarangayChange(barangayCode);
+                    }
+
+                    if (regionText && !regionText.value) setHidden(regionText, addr.region || '');
+                    if (provinceText && !provinceText.value) setHidden(provinceText, addr.province || '');
+                    if (cityText && !cityText.value) setHidden(cityText, addr.city || '');
+                    if (barangayText && !barangayText.value) setHidden(barangayText, addr.barangay || '');
+                };
+
+                const renderSavedAddresses = (list) => {
+                    if (!addressSelectorList) return;
+                    addressSelectorList.innerHTML = '';
+                    if (!list.length) {
+                        addressSelectorEmpty?.classList.remove('d-none');
+                        return;
+                    }
+                    addressSelectorEmpty?.classList.add('d-none');
+                    list.forEach((addr) => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action py-3';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div>
+                                    <div class="fw-bold text-uppercase">${escapeHtml(addr.label || 'Address')}</div>
+                                    <div class="small text-muted">${escapeHtml(addr.full_name)} • ${escapeHtml(addr.phone)}</div>
+                                    <div class="small">${escapeHtml(formatAddress(addr))}</div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-dark" data-action="use-address" data-id="${addr.id}">Use this</button>
+                            </div>
+                        `;
+                        addressSelectorList.appendChild(item);
+                    });
+                };
+
+                const loadSavedAddresses = async () => {
+                    try {
+                        const res = await fetch('includes/address-list.php');
+                        if (res.status === 401) {
+                            window.location.href = 'login.php?redirect=checkout';
+                            return;
+                        }
+                        const data = await res.json();
+                        if (data?.ok && Array.isArray(data.data)) {
+                            savedAddresses = data.data;
+                            renderSavedAddresses(savedAddresses);
+                        }
+                    } catch (err) {
+                        console.error('Failed to load saved addresses', err);
+                    }
+                };
+
                 regionSelect.on('change', onRegionChange);
                 provinceSelect.on('change', onProvinceChange);
                 citySelect.on('change', onCityChange);
                 barangaySelect.on('change', onBarangayChange);
 
                 loadRegions();
+
+                savedAddressBtn?.addEventListener('click', async () => {
+                    await loadSavedAddresses();
+                    savedAddressModal?.show();
+                });
+
+                addressSelectorList?.addEventListener('click', async (evt) => {
+                    const btn = evt.target.closest('button[data-action="use-address"]');
+                    if (!btn) return;
+                    const id = Number(btn.dataset.id || 0);
+                    const addr = savedAddresses.find((a) => Number(a.id) === id);
+                    if (addr) {
+                        await applyAddressToForm(addr);
+                        savedAddressModal?.hide();
+                    }
+                });
+
+                if (importLastAddressBtn && lastOrderAddress) {
+                    importLastAddressBtn.addEventListener('click', async () => {
+                        await applyAddressToForm({ ...lastOrderAddress, address_line: lastOrderAddress.address });
+                        if (addressIdInput) {
+                            addressIdInput.value = '';
+                        }
+                    });
+                }
             });
         </script>
 </body>

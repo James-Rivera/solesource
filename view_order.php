@@ -54,19 +54,30 @@ if ($status === 'confirmed') {
 
 $orderDate = $order['created_at'] ? date('F d, Y', strtotime($order['created_at'])) : '';
 
-$addressParts = [];
-if (!empty($order['address'])) {
-    $addressParts[] = $order['address'];
+$shippingAddress = '';
+if (!empty($order['shipping_address'])) {
+    $shippingAddress = $order['shipping_address'];
+} else {
+    $addressParts = [];
+    if (!empty($order['address'])) {
+        $addressParts[] = $order['address'];
+    }
+    if (!empty($order['barangay'])) {
+        $addressParts[] = $order['barangay'];
+    }
+    $cityProvince = trim(($order['city'] ?? '') . (($order['province'] ?? '') ? ', ' . $order['province'] : ''));
+    if ($cityProvince) {
+        $addressParts[] = $cityProvince;
+    }
+    if (!empty($order['region'])) {
+        $addressParts[] = $order['region'];
+    }
+    $zipCountry = trim(($order['zip_code'] ?? '') . (($order['country'] ?? '') ? ' ' . $order['country'] : ''));
+    if ($zipCountry) {
+        $addressParts[] = $zipCountry;
+    }
+    $shippingAddress = implode("\n", $addressParts);
 }
-$cityProvince = trim(($order['city'] ?? '') . (($order['province'] ?? '') ? ', ' . $order['province'] : ''));
-if ($cityProvince) {
-    $addressParts[] = $cityProvince;
-}
-$zipCountry = trim(($order['zip_code'] ?? '') . (($order['country'] ?? '') ? ' ' . $order['country'] : ''));
-if ($zipCountry) {
-    $addressParts[] = $zipCountry;
-}
-$shippingAddress = implode("\n", $addressParts);
 
 $totalAmount = (float) ($order['total_amount'] ?? 0);
 $primaryItem = $orderItems[0] ?? null;
@@ -170,8 +181,9 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
                                 </div>
                             </div>
 
-                            <div class="mt-5">
-                                <a href="#" class="btn w-100 cta-btn" style="background: var(--brand-orange, #f5804e); color: #fff; font-weight: 700;">Download</a>
+                            <div class="mt-5 d-flex flex-column gap-2">
+                                <a href="profile.php?tab=orders" class="btn w-100 cta-btn" style="background: var(--brand-orange, #f5804e); color: #fff; font-weight: 700;">Back to Orders</a>
+                                <a href="#" class="btn w-100 cta-btn">Download</a>
                             </div>
                         </div>
                     </div>

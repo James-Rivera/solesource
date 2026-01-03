@@ -12,6 +12,7 @@ SET time_zone = '+00:00';
 -- Drop existing tables in dependency order
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS user_addresses;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS user_wishlist;
 DROP TABLE IF EXISTS users;
@@ -31,6 +32,28 @@ CREATE TABLE users (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_users_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Saved addresses per user (profile + checkout)
+CREATE TABLE user_addresses (
+  id INT NOT NULL AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  label VARCHAR(100) DEFAULT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  phone VARCHAR(50) NOT NULL,
+  address_line VARCHAR(255) NOT NULL,
+  city VARCHAR(255) DEFAULT NULL,
+  province VARCHAR(255) DEFAULT NULL,
+  region VARCHAR(255) DEFAULT NULL,
+  barangay VARCHAR(255) DEFAULT NULL,
+  zip_code VARCHAR(20) DEFAULT NULL,
+  country VARCHAR(100) DEFAULT 'Philippines',
+  is_default TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_user_addresses_user (user_id),
+  KEY idx_user_addresses_default (is_default),
+  CONSTRAINT fk_user_addresses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Products: matches admin add-product form and storefront reads
