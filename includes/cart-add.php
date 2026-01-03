@@ -10,7 +10,10 @@ if (!$input || !isset($input['id']) || !isset($input['size'])) {
 
 $id = (string)$input['id'];
 $size = (string)$input['size'];
-$key = $id . ':' . $size;
+$sizeIdRaw = $input['size_id'] ?? '';
+$sizeId = $sizeIdRaw === '' ? null : (int)$sizeIdRaw;
+$key = $id . ':' . ($sizeId !== null ? $sizeId : $size);
+$legacyKey = $id . ':' . $size; // support older cart entries without size_id
 $name = $input['name'] ?? '';
 $brand = $input['brand'] ?? '';
 $image = $input['image'] ?? '';
@@ -21,12 +24,21 @@ if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
+// If a legacy key exists for the same product/size, migrate it to the size-aware key
+if ($sizeId !== null && $legacyKey !== $key && isset($_SESSION['cart'][$legacyKey]) && !isset($_SESSION['cart'][$key])) {
+    $_SESSION['cart'][$key] = $_SESSION['cart'][$legacyKey];
+    $_SESSION['cart'][$key]['size_id'] = $sizeId;
+    unset($_SESSION['cart'][$legacyKey]);
+}
+
 if (isset($_SESSION['cart'][$key])) {
     $_SESSION['cart'][$key]['qty'] += $qty;
+    $_SESSION['cart'][$key]['size_id'] = $sizeId;
 } else {
     $_SESSION['cart'][$key] = [
         'id' => $id,
         'size' => $size,
+        'size_id' => $sizeId,
         'name' => $name,
         'brand' => $brand,
         'image' => $image,

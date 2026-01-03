@@ -51,17 +51,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       decBtn?.addEventListener('click', async () => {
         const nextQty = (item.qty || 1) - 1;
-        const data = await api.update({ id: item.id, size: item.size, qty: nextQty });
+        const data = await api.update({ id: item.id, size: item.size, size_id: item.size_id, qty: nextQty });
         renderCart(data);
       });
 
       plusBtn?.addEventListener('click', async () => {
-        const data = await api.add({ id: item.id, size: item.size, name: item.name, brand: item.brand, price: item.price, image: item.image, qty: 1 });
+        const data = await api.add({ id: item.id, size: item.size, size_id: item.size_id, name: item.name, brand: item.brand, price: item.price, image: item.image, qty: 1 });
         renderCart(data);
       });
 
       removeBtn?.addEventListener('click', async () => {
-        const data = await api.remove({ id: item.id, size: item.size });
+        const data = await api.remove({ id: item.id, size: item.size, size_id: item.size_id });
         renderCart(data);
       });
 

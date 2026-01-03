@@ -38,6 +38,42 @@ $recommended = array_values(array_filter($all_products, function($p) use ($reque
 shuffle($recommended);
 $recommended = array_slice($recommended, 0, 4);
 
+// Load available sizes for this product
+$sizeOptions = [];
+$sizeStmt = $conn->prepare("SELECT id, size_label, size_system, gender, stock_quantity, is_active FROM product_sizes WHERE product_id = ? AND is_active = 1 ORDER BY size_label");
+$sizeStmt->bind_param('i', $requested_id);
+$sizeStmt->execute();
+$sizeRes = $sizeStmt->get_result();
+while ($row = $sizeRes->fetch_assoc()) {
+    $sizeOptions[] = $row;
+}
+$sizeStmt->close();
+
+if (empty($sizeOptions)) {
+    $sizeOptions[] = [
+        'id' => null,
+        'size_label' => 'Default',
+        'size_system' => 'US',
+        'gender' => $product['gender'] ?? 'Unisex',
+        'stock_quantity' => $product['stock_quantity'] ?? 0,
+        'is_active' => 1,
+    ];
+}
+
+$selectedSizeId = null;
+$selectedSizeLabel = '';
+foreach ($sizeOptions as $opt) {
+    if ((int) ($opt['stock_quantity'] ?? 0) > 0 && (int) ($opt['is_active'] ?? 0) === 1) {
+        $selectedSizeId = $opt['id'];
+        $selectedSizeLabel = $opt['size_label'];
+        break;
+    }
+}
+if ($selectedSizeLabel === '' && !empty($sizeOptions)) {
+    $selectedSizeId = $sizeOptions[0]['id'];
+    $selectedSizeLabel = $sizeOptions[0]['size_label'];
+}
+
 $breadcrumb_active = $product['name'];
 ?>
 <!DOCTYPE html>
@@ -93,13 +129,27 @@ $breadcrumb_active = $product['name'];
                     <div class="product-price-detail mb-4">₱<?php echo number_format((float)$product['price'], 2); ?></div>
 
                     <div class="size-label mb-3 text-uppercase small"><?php echo htmlspecialchars($size_label); ?></div>
-                    <?php $sizes = ['7','7.5','8','8.5','9','9.5','10','10.5','11','11.5','12','13']; ?>
                     <div class="size-grid mb-4" id="sizeSelector">
-                        <?php foreach ($sizes as $i => $size): ?>
-                            <button type="button" class="btn-size<?php echo $i === 0 ? ' active' : ''; ?>" data-size="<?php echo $size; ?>"><?php echo $size; ?></button>
+                        <?php foreach ($sizeOptions as $opt): 
+                            $outOfStock = (int) ($opt['stock_quantity'] ?? 0) <= 0;
+                            $isSelected = $selectedSizeId === $opt['id'] && $selectedSizeLabel === $opt['size_label'];
+                        ?>
+                            <button
+                                type="button"
+                                class="btn-size<?php echo $isSelected ? ' active' : ''; ?><?php echo $outOfStock ? ' disabled' : ''; ?>"
+                                data-size="<?php echo htmlspecialchars($opt['size_label']); ?>"
+                                data-size-id="<?php echo htmlspecialchars((string) $opt['id']); ?>"
+                                data-size-system="<?php echo htmlspecialchars($opt['size_system']); ?>"
+                                data-size-gender="<?php echo htmlspecialchars($opt['gender']); ?>"
+                                <?php echo $outOfStock ? 'disabled aria-disabled="true"' : ''; ?>
+                            >
+                                <?php echo htmlspecialchars($opt['size_label']); ?>
+                                <?php if ($outOfStock): ?><span class="text-muted small ms-1">(OOS)</span><?php endif; ?>
+                            </button>
                         <?php endforeach; ?>
                     </div>
-                    <input type="hidden" id="selectedSize" name="size" value="<?php echo $sizes[0]; ?>">
+                    <input type="hidden" id="selectedSize" name="size" value="<?php echo htmlspecialchars($selectedSizeLabel); ?>">
+                    <input type="hidden" id="selectedSizeId" name="size_id" value="<?php echo htmlspecialchars((string) $selectedSizeId); ?>">
 
                     <button
                         class="btn-cta mb-5"

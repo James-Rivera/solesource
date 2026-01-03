@@ -65,6 +65,7 @@ if ($productIds) {
         $product = $products[$id];
         $qty = max(1, (int) ($item['qty'] ?? 1));
         $size = $item['size'] ?? '';
+        $sizeId = isset($item['size_id']) ? (int) $item['size_id'] : null;
         $price = (float) $product['price'];
         $lineTotal = $price * $qty;
         $subtotal += $lineTotal;
@@ -76,6 +77,7 @@ if ($productIds) {
             'brand' => $product['brand'],
             'image' => $product['image'],
             'size' => $size,
+            'size_id' => $sizeId,
             'qty' => $qty,
             'price' => $price,
             'line_total' => $lineTotal,
@@ -126,22 +128,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $totalAmount = $subtotal;
         $shippingAddress = implode(', ', array_filter([$address, $barangay, $city, $province, $region, $postal, $country]));
 
-        $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, payment_method, phone, full_name, address, city, province, region, barangay, zip_code, country, shipping_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmtOrder->bind_param('isdsssssssssss', $userId, $orderNumber, $totalAmount, $paymentMethod, $phone, $fullName, $address, $city, $province, $region, $barangay, $postal, $country, $shippingAddress);
-        $stmtOrder->execute();
-        $orderId = $stmtOrder->insert_id;
-        $stmtOrder->close();
+        // Stock validation and reservation
+        $stockErrors = [];
+        $conn->begin_transaction();
 
-        $stmtItem = $conn->prepare("INSERT INTO order_items (order_id, product_id, size, quantity, price_at_purchase) VALUES (?, ?, ?, ?, ?)");
+        // Validate stock per item
         foreach ($cartItems as $ci) {
-            $stmtItem->bind_param('iisid', $orderId, $ci['id'], $ci['size'], $ci['qty'], $ci['price']);
-            $stmtItem->execute();
+            $pid = (int) $ci['id'];
+            $qty = (int) $ci['qty'];
+            $sizeId = $ci['size_id'] ?? null;
+            if ($sizeId) {
+                $stmtCheck = $conn->prepare('SELECT stock_quantity FROM product_sizes WHERE id = ? AND product_id = ? AND is_active = 1 FOR UPDATE');
+                $stmtCheck->bind_param('ii', $sizeId, $pid);
+                $stmtCheck->execute();
+                $res = $stmtCheck->get_result();
+                $row = $res ? $res->fetch_assoc() : null;
+                $stmtCheck->close();
+                if (!$row) {
+                    $stockErrors[] = 'Selected size is unavailable for product #' . $pid;
+                    continue;
+                }
+                if ($qty > (int) $row['stock_quantity']) {
+                    $stockErrors[] = 'Not enough stock for size ' . htmlspecialchars($ci['size']) . ' of product #' . $pid;
+                }
+            } else {
+                $stmtCheck = $conn->prepare('SELECT stock_quantity FROM products WHERE id = ? FOR UPDATE');
+                $stmtCheck->bind_param('i', $pid);
+                $stmtCheck->execute();
+                $res = $stmtCheck->get_result();
+                $row = $res ? $res->fetch_assoc() : null;
+                $stmtCheck->close();
+                if (!$row || $qty > (int) $row['stock_quantity']) {
+                    $stockErrors[] = 'Not enough stock for product #' . $pid;
+                }
+            }
         }
-        $stmtItem->close();
 
-        unset($_SESSION['cart']);
-        header('Location: confirmation.php?order_id=' . urlencode($orderId));
-        exit;
+        if (!empty($stockErrors)) {
+            $conn->rollback();
+            $errors = array_merge($errors, $stockErrors);
+        } else {
+            // Create order and items, then decrement stock
+            $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, payment_method, phone, full_name, address, city, province, region, barangay, zip_code, country, shipping_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmtOrder->bind_param('isdsssssssssss', $userId, $orderNumber, $totalAmount, $paymentMethod, $phone, $fullName, $address, $city, $province, $region, $barangay, $postal, $country, $shippingAddress);
+            $stmtOrder->execute();
+            $orderId = $stmtOrder->insert_id;
+            $stmtOrder->close();
+
+            $stmtItem = $conn->prepare("INSERT INTO order_items (order_id, product_id, product_size_id, size, quantity, price_at_purchase) VALUES (?, ?, ?, ?, ?, ?)");
+            foreach ($cartItems as $ci) {
+                $sizeId = $ci['size_id'] ?? null;
+                $stmtItem->bind_param('iiisid', $orderId, $ci['id'], $sizeId, $ci['size'], $ci['qty'], $ci['price']);
+                $stmtItem->execute();
+
+                if ($sizeId) {
+                    $stmtDec = $conn->prepare('UPDATE product_sizes SET stock_quantity = stock_quantity - ? WHERE id = ?');
+                    $stmtDec->bind_param('ii', $ci['qty'], $sizeId);
+                    $stmtDec->execute();
+                    $stmtDec->close();
+                } else {
+                    $stmtDec = $conn->prepare('UPDATE products SET stock_quantity = GREATEST(stock_quantity - ?, 0) WHERE id = ?');
+                    $stmtDec->bind_param('ii', $ci['qty'], $ci['id']);
+                    $stmtDec->execute();
+                    $stmtDec->close();
+                }
+            }
+            $stmtItem->close();
+
+            $conn->commit();
+            unset($_SESSION['cart']);
+            header('Location: confirmation.php?order_id=' . urlencode($orderId));
+            exit;
+        }
     }
 }
 ?>

@@ -86,6 +86,7 @@ CREATE TABLE `order_items` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
+  `product_size_id` int(11) DEFAULT NULL,
   `size` varchar(50) DEFAULT NULL,
   `quantity` int(11) NOT NULL DEFAULT 1,
   `price_at_purchase` decimal(10,2) NOT NULL,
@@ -160,6 +161,41 @@ INSERT INTO `products` (`id`, `sku`, `name`, `brand`, `gender`, `colorway`, `des
 (10, 'AD-SUP-STAR', 'SUPERSTAR', 'Adidas', 'Unisex', 'White/Black', 'Shell-toe icon from court to stage.', '2023-10-20', 'assets/img/products/adidas-superstar.png', 4500.00, 28, 0, 0, 'active', '2026-01-03 03:05:28'),
 (11, 'AS-GT2-160', 'GT-2160', 'Asics', 'Men', 'White/Illusion Blue', 'GT-2000 series homage with tech language.', '2024-03-25', 'assets/img/products/asics-gt-2160.png', 6890.00, 14, 0, 0, 'active', '2026-01-03 03:05:28'),
 (12, 'NK-BLZ-MID', 'BLAZER MID', 'Nike', 'Unisex', 'White/Black', '70s hardwood classic with vintage midsole.', '2023-09-10', 'assets/img/products/nike-blazer-mid.png', 5295.00, 19, 0, 0, 'active', '2026-01-03 03:05:28');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_sizes`
+--
+
+CREATE TABLE `product_sizes` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `size_label` varchar(50) NOT NULL,
+  `size_system` enum('US','EU','UK','CM') DEFAULT 'US',
+  `gender` enum('Men','Women','Unisex') DEFAULT 'Unisex',
+  `stock_quantity` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `product_sizes`
+--
+
+INSERT INTO `product_sizes` (`id`, `product_id`, `size_label`, `size_system`, `gender`, `stock_quantity`, `is_active`, `created_at`) VALUES
+(1, 1, 'Default', 'US', 'Unisex', 25, 1, '2026-01-03 03:05:28'),
+(2, 2, 'Default', 'US', 'Unisex', 20, 1, '2026-01-03 03:05:28'),
+(3, 3, 'Default', 'US', 'Men', 15, 1, '2026-01-03 03:05:28'),
+(4, 4, 'Default', 'US', 'Unisex', 30, 1, '2026-01-03 03:05:28'),
+(5, 5, 'Default', 'US', 'Men', 8, 1, '2026-01-03 03:05:28'),
+(6, 6, 'Default', 'US', 'Unisex', 18, 1, '2026-01-03 03:05:28'),
+(7, 7, 'Default', 'US', 'Men', 12, 1, '2026-01-03 03:05:28'),
+(8, 8, 'Default', 'US', 'Unisex', 16, 1, '2026-01-03 03:05:28'),
+(9, 9, 'Default', 'US', 'Unisex', 22, 1, '2026-01-03 03:05:28'),
+(10, 10, 'Default', 'US', 'Unisex', 28, 1, '2026-01-03 03:05:28'),
+(11, 11, 'Default', 'US', 'Men', 14, 1, '2026-01-03 03:05:28'),
+(12, 12, 'Default', 'US', 'Unisex', 19, 1, '2026-01-03 03:05:28');
 
 -- --------------------------------------------------------
 
@@ -263,7 +299,8 @@ ALTER TABLE `orders`
 ALTER TABLE `order_items`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_order_items_order` (`order_id`),
-  ADD KEY `idx_order_items_product` (`product_id`);
+  ADD KEY `idx_order_items_product` (`product_id`),
+  ADD KEY `idx_order_items_product_size` (`product_size_id`);
 
 --
 -- Indexes for table `password_resets`
@@ -277,6 +314,14 @@ ALTER TABLE `password_resets`
 ALTER TABLE `products`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_products_sku` (`sku`);
+
+--
+-- Indexes for table `product_sizes`
+--
+ALTER TABLE `product_sizes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_product_sizes_product` (`product_id`),
+  ADD UNIQUE KEY `uq_product_sizes_label` (`product_id`,`size_label`,`gender`,`size_system`);
 
 --
 -- Indexes for table `users`
@@ -336,6 +381,12 @@ ALTER TABLE `products`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
+-- AUTO_INCREMENT for table `product_sizes`
+--
+ALTER TABLE `product_sizes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
@@ -374,7 +425,14 @@ ALTER TABLE `orders`
 --
 ALTER TABLE `order_items`
   ADD CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_order_items_product_size` FOREIGN KEY (`product_size_id`) REFERENCES `product_sizes` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `product_sizes`
+--
+ALTER TABLE `product_sizes`
+  ADD CONSTRAINT `fk_product_sizes_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `user_addresses`

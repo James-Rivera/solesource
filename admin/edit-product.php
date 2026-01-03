@@ -45,12 +45,68 @@ $res = $stmt->get_result();
 $product = $res ? $res->fetch_assoc() : null;
 $stmt->close();
 
+// Fetch product sizes helper
+function load_product_sizes(mysqli $conn, int $productId): array {
+    $rows = [];
+    $stmt = $conn->prepare("SELECT * FROM product_sizes WHERE product_id = ? ORDER BY size_label");
+    $stmt->bind_param('i', $productId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $rows[] = $row;
+    }
+    $stmt->close();
+    return $rows;
+}
+
+$productSizes = load_product_sizes($conn, $productId);
+
 if (!$product) {
     header('Location: products.php');
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_product') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_sizes') {
+    $ids = $_POST['size_id'] ?? [];
+    $labels = $_POST['size_label'] ?? [];
+    $systems = $_POST['size_system'] ?? [];
+    $genders = $_POST['size_gender'] ?? [];
+    $stocks = $_POST['size_stock'] ?? [];
+    $activeIds = array_map('intval', $_POST['size_active'] ?? []);
+
+    $stmtUpdate = $conn->prepare("UPDATE product_sizes SET size_label = ?, size_system = ?, gender = ?, stock_quantity = ?, is_active = ? WHERE id = ? AND product_id = ?");
+    foreach ($ids as $idx => $sid) {
+        $sid = (int) $sid;
+        $label = trim($labels[$idx] ?? '');
+        $system = in_array(($systems[$idx] ?? 'US'), ['US','EU','UK','CM'], true) ? $systems[$idx] : 'US';
+        $genderVal = in_array(($genders[$idx] ?? 'Unisex'), ['Men','Women','Unisex'], true) ? $genders[$idx] : 'Unisex';
+        $stockVal = (int) ($stocks[$idx] ?? 0);
+        $isActive = in_array($sid, $activeIds, true) ? 1 : 0;
+        $stmtUpdate->bind_param('sssiiii', $label, $system, $genderVal, $stockVal, $isActive, $sid, $productId);
+        $stmtUpdate->execute();
+    }
+    $stmtUpdate->close();
+    $success_message = 'Sizes updated.';
+    $productSizes = load_product_sizes($conn, $productId);
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_size') {
+    $label = trim($_POST['new_size_label'] ?? '');
+    $system = in_array(($_POST['new_size_system'] ?? 'US'), ['US','EU','UK','CM'], true) ? $_POST['new_size_system'] : 'US';
+    $genderVal = in_array(($_POST['new_size_gender'] ?? 'Unisex'), ['Men','Women','Unisex'], true) ? $_POST['new_size_gender'] : 'Unisex';
+    $stockVal = (int) ($_POST['new_size_stock'] ?? 0);
+    if ($label === '') {
+        $error_message = 'Size label is required.';
+    } else {
+        $stmtAdd = $conn->prepare("INSERT INTO product_sizes (product_id, size_label, size_system, gender, stock_quantity, is_active) VALUES (?, ?, ?, ?, ?, 1)");
+        $stmtAdd->bind_param('isssi', $productId, $label, $system, $genderVal, $stockVal);
+        if ($stmtAdd->execute()) {
+            $success_message = 'Size added.';
+        } else {
+            $error_message = 'Failed to add size (duplicate size/system/gender?).';
+        }
+        $stmtAdd->close();
+    }
+    $productSizes = load_product_sizes($conn, $productId);
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_product') {
     $name = trim($_POST['name'] ?? '');
     $brand = trim($_POST['brand'] ?? '');
     $price = trim($_POST['price'] ?? '');
@@ -207,6 +263,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
                     </div>
                     <div class="col-12 text-end">
                         <button type="submit" class="admin-action-btn">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card card-body mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Sizes &amp; Stock</h5>
+                </div>
+                <form method="POST" class="table-responsive mb-3">
+                    <input type="hidden" name="action" value="update_sizes">
+                    <table class="table align-middle mb-2">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>System</th>
+                                <th>Gender</th>
+                                <th>Stock</th>
+                                <th>Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($productSizes)): ?>
+                                <tr><td colspan="5" class="text-muted">No sizes yet.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($productSizes as $ps): ?>
+                                    <tr>
+                                        <td>
+                                            <input type="hidden" name="size_id[]" value="<?php echo (int) $ps['id']; ?>">
+                                            <input type="text" name="size_label[]" class="form-control" value="<?php echo htmlspecialchars($ps['size_label']); ?>" required>
+                                        </td>
+                                        <td>
+                                            <select name="size_system[]" class="form-select">
+                                                <?php foreach (['US','EU','UK','CM'] as $sys): ?>
+                                                    <option value="<?php echo $sys; ?>" <?php echo ($ps['size_system'] ?? 'US') === $sys ? 'selected' : ''; ?>><?php echo $sys; ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="size_gender[]" class="form-select">
+                                                <?php foreach (['Men','Women','Unisex'] as $g): ?>
+                                                    <option value="<?php echo $g; ?>" <?php echo ($ps['gender'] ?? 'Unisex') === $g ? 'selected' : ''; ?>><?php echo $g; ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </td>
+                                        <td style="max-width: 120px;">
+                                            <input type="number" name="size_stock[]" class="form-control" value="<?php echo (int) ($ps['stock_quantity'] ?? 0); ?>" min="0">
+                                        </td>
+                                        <td class="text-center">
+                                            <input class="form-check-input" type="checkbox" name="size_active[]" value="<?php echo (int) $ps['id']; ?>" <?php echo !empty($ps['is_active']) ? 'checked' : ''; ?>>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                    <div class="text-end">
+                        <button type="submit" class="admin-action-btn">Update Sizes</button>
+                    </div>
+                </form>
+
+                <form method="POST" class="row g-2">
+                    <input type="hidden" name="action" value="add_size">
+                    <div class="col-md-3">
+                        <label class="form-label">New Size Label</label>
+                        <input type="text" name="new_size_label" class="form-control" placeholder="e.g. US M 9" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">System</label>
+                        <select name="new_size_system" class="form-select">
+                            <?php foreach (['US','EU','UK','CM'] as $sys): ?>
+                                <option value="<?php echo $sys; ?>"><?php echo $sys; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Gender</label>
+                        <select name="new_size_gender" class="form-select">
+                            <?php foreach (['Men','Women','Unisex'] as $g): ?>
+                                <option value="<?php echo $g; ?>"><?php echo $g; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Stock</label>
+                        <input type="number" name="new_size_stock" class="form-control" value="0" min="0">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end justify-content-end">
+                        <button type="submit" class="btn btn-primary">Add Size</button>
                     </div>
                 </form>
             </div>

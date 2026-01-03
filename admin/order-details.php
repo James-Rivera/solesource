@@ -28,7 +28,7 @@ if (!$order) {
 }
 
 $items = [];
-$itemStmt = $conn->prepare("SELECT oi.id, oi.quantity, oi.price_at_purchase, p.name, p.brand, p.image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?");
+$itemStmt = $conn->prepare("SELECT oi.id, oi.quantity, oi.price_at_purchase, oi.size, ps.size_label, p.name, p.brand, p.image FROM order_items oi JOIN products p ON p.id = oi.product_id LEFT JOIN product_sizes ps ON ps.id = oi.product_size_id WHERE oi.order_id = ?");
 $itemStmt->bind_param('i', $orderId);
 $itemStmt->execute();
 $itemRes = $itemStmt->get_result();
@@ -93,7 +93,7 @@ elseif ($status === 'cancelled') $statusClass = 'text-danger';
                                         <div class="small"><?php echo htmlspecialchars($item['name']); ?></div>
                                     </div>
                                 </div>
-                                <div data-label="Qty"><?php echo (int) $item['quantity']; ?></div>
+                                <div data-label="Qty"><?php echo (int) $item['quantity']; ?><?php $sizeDisplay = ($item['size_label'] ?? '') ?: ($item['size'] ?? ''); if ($sizeDisplay !== '') { echo ' • Size ' . htmlspecialchars($sizeDisplay); } ?></div>
                                 <div data-label="Price"><?php echo htmlspecialchars($item['price_formatted']); ?></div>
                                 <div data-label="Total"><?php echo htmlspecialchars($item['line_total_formatted']); ?></div>
                             </div>

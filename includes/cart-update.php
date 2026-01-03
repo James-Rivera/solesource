@@ -8,13 +8,21 @@ if (!$input || !isset($input['id']) || !isset($input['size']) || !isset($input['
 }
 $id = (string)$input['id'];
 $size = (string)$input['size'];
+$sizeIdRaw = $input['size_id'] ?? '';
+$sizeId = $sizeIdRaw === '' ? null : (int)$sizeIdRaw;
 $qty = (int)$input['qty'];
-$key = $id . ':' . $size;
-if (isset($_SESSION['cart'][$key])) {
+$key = $id . ':' . ($sizeId !== null ? $sizeId : $size);
+$legacyKey = $id . ':' . $size;
+// fallback to legacy key if needed
+$targetKey = isset($_SESSION['cart'][$key]) ? $key : (isset($_SESSION['cart'][$legacyKey]) ? $legacyKey : null);
+if ($targetKey !== null && isset($_SESSION['cart'][$targetKey])) {
     if ($qty <= 0) {
-        unset($_SESSION['cart'][$key]);
+        unset($_SESSION['cart'][$targetKey]);
     } else {
-        $_SESSION['cart'][$key]['qty'] = $qty;
+        $_SESSION['cart'][$targetKey]['qty'] = $qty;
+        if ($sizeId !== null) {
+            $_SESSION['cart'][$targetKey]['size_id'] = $sizeId;
+        }
     }
 }
 $cart = isset($_SESSION['cart']) ? array_values($_SESSION['cart']) : [];

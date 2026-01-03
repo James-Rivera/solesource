@@ -8,9 +8,14 @@ if (!$input || !isset($input['id']) || !isset($input['size'])) {
 }
 $id = (string)$input['id'];
 $size = (string)$input['size'];
-$key = $id . ':' . $size;
-if (isset($_SESSION['cart'][$key])) {
-    unset($_SESSION['cart'][$key]);
+$sizeIdRaw = $input['size_id'] ?? '';
+$sizeId = $sizeIdRaw === '' ? null : (int)$sizeIdRaw;
+$key = $id . ':' . ($sizeId !== null ? $sizeId : $size);
+$legacyKey = $id . ':' . $size;
+
+$targetKey = isset($_SESSION['cart'][$key]) ? $key : (isset($_SESSION['cart'][$legacyKey]) ? $legacyKey : null);
+if ($targetKey !== null && isset($_SESSION['cart'][$targetKey])) {
+    unset($_SESSION['cart'][$targetKey]);
 }
 $cart = isset($_SESSION['cart']) ? array_values($_SESSION['cart']) : [];
 $subtotal = array_reduce($cart, function($carry, $item) {

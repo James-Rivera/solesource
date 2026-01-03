@@ -15,12 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const sizeBtns = document.querySelectorAll('.btn-size');
   const cartSizePreview = document.getElementById('cartSizePreview');
   const hiddenSize = document.getElementById('selectedSize');
+  const hiddenSizeId = document.getElementById('selectedSizeId');
   sizeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       sizeBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       if (cartSizePreview) cartSizePreview.textContent = btn.dataset.size;
       if (hiddenSize) hiddenSize.value = btn.dataset.size;
+      if (hiddenSizeId) hiddenSizeId.value = btn.dataset.sizeId || '';
     });
   });
 
@@ -78,12 +80,15 @@ document.addEventListener('DOMContentLoaded', () => {
     qty = 1;
     renderQty();
 
-    const size = document.querySelector('.btn-size.active')?.dataset.size || '';
+    const activeSizeBtn = document.querySelector('.btn-size.active');
+    const size = activeSizeBtn?.dataset.size || '';
+    const sizeId = activeSizeBtn?.dataset.sizeId || '';
     const payload = {
       id: addToCartBtn.dataset.productId || Date.now(),
       name: addToCartBtn.dataset.productName || productNameEl?.textContent?.trim() || '',
       brand: addToCartBtn.dataset.productBrand || '',
       size,
+      size_id: sizeId,
       price: parseFloat(addToCartBtn.dataset.productPrice?.replace(/[^0-9.]/g, '') || itemPrice || 0) || 0,
       image: addToCartBtn.dataset.productImage || mainImg?.src || '',
       qty: 1

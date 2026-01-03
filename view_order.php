@@ -28,8 +28,8 @@ if (!$order) {
     exit;
 }
 
-// Fetch order items with product details
-$itemStmt = $conn->prepare('SELECT oi.*, p.name, p.brand, p.image FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?');
+// Fetch order items with product and size details
+$itemStmt = $conn->prepare('SELECT oi.*, p.name, p.brand, p.image, ps.size_label FROM order_items oi JOIN products p ON p.id = oi.product_id LEFT JOIN product_sizes ps ON ps.id = oi.product_size_id WHERE oi.order_id = ?');
 $itemStmt->bind_param('i', $orderId);
 $itemStmt->execute();
 $items = $itemStmt->get_result();
@@ -84,7 +84,7 @@ $primaryItem = $orderItems[0] ?? null;
 $primaryImage = $primaryItem['image'] ?? 'assets/img/products/new/jordan-11-legend-blue.png';
 $primaryName = $primaryItem['name'] ?? '';
 $primaryBrand = $primaryItem['brand'] ?? '';
-$primarySize = $primaryItem['size'] ?? '';
+$primarySize = ($primaryItem['size_label'] ?? '') ?: ($primaryItem['size'] ?? '');
 $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $totalAmount;
 ?>
 <!DOCTYPE html>
@@ -144,7 +144,7 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
                                                 <div>
                                                     <div class="product-name" style="font-weight: 700; font-size: 1.2rem; line-height: 1.3;"><?php echo htmlspecialchars($item['name']); ?></div>
                                                     <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Brand: <?php echo htmlspecialchars($item['brand']); ?></div>
-                                                    <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Size: <?php echo htmlspecialchars($item['size']); ?> • Qty: <?php echo (int) $item['quantity']; ?></div>
+                                                    <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Size: <?php echo htmlspecialchars(($item['size_label'] ?? '') ?: $item['size']); ?> • Qty: <?php echo (int) $item['quantity']; ?></div>
                                                 </div>
                                                 <div class="product-price fw-bold fs-4 text-md-end">₱<?php echo number_format((float) $item['price_at_purchase'] * (int) $item['quantity'], 2); ?></div>
                                             </div>

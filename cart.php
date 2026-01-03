@@ -7,18 +7,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $action = $_POST['action'] ?? '';
   $id = isset($_POST['id']) ? (int) $_POST['id'] : null;
   $size = isset($_POST['size']) ? trim($_POST['size']) : '';
+  $sizeId = isset($_POST['size_id']) && $_POST['size_id'] !== '' ? (int) $_POST['size_id'] : null;
   $qty = isset($_POST['qty']) ? (int) $_POST['qty'] : null;
 
   if ($id && $size && isset($_SESSION['cart'])) {
-    $key = $id . ':' . $size;
+    $key = $id . ':' . ($sizeId !== null ? $sizeId : $size);
+    $legacyKey = $id . ':' . $size;
+    $targetKey = isset($_SESSION['cart'][$key]) ? $key : (isset($_SESSION['cart'][$legacyKey]) ? $legacyKey : null);
 
-    if ($action === 'remove' && isset($_SESSION['cart'][$key])) {
-      unset($_SESSION['cart'][$key]);
-    } elseif ($action === 'update' && $qty !== null && isset($_SESSION['cart'][$key])) {
+    if ($action === 'remove' && $targetKey !== null && isset($_SESSION['cart'][$targetKey])) {
+      unset($_SESSION['cart'][$targetKey]);
+    } elseif ($action === 'update' && $qty !== null && $targetKey !== null && isset($_SESSION['cart'][$targetKey])) {
       if ($qty <= 0) {
-        unset($_SESSION['cart'][$key]);
+        unset($_SESSION['cart'][$targetKey]);
       } else {
-        $_SESSION['cart'][$key]['qty'] = $qty;
+        $_SESSION['cart'][$targetKey]['qty'] = $qty;
+        if ($sizeId !== null) {
+          $_SESSION['cart'][$targetKey]['size_id'] = $sizeId;
+        }
       }
     }
   }
@@ -89,6 +95,7 @@ if (!empty($sessionCart)) {
         'name' => $product['name'] ?? ($item['name'] ?? ''),
         'brand' => $product['brand'] ?? ($item['brand'] ?? ''),
         'size' => $size,
+        'size_id' => $item['size_id'] ?? null,
         'price' => $unitPrice,
         'qty' => $qty,
         'image' => $product['image'] ?? ($item['image'] ?? ''),
@@ -177,6 +184,7 @@ $stmtRec->close();
                         <input type="hidden" name="action" value="update">
                         <input type="hidden" name="id" value="<?php echo (int) $item['id']; ?>">
                         <input type="hidden" name="size" value="<?php echo htmlspecialchars($item['size']); ?>">
+                        <input type="hidden" name="size_id" value="<?php echo htmlspecialchars((string) ($item['size_id'] ?? '')); ?>">
                         <input type="hidden" name="qty" value="<?php echo max(0, $item['qty'] - 1); ?>">
                         <button class="cart-qty-btn" type="submit" aria-label="Decrease quantity">
                           <i class="bi <?php echo $item['qty'] > 1 ? 'bi-dash-lg' : 'bi-trash'; ?>"></i>
@@ -187,6 +195,7 @@ $stmtRec->close();
                         <input type="hidden" name="action" value="update">
                         <input type="hidden" name="id" value="<?php echo (int) $item['id']; ?>">
                         <input type="hidden" name="size" value="<?php echo htmlspecialchars($item['size']); ?>">
+                        <input type="hidden" name="size_id" value="<?php echo htmlspecialchars((string) ($item['size_id'] ?? '')); ?>">
                         <input type="hidden" name="qty" value="<?php echo $item['qty'] + 1; ?>">
                         <button class="cart-qty-btn" type="submit" aria-label="Increase quantity"><i class="bi bi-plus-lg"></i></button>
                       </form>

@@ -88,12 +88,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Fetch products from DB
+// Fetch products with aggregated size stock (fallback to legacy stock_quantity)
 $products = [];
-$result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
+$sqlProducts = "SELECT p.*, COALESCE(SUM(ps.stock_quantity), p.stock_quantity) AS stock_total
+                FROM products p
+                LEFT JOIN product_sizes ps ON ps.product_id = p.id AND ps.is_active = 1
+                GROUP BY p.id
+                ORDER BY p.created_at DESC";
+$result = $conn->query($sqlProducts);
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $row['price_formatted'] = '₱' . number_format((float)$row['price'], 2, '.', ',');
+        $row['stock_total'] = (int) ($row['stock_total'] ?? 0);
         $products[] = $row;
     }
 }
@@ -211,7 +217,7 @@ if ($result && $result->num_rows > 0) {
                             <?php echo htmlspecialchars($product['name']); ?>
                         </div>
                         <div class="stock-cell" data-label="Stock">
-                            <?php $stockVal = (int)($product['stock_quantity'] ?? 0); ?>
+                            <?php $stockVal = (int)($product['stock_total'] ?? $product['stock_quantity'] ?? 0); ?>
                             <?php if ($stockVal === 0): ?>
                                 <span class="stock-out">Out of Stock</span>
                             <?php elseif ($stockVal < 10): ?>
