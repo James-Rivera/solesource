@@ -32,6 +32,20 @@ $sessionCart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 $cartItems = [];
 $grandTotal = 0;
 $cartProductIds = [];
+$userWishlistIds = [];
+
+// Fetch wishlist ids for current user (for heart state)
+if (isset($_SESSION['user_id'])) {
+  $uid = (int) $_SESSION['user_id'];
+  $wsStmt = $conn->prepare("SELECT product_id FROM user_wishlist WHERE user_id = ?");
+  $wsStmt->bind_param('i', $uid);
+  $wsStmt->execute();
+  $wsRes = $wsStmt->get_result();
+  while ($row = $wsRes->fetch_assoc()) {
+    $userWishlistIds[] = (int) $row['product_id'];
+  }
+  $wsStmt->close();
+}
 
 if (!empty($sessionCart)) {
   $productIds = array_unique(array_map(fn($item) => (int) ($item['id'] ?? 0), $sessionCart));
@@ -79,6 +93,7 @@ if (!empty($sessionCart)) {
         'qty' => $qty,
         'image' => $product['image'] ?? ($item['image'] ?? ''),
         'line_total' => $lineTotal,
+        'in_wishlist' => in_array($id, $userWishlistIds, true),
       ];
     }
   }
@@ -176,7 +191,9 @@ $stmtRec->close();
                         <button class="cart-qty-btn" type="submit" aria-label="Increase quantity"><i class="bi bi-plus-lg"></i></button>
                       </form>
                     </div>
-                    <button class="wishlist-btn btn-wishlist" type="button" aria-label="Wishlist (coming soon)" data-product-id="<?php echo (int) $item['id']; ?>"><i class="bi bi-heart"></i></button>
+                    <button class="wishlist-btn btn-wishlist" type="button" aria-label="Toggle wishlist" data-product-id="<?php echo (int) $item['id']; ?>" data-in-wishlist="<?php echo $item['in_wishlist'] ? '1' : '0'; ?>">
+                      <i class="bi <?php echo $item['in_wishlist'] ? 'bi-heart-fill text-danger' : 'bi-heart'; ?>"></i>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -251,5 +268,37 @@ $stmtRec->close();
 </section>
 
 <?php include 'includes/footer.php'; ?>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const buttons = document.querySelectorAll('.btn-wishlist');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const productId = btn.getAttribute('data-product-id');
+      try {
+        const res = await fetch('includes/wishlist-toggle.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product_id: Number(productId) })
+        });
+        if (res.status === 401) {
+          window.location.href = 'login.php?redirect=cart';
+          return;
+        }
+        const data = await res.json();
+        if (data?.ok) {
+          const icon = btn.querySelector('i');
+          const added = data.action === 'added';
+          btn.setAttribute('data-in-wishlist', added ? '1' : '0');
+          if (icon) {
+            icon.className = added ? 'bi bi-heart-fill text-danger' : 'bi bi-heart';
+          }
+        }
+      } catch (err) {
+        console.error('Wishlist toggle failed', err);
+      }
+    });
+  });
+});
+</script>
 </body>
 </html>

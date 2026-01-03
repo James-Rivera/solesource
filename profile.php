@@ -9,21 +9,108 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = (int) $_SESSION['user_id'];
 
-// Mock user data - replace with actual database query
+// Track active tab (default profile; switch to settings on post)
+$activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
+
+// Fetch user from DB (replaces mock data)
+$user = null;
+$userStmt = $conn->prepare("SELECT id, full_name, email, password, birthdate, gender, created_at FROM users WHERE id = ? LIMIT 1");
+$userStmt->bind_param('i', $userId);
+$userStmt->execute();
+$userRes = $userStmt->get_result();
+$userRow = $userRes ? $userRes->fetch_assoc() : null;
+$userStmt->close();
+
+if (!$userRow) {
+    session_unset();
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+
+// Normalize for template usage
 $user = [
-    'name' => 'JUAN DELA CRUZ',
-    'email' => 'juandelacruz@gmail.com',
-    'member_since' => 'December 29, 2025',
-    'birthdate' => '1990-03-25',
-    'gender' => 'Male'
+    'id' => $userRow['id'],
+    'name' => $userRow['full_name'],
+    'email' => $userRow['email'],
+    'password_hash' => $userRow['password'],
+    'member_since' => $userRow['created_at'] ? date('F d, Y', strtotime($userRow['created_at'])) : '',
+    'birthdate' => $userRow['birthdate'] ?: '',
+    'gender' => $userRow['gender'] ?: '',
 ];
 
-// Mock wishlist - using product structure
-$wishlist_products = [
-    ['id' => 1, 'brand' => 'NIKE', 'name' => 'AIR FORCE 1', 'price' => '₱4,999.00', 'image' => 'assets/img/products/best/air-force-1.png'],
-    ['id' => 2, 'brand' => 'ADIDAS', 'name' => 'GAZELLE INDOOR', 'price' => '₱5,500.00', 'image' => 'assets/img/products/new/adidas-gazelle.png'],
-    ['id' => 3, 'brand' => 'JORDAN', 'name' => 'AIR JORDAN 1 HIGH', 'price' => '₱8,295.00', 'image' => 'assets/img/products/best/jordan-1-high.png'],
-];
+// Flash messages
+$personal_success = '';
+$personal_error = '';
+$security_success = '';
+$security_error = '';
+
+// Handle personal info update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_personal') {
+    $activeTab = 'settings';
+    $fullName = trim($_POST['full_name'] ?? '');
+    $birthdate = trim($_POST['birthdate'] ?? '');
+    $gender = trim($_POST['gender'] ?? '');
+
+    if ($fullName === '') {
+        $personal_error = 'Full name is required.';
+    } else {
+        $bdVal = $birthdate !== '' ? $birthdate : null;
+        $stmt = $conn->prepare("UPDATE users SET full_name = ?, birthdate = ?, gender = ? WHERE id = ?");
+        $stmt->bind_param('sssi', $fullName, $bdVal, $gender, $userId);
+        if ($stmt->execute()) {
+            $personal_success = 'Profile updated successfully.';
+            $user['name'] = $fullName;
+            $user['birthdate'] = $bdVal ?: '';
+            $user['gender'] = $gender;
+        } else {
+            $personal_error = 'Failed to update profile. Please try again.';
+        }
+        $stmt->close();
+    }
+}
+
+// Handle password update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_password') {
+    $activeTab = 'settings';
+    $current = $_POST['current_password'] ?? '';
+    $new = $_POST['new_password'] ?? '';
+    $confirm = $_POST['confirm_password'] ?? '';
+
+    if ($current === '' || $new === '' || $confirm === '') {
+        $security_error = 'Please fill out all password fields.';
+    } elseif ($new !== $confirm) {
+        $security_error = 'New password and confirmation do not match.';
+    } elseif (strlen($new) < 8) {
+        $security_error = 'New password must be at least 8 characters.';
+    } elseif (!password_verify($current, $user['password_hash'])) {
+        $security_error = 'Current password is incorrect.';
+    } else {
+        $hash = password_hash($new, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $stmt->bind_param('si', $hash, $userId);
+        if ($stmt->execute()) {
+            $security_success = 'Password updated successfully.';
+            $user['password_hash'] = $hash;
+        } else {
+            $security_error = 'Failed to update password. Please try again.';
+        }
+        $stmt->close();
+    }
+}
+
+// Wishlist from DB
+$wishlist_products = [];
+$wlStmt = $conn->prepare("SELECT p.id AS product_id, p.name, p.brand, p.image, p.price FROM user_wishlist uw JOIN products p ON p.id = uw.product_id WHERE uw.user_id = ? ORDER BY uw.created_at DESC");
+$wlStmt->bind_param('i', $userId);
+$wlStmt->execute();
+$wlRes = $wlStmt->get_result();
+while ($row = $wlRes->fetch_assoc()) {
+    $row['id'] = (int) $row['product_id'];
+    $row['price'] = '₱' . number_format((float)$row['price'], 2, '.', ',');
+    $wishlist_products[] = $row;
+}
+$wlStmt->close();
 
 $purchases_ids = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -67,13 +154,13 @@ $hasOrders = $orderCount > 0;
         <div class="container-xxl">
             <ul class="nav nav-tabs border-0 justify-content-center" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">Profile</button>
+                    <button class="nav-link <?php echo $activeTab === 'profile' ? 'active' : ''; ?>" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">Profile</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">Orders</button>
+                    <button class="nav-link <?php echo $activeTab === 'orders' ? 'active' : ''; ?>" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">Orders</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">Settings</button>
+                    <button class="nav-link <?php echo $activeTab === 'settings' ? 'active' : ''; ?>" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">Settings</button>
                 </li>
             </ul>
         </div>
@@ -82,7 +169,7 @@ $hasOrders = $orderCount > 0;
     <!-- Tab Content -->
     <div class="tab-content">
         <!-- Profile Tab -->
-        <div class="tab-pane fade show active" id="profile" role="tabpanel">
+        <div class="tab-pane fade <?php echo $activeTab === 'profile' ? 'show active' : ''; ?>" id="profile" role="tabpanel">
             <!-- Hero Banner -->
             <section class="profile-hero">
                 <div class="container-xxl position-relative">
@@ -97,6 +184,7 @@ $hasOrders = $orderCount > 0;
             </section>
 
             <!-- Wishlist Section -->
+            <?php if (!empty($wishlist_products)): ?>
             <section class="py-5 bg-light">
                 <div class="container-xxl">
                     <h2 class="account-section-title">My wishlist</h2>
@@ -108,17 +196,17 @@ $hasOrders = $orderCount > 0;
                                         <button class="wishlist-remove-btn" data-product-id="<?php echo $product['id']; ?>" aria-label="Remove from wishlist">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
-                                        <div class="ratio ratio-1x1 wishlist-product-media">
+                                        <a href="product-details.php?id=<?php echo urlencode($product['id']); ?>" class="d-block ratio ratio-1x1 wishlist-product-media">
                                             <img src="<?php echo $product['image']; ?>" alt="<?php echo $product['name']; ?>" class="wishlist-product-image">
-                                        </div>
+                                        </a>
                                     </div>
                                     <div class="wishlist-product-body">
                                         <div class="wishlist-product-brand text-muted small fw-bold text-uppercase"><?php echo $product['brand']; ?></div>
-                                        <div class="wishlist-product-name fw-bold text-dark"><?php echo $product['name']; ?></div>
+                                        <a href="product-details.php?id=<?php echo urlencode($product['id']); ?>" class="wishlist-product-name fw-bold text-dark text-decoration-none d-block mb-1"><?php echo $product['name']; ?></a>
                                         <div class="wishlist-product-price"><?php echo $product['price']; ?></div>
-                                        <button class="btn btn-add-to-cart btn-sm" data-product-id="<?php echo $product['id']; ?>">
-                                            Add to Cart
-                                        </button>
+                                        <a class="btn btn-add-to-cart btn-sm" href="product-details.php?id=<?php echo urlencode($product['id']); ?>">
+                                            View Product
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -126,6 +214,7 @@ $hasOrders = $orderCount > 0;
                     </div>
                 </div>
             </section>
+            <?php endif; ?>
 
             <!-- Purchases Section -->
             <section class="py-5">
@@ -152,7 +241,7 @@ $hasOrders = $orderCount > 0;
         </div>
 
         <!-- Orders Tab -->
-        <div class="tab-pane fade" id="orders" role="tabpanel">
+        <div class="tab-pane fade <?php echo $activeTab === 'orders' ? 'show active' : ''; ?>" id="orders" role="tabpanel">
             <section class="py-5">
                 <div class="container-xxl">
                     <h2 class="account-section-title">ORDERS</h2>
@@ -238,7 +327,7 @@ $hasOrders = $orderCount > 0;
         </div>
 
         <!-- Settings Tab -->
-        <div class="tab-pane fade" id="settings" role="tabpanel">
+        <div class="tab-pane fade <?php echo $activeTab === 'settings' ? 'show active' : ''; ?>" id="settings" role="tabpanel">
             <section class="py-5">
                 <div class="container-xxl">
                     <div class="row">
@@ -260,6 +349,12 @@ $hasOrders = $orderCount > 0;
                                     <h1 class="settings-content-title">MY DETAILS</h1>
                                     <p class="settings-subtitle">Feel free to edit any of your details below so your account is up to date</p>
 
+                                    <?php if ($personal_success): ?>
+                                        <div class="alert alert-success py-2 px-3" role="alert"><?php echo htmlspecialchars($personal_success); ?></div>
+                                    <?php elseif ($personal_error): ?>
+                                        <div class="alert alert-danger py-2 px-3" role="alert"><?php echo htmlspecialchars($personal_error); ?></div>
+                                    <?php endif; ?>
+
                                     <!-- Personal Details -->
                                     <div class="settings-section">
                                         <h3 class="settings-section-title">DETAILS</h3>
@@ -269,17 +364,22 @@ $hasOrders = $orderCount > 0;
                                         </div>
                                         <div class="settings-detail-item">
                                             <div class="settings-detail-label">DATE OF BIRTH</div>
-                                            <div class="settings-detail-value"><?php echo date('F d, Y', strtotime($user['birthdate'])); ?></div>
+                                            <div class="settings-detail-value"><?php echo $user['birthdate'] ? date('F d, Y', strtotime($user['birthdate'])) : '—'; ?></div>
                                         </div>
                                         <div class="settings-detail-item">
                                             <div class="settings-detail-label">GENDER</div>
-                                            <div class="settings-detail-value"><?php echo $user['gender']; ?></div>
+                                            <div class="settings-detail-value"><?php echo $user['gender'] ?: '—'; ?></div>
                                         </div>
                                         <a href="#" class="settings-edit-link" data-bs-toggle="modal" data-bs-target="#editPersonalModal">EDIT</a>
                                     </div>
 
                                     <!-- Account Details -->
                                     <div class="settings-section">
+                                        <?php if ($security_success): ?>
+                                            <div class="alert alert-success py-2 px-3" role="alert"><?php echo htmlspecialchars($security_success); ?></div>
+                                        <?php elseif ($security_error): ?>
+                                            <div class="alert alert-danger py-2 px-3" role="alert"><?php echo htmlspecialchars($security_error); ?></div>
+                                        <?php endif; ?>
                                         <h3 class="settings-section-title">ACCOUNT DETAILS</h3>
                                         <div class="settings-detail-item">
                                             <div class="settings-detail-label">EMAIL</div>
@@ -331,22 +431,24 @@ $hasOrders = $orderCount > 0;
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body px-4 py-4">
-                    <form id="personalInfoForm">
+                    <form id="personalInfoForm" method="POST">
+                        <input type="hidden" name="action" value="update_personal">
                         <div class="mb-4">
                             <label for="fullName" class="form-label text-muted small fw-bold text-uppercase mb-1">Full Name</label>
-                            <input type="text" class="form-control form-control-lg" id="fullName" value="<?php echo $user['name']; ?>">
+                            <input type="text" class="form-control form-control-lg" id="fullName" name="full_name" value="<?php echo htmlspecialchars($user['name']); ?>">
                         </div>
                         <div class="mb-4">
                             <label for="birthdate" class="form-label text-muted small fw-bold text-uppercase mb-1">Date of Birth</label>
-                            <input type="date" class="form-control form-control-lg" id="birthdate" value="<?php echo $user['birthdate']; ?>">
+                            <input type="date" class="form-control form-control-lg" id="birthdate" name="birthdate" value="<?php echo htmlspecialchars($user['birthdate']); ?>">
                         </div>
                         <div class="mb-4">
                             <label for="gender" class="form-label text-muted small fw-bold text-uppercase mb-1">Gender</label>
-                            <select class="form-select form-select-lg" id="gender">
+                            <select class="form-select form-select-lg" id="gender" name="gender">
+                                <option value="">Select</option>
                                 <option value="Male" <?php echo $user['gender'] === 'Male' ? 'selected' : ''; ?>>Male</option>
                                 <option value="Female" <?php echo $user['gender'] === 'Female' ? 'selected' : ''; ?>>Female</option>
                                 <option value="Other" <?php echo $user['gender'] === 'Other' ? 'selected' : ''; ?>>Other</option>
-                                <option value="Prefer not to say">Prefer not to say</option>
+                                <option value="Prefer not to say" <?php echo $user['gender'] === 'Prefer not to say' ? 'selected' : ''; ?>>Prefer not to say</option>
                             </select>
                         </div>
                     </form>
@@ -368,7 +470,8 @@ $hasOrders = $orderCount > 0;
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body px-4 py-4">
-                    <form id="securityForm">
+                    <form id="securityForm" method="POST">
+                        <input type="hidden" name="action" value="update_password">
                         <div class="mb-4">
                             <label for="emailAddress" class="form-label text-muted small fw-bold text-uppercase mb-1">Email Address</label>
                             <input type="email" class="form-control form-control-lg" id="emailAddress" value="<?php echo $user['email']; ?>" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
@@ -376,15 +479,15 @@ $hasOrders = $orderCount > 0;
                         </div>
                         <div class="mb-4">
                             <label for="currentPassword" class="form-label text-muted small fw-bold text-uppercase mb-1">Current Password</label>
-                            <input type="password" class="form-control form-control-lg" id="currentPassword" placeholder="Enter current password">
+                            <input type="password" class="form-control form-control-lg" id="currentPassword" name="current_password" placeholder="Enter current password">
                         </div>
                         <div class="mb-4">
                             <label for="newPassword" class="form-label text-muted small fw-bold text-uppercase mb-1">New Password</label>
-                            <input type="password" class="form-control form-control-lg" id="newPassword" placeholder="Enter new password">
+                            <input type="password" class="form-control form-control-lg" id="newPassword" name="new_password" placeholder="Enter new password">
                         </div>
                         <div class="mb-4">
                             <label for="confirmPassword" class="form-label text-muted small fw-bold text-uppercase mb-1">Confirm New Password</label>
-                            <input type="password" class="form-control form-control-lg" id="confirmPassword" placeholder="Confirm new password">
+                            <input type="password" class="form-control form-control-lg" id="confirmPassword" name="confirm_password" placeholder="Confirm new password">
                         </div>
                     </form>
                 </div>
@@ -501,33 +604,32 @@ $hasOrders = $orderCount > 0;
     </div>
     
     <script>
-        // Wishlist remove functionality
+        // Wishlist remove (uses wishlist-toggle.php)
         document.querySelectorAll('.wishlist-remove-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
+            btn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                const productId = this.dataset.productId;
-                const card = this.closest('.col');
-                
-                // Add fade out animation
-                card.style.transition = 'opacity 0.3s ease';
-                card.style.opacity = '0';
-                
-                // Remove from DOM after animation
-                setTimeout(() => {
-                    card.remove();
-                    // Here you would also make an API call to remove from wishlist
-                    // fetch('includes/wishlist-remove.php', { method: 'POST', body: JSON.stringify({ id: productId }) })
-                }, 300);
-            });
-        });
-
-        // Add to cart from wishlist
-        document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const productId = this.dataset.productId;
-                // Add your add to cart logic here
-                console.log('Adding product to cart:', productId);
-                // You can integrate with your existing cart system
+                const card = btn.closest('.col');
+                const productId = Number(btn.dataset.productId || 0);
+                try {
+                    const res = await fetch('includes/wishlist-toggle.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ product_id: productId })
+                    });
+                    if (res.status === 401) {
+                        window.location.href = 'login.php?redirect=profile';
+                        return;
+                    }
+                    const data = await res.json();
+                    if (data?.ok && card) {
+                        card.remove();
+                        if (!document.querySelector('.wishlist-product-card')) {
+                            window.location.reload();
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to update wishlist', err);
+                }
             });
         });
     </script>
