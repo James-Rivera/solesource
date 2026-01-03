@@ -67,6 +67,7 @@ if ($stmt) {
 </head>
 
 <body>
+    <?php include 'includes/topbar.php'; ?>
     <div class="admin-container">
         <?php include 'includes/sidebar.php'; ?>
 
@@ -74,8 +75,16 @@ if ($stmt) {
         <main class="admin-content">
             <!-- Header -->
             <div class="admin-header">
-                <h1 class="admin-page-title">Overview</h1>
-                <p class="admin-page-subtitle">Monitor your store's performance and recent activity</p>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <button class="sidebar-toggle" type="button" data-toggle-sidebar>
+                        <i class="bi bi-layout-sidebar-inset"></i>
+                        <span>Toggle Sidebar</span>
+                    </button>
+                    <div>
+                        <h1 class="admin-page-title">Overview</h1>
+                        <p class="admin-page-subtitle">Monitor your store's performance and recent activity</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Stats Grid -->
@@ -130,6 +139,18 @@ if ($stmt) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const layout = document.querySelector('.admin-container');
+            const toggles = document.querySelectorAll('[data-toggle-sidebar]');
+
+            toggles.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    layout.classList.toggle('sidebar-collapsed');
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
