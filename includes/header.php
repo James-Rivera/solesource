@@ -13,32 +13,35 @@ if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 }
 $currentPage = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $isCartFlow = in_array($currentPage, ['cart.php', 'checkout.php'], true);
-$navBrands = [];
-$navSports = [];
-$navGenders = [];
+$navData = [
+	'Men' => ['brands' => [], 'sports' => []],
+	'Women' => ['brands' => [], 'sports' => []],
+];
 
-$brands_rs = $conn->query("SELECT DISTINCT brand FROM products WHERE status='active' AND brand <> '' ORDER BY brand ASC");
-if ($brands_rs) {
-	while ($row = $brands_rs->fetch_assoc()) {
-		$navBrands[] = $row['brand'];
+foreach (array_keys($navData) as $genderKey) {
+	$brandStmt = $conn->prepare("SELECT DISTINCT brand FROM products WHERE status='active' AND brand <> '' AND (gender = ? OR secondary_gender = ?) ORDER BY brand ASC");
+	$brandStmt->bind_param('ss', $genderKey, $genderKey);
+	$brandStmt->execute();
+	$brandRes = $brandStmt->get_result();
+	while ($row = $brandRes->fetch_assoc()) {
+		$navData[$genderKey]['brands'][] = $row['brand'];
 	}
+	$brandStmt->close();
+
+	$sportStmt = $conn->prepare("SELECT DISTINCT sport FROM products WHERE status='active' AND sport IS NOT NULL AND sport <> '' AND (gender = ? OR secondary_gender = ?) ORDER BY sport ASC");
+	$sportStmt->bind_param('ss', $genderKey, $genderKey);
+	$sportStmt->execute();
+	$sportRes = $sportStmt->get_result();
+	while ($row = $sportRes->fetch_assoc()) {
+		$navData[$genderKey]['sports'][] = $row['sport'];
+	}
+	$sportStmt->close();
 }
 
-$sports_rs = $conn->query("SELECT DISTINCT sport FROM products WHERE status='active' AND sport IS NOT NULL AND sport <> '' ORDER BY sport ASC");
-if ($sports_rs) {
-	while ($row = $sports_rs->fetch_assoc()) {
-		$navSports[] = $row['sport'];
-	}
-}
+$navGenders = array_keys($navData);
+$navBrands = array_values(array_unique(array_merge(...array_map(fn($g) => $navData[$g]['brands'], $navGenders))));
+$navSports = array_values(array_unique(array_merge(...array_map(fn($g) => $navData[$g]['sports'], $navGenders))));
 
-$genders_rs = $conn->query("SELECT DISTINCT gender FROM products WHERE status='active' AND gender <> '' ORDER BY gender ASC");
-if ($genders_rs) {
-	while ($row = $genders_rs->fetch_assoc()) {
-		$navGenders[] = $row['gender'];
-	}
-}
-
-if (empty($navGenders)) { $navGenders = ['Men','Women','Unisex']; }
 if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 ?>
 <header>
@@ -116,6 +119,7 @@ if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 		<div class="container-xxl">
 			<ul class="mega-nav">
 				<?php foreach ($navGenders as $gender): ?>
+				<?php $genderBrands = $navData[$gender]['brands'] ?? []; $genderSports = $navData[$gender]['sports'] ?? []; ?>
 				<li class="mega-item has-panel">
 					<a href="shop.php?gender=<?php echo urlencode($gender); ?>" class="mega-link"><?php echo htmlspecialchars($gender); ?></a>
 					<div class="mega-panel">
@@ -126,18 +130,18 @@ if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 								<a href="shop.php?gender=<?php echo urlencode($gender); ?>&sort=best">Best Sellers</a>
 								<a href="shop.php?gender=<?php echo urlencode($gender); ?>&is_featured=1">Featured</a>
 							</div>
-							<?php if (!empty($navBrands)): ?>
+							<?php if (!empty($genderBrands)): ?>
 							<div class="mega-col">
 								<div class="mega-title">Brands</div>
-								<?php foreach ($navBrands as $brand): ?>
+								<?php foreach ($genderBrands as $brand): ?>
 									<a href="shop.php?gender=<?php echo urlencode($gender); ?>&brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
 								<?php endforeach; ?>
 							</div>
 							<?php endif; ?>
-							<?php if (!empty($navSports)): ?>
+							<?php if (!empty($genderSports)): ?>
 							<div class="mega-col">
 								<div class="mega-title">Sport</div>
-								<?php foreach ($navSports as $sport): ?>
+								<?php foreach ($genderSports as $sport): ?>
 									<a href="shop.php?gender=<?php echo urlencode($gender); ?>&sport=<?php echo urlencode($sport); ?>"><?php echo htmlspecialchars($sport); ?></a>
 								<?php endforeach; ?>
 							</div>

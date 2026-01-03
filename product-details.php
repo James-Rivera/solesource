@@ -3,6 +3,10 @@ session_start();
 include 'includes/connect.php';
 include 'includes/products.php'; // still used for recommendations/search
 
+$normalizeGender = static function ($gender) {
+    return in_array($gender, ['Men', 'Women', 'Both'], true) ? $gender : 'Men';
+};
+
 // Securely fetch product by id from DB
 $product = null;
 $requested_id = isset($_GET['id']) ? (int) $_GET['id'] : null;
@@ -20,13 +24,13 @@ if (!$product) {
     exit;
 }
 
+$primaryGender = $normalizeGender($product['gender'] ?? 'Men');
+$secondaryGender = in_array($product['secondary_gender'] ?? 'None', ['Men','Women'], true) ? $product['secondary_gender'] : 'None';
+$product['gender'] = $primaryGender;
+$product['secondary_gender'] = $secondaryGender;
+
 // Dynamic size label based on gender
-$size_label = "SELECT US SIZE (MEN'S SCALE)";
-if (!empty($product['gender']) && strcasecmp($product['gender'], 'Men') === 0) {
-    $size_label = "SELECT US MEN'S SIZE";
-} elseif (!empty($product['gender']) && strcasecmp($product['gender'], 'Women') === 0) {
-    $size_label = "SELECT US WOMEN'S SIZE";
-}
+$size_label = "SELECT US " . ($primaryGender === 'Women' ? "WOMEN'S" : "MEN'S") . " SIZE";
 
 // Gallery images (reuse main if no additional)
 $gallery_images = [$product['image'], $product['image'], $product['image']];
@@ -46,6 +50,7 @@ $sizeStmt->execute();
 $sizeRes = $sizeStmt->get_result();
 while ($row = $sizeRes->fetch_assoc()) {
     if (empty($row['size_label'])) { continue; }
+    $row['gender'] = $normalizeGender($row['gender'] ?? $product['gender']);
     $sizeOptions[] = $row;
 }
 $sizeStmt->close();
@@ -55,7 +60,7 @@ if (empty($sizeOptions)) {
         'id' => null,
         'size_label' => 'Default',
         'size_system' => 'US',
-        'gender' => $product['gender'] ?? 'Unisex',
+        'gender' => $product['gender'] ?? 'Men',
         'stock_quantity' => $product['stock_quantity'] ?? 0,
         'is_active' => 1,
     ];
@@ -64,7 +69,7 @@ if (empty($sizeOptions)) {
 $selectedSizeId = null;
 $selectedSizeLabel = '';
 $selectedSystem = 'US';
-$selectedGender = $sizeOptions[0]['gender'] ?? ($product['gender'] ?? 'Unisex');
+$selectedGender = $sizeOptions[0]['gender'] ?? $primaryGender;
 foreach ($sizeOptions as $opt) {
     if ((int) ($opt['stock_quantity'] ?? 0) > 0 && (int) ($opt['is_active'] ?? 0) === 1) {
         $selectedSizeId = $opt['id'];
@@ -80,13 +85,21 @@ if ($selectedSizeLabel === '' && !empty($sizeOptions)) {
     $selectedSystem = $sizeOptions[0]['size_system'];
     $selectedGender = $sizeOptions[0]['gender'];
 }
+if ($selectedGender === 'Both') { $selectedGender = $primaryGender; }
 
 // Build unique lists for system and gender toggles
 $availableSystems = ['US','EU'];
-$availableGenders = array_values(array_unique(array_map(fn($o) => $o['gender'], $sizeOptions)));
-if (!empty($product['gender']) && strcasecmp($product['gender'], 'Unisex') === 0) {
-    $availableGenders = [];
+$genderPool = [];
+foreach ($sizeOptions as $o) {
+    $g = $normalizeGender($o['gender']);
+    if ($g === 'Both') { $genderPool[] = 'Men'; $genderPool[] = 'Women'; }
+    else { $genderPool[] = $g; }
 }
+$availableGenders = array_values(array_unique(array_filter(array_merge(
+    $genderPool,
+    [$primaryGender],
+    $secondaryGender !== 'None' ? [$secondaryGender] : []
+), fn($g) => in_array($g, ['Men','Women'], true))));
 
 $breadcrumb_active = $product['name'];
 ?>
@@ -232,8 +245,14 @@ $breadcrumb_active = $product['name'];
                         <?php echo htmlspecialchars($product['description']); ?>
                     </p>
                     <div class="text-muted small lh-lg">
-                        <?php if (!empty($product['gender'])): ?>
-                            <div>Gender: <?php echo htmlspecialchars($product['gender']); ?></div>
+                        <?php
+                            $genderLabel = $product['gender'];
+                            if (!empty($product['secondary_gender']) && $product['secondary_gender'] !== 'None' && $product['secondary_gender'] !== $product['gender']) {
+                                $genderLabel .= ' / ' . $product['secondary_gender'];
+                            }
+                        ?>
+                        <?php if (!empty($genderLabel)): ?>
+                            <div>Gender: <?php echo htmlspecialchars($genderLabel); ?></div>
                         <?php endif; ?>
                         <div>SKU: <?php echo htmlspecialchars($product['sku'] ?? ''); ?></div>
                         <div>Colorway: <?php echo htmlspecialchars($product['colorway'] ?? ''); ?></div>

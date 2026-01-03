@@ -20,19 +20,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const hiddenGender = document.getElementById('selectedGender');
   const systemBtns = document.querySelectorAll('.btn-system');
   const genderBtns = document.querySelectorAll('.btn-gender');
-  const usToEuMap = {
-    '5': 'EU 37.5', '5.5': 'EU 38', '6': 'EU 39', '6.5': 'EU 39.5',
-    '7': 'EU 40', '7.5': 'EU 40.5', '8': 'EU 41', '8.5': 'EU 42',
-    '9': 'EU 42.5', '9.5': 'EU 43', '10': 'EU 44', '10.5': 'EU 44.5',
-    '11': 'EU 45', '11.5': 'EU 46', '12': 'EU 46.5', '12.5': 'EU 47',
-    '13': 'EU 47.5'
+  const normalizeGender = (g) => {
+    if (!g) return 'Men';
+    const lower = g.toLowerCase();
+    if (lower === 'women') return 'Women';
+    if (lower === 'both') return 'Both';
+    return 'Men';
   };
+
+  function currentGender() {
+    const activeToggle = document.querySelector('.btn-gender.active');
+    const fromToggle = normalizeGender(activeToggle?.dataset.gender || '');
+    const fromHidden = normalizeGender(hiddenGender?.value || '');
+    const resolved = fromToggle !== 'Men' || activeToggle ? fromToggle : fromHidden;
+    return resolved === 'Both' ? 'Men' : resolved;
+  }
 
   function toEuLabel(usLabel) {
     if (!usLabel) return usLabel;
-    const numeric = (usLabel.match(/([0-9]+(?:\.[0-9]+)?)/)?.[1]) || '';
-    if (!numeric) return usLabel;
-    return usToEuMap[numeric] || usLabel;
+    const numeric = parseFloat((usLabel.match(/([0-9]+(?:\.[0-9]+)?)/)?.[1]) || '');
+    if (Number.isNaN(numeric)) return usLabel;
+    const gender = currentGender();
+    const offset = gender === 'Women' ? 31.5 : 33;
+    const euVal = numeric + offset;
+    const formatted = Number.isInteger(euVal) ? euVal.toFixed(0) : euVal.toFixed(1);
+    return `EU ${formatted}`;
   }
 
   function refreshSizeLabels() {
@@ -49,11 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function filterSizes() {
     const sys = hiddenSystem?.value || systemBtns?.[0]?.dataset.system || '';
-    const gen = hiddenGender?.value || genderBtns?.[0]?.dataset.gender || '';
+    const gen = normalizeGender(hiddenGender?.value || genderBtns?.[0]?.dataset.gender || '');
     let firstSelectable = null;
     sizeBtns.forEach(btn => {
       const matchSystem = sys === 'EU' ? true : (!sys || btn.dataset.sizeSystem === sys);
-      const match = matchSystem && (!gen || btn.dataset.sizeGender === gen);
+      const sizeGender = normalizeGender(btn.dataset.sizeGender || '');
+      const match = matchSystem && (!gen || sizeGender === gen || sizeGender === 'Both');
       const tile = btn.closest('.size-tile');
       const displayStyle = match ? '' : 'none';
       btn.style.display = displayStyle;
@@ -83,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cartSizePreview) cartSizePreview.textContent = btn.dataset.size;
       if (hiddenSize) hiddenSize.value = btn.dataset.size;
       if (hiddenSizeId) hiddenSizeId.value = btn.dataset.sizeId || '';
+      if (hiddenGender && btn.dataset.sizeGender) hiddenGender.value = btn.dataset.sizeGender;
       updateAddToCartAvailability();
       refreshSizeLabels();
     });
@@ -107,6 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
       refreshSizeLabels();
     });
   });
+
+  // Initial label normalization
+  refreshSizeLabels();
 
   // Quantity controls and subtotal update
   const qtyValue = document.getElementById('qtyValue');

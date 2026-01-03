@@ -5,6 +5,7 @@ $brand_options = [];
 $sport_options = [];
 $size_options = [];
 $gender_options = [];
+$allowed_genders = ['Men','Women'];
 $gender_counts = [];
 $brand_counts = [];
 $sport_counts = [];
@@ -40,11 +41,17 @@ if ($size_rs) {
     }
 }
 
-$gender_rs = $conn->query("SELECT gender, COUNT(*) AS c FROM products WHERE status='active' GROUP BY gender");
+$gender_rs = $conn->query("(
+    SELECT gender AS g, COUNT(*) AS c FROM products WHERE status='active' GROUP BY gender
+) UNION ALL (
+    SELECT secondary_gender AS g, COUNT(*) AS c FROM products WHERE status='active' AND secondary_gender <> 'None' GROUP BY secondary_gender
+)");
 if ($gender_rs) {
     while ($row = $gender_rs->fetch_assoc()) {
-        $gender_options[] = $row['gender'];
-        $gender_counts[$row['gender']] = (int)$row['c'];
+        $g = $row['g'];
+        $c = (int) $row['c'];
+        if ($g === 'Men') { $gender_counts['Men'] = ($gender_counts['Men'] ?? 0) + $c; $gender_options[] = 'Men'; }
+        if ($g === 'Women') { $gender_counts['Women'] = ($gender_counts['Women'] ?? 0) + $c; $gender_options[] = 'Women'; }
     }
 }
 
@@ -104,6 +111,7 @@ foreach ($price_ranges as $range) {
         // Get filter parameters
         $selected_brands  = isset($_GET['brand']) ? array_filter((array)$_GET['brand']) : [];
         $selected_genders = isset($_GET['gender']) ? array_filter((array)$_GET['gender']) : [];
+        $selected_genders = array_values(array_intersect($selected_genders, $allowed_genders));
         $selected_sports  = isset($_GET['sport']) ? array_filter((array)$_GET['sport']) : [];
         $current_sort  = isset($_GET['sort'])  ? trim($_GET['sort'])  : null;
         $search_term   = isset($_GET['search']) ? trim($_GET['search']) : null;
@@ -150,9 +158,16 @@ foreach ($price_ranges as $range) {
             $hero_title = "GENDER COLLECTION";
             $hero_desc = "Shop styles curated for your selection.";
             $breadcrumb_active = "Gender";
-            $placeholders = implode(',', array_fill(0, count($selected_genders), '?'));
-            $conditions[] = "gender IN ($placeholders)";
-            foreach ($selected_genders as $g) { $params[] = $g; $types .= 's'; }
+            if (count($selected_genders) === 1) {
+                $g = $selected_genders[0];
+                if ($g === 'Women') {
+                    $conditions[] = "(gender = 'Women' OR secondary_gender = 'Women')";
+                } elseif ($g === 'Men') {
+                    $conditions[] = "(gender = 'Men' OR secondary_gender = 'Men')";
+                }
+            } else {
+                $conditions[] = "(gender IN ('Men','Women') OR secondary_gender IN ('Men','Women'))";
+            }
         }
         elseif ($current_sort === 'new') {
             $hero_title = "NEW RELEASES";
@@ -226,7 +241,7 @@ foreach ($price_ranges as $range) {
             $offset = ($page - 1) * $per_page;
         }
 
-        $sql = "SELECT * FROM products $where $order LIMIT ? OFFSET ?";
+        $sql = "SELECT p.*, (SELECT COALESCE(SUM(ps.stock_quantity), p.stock_quantity) FROM product_sizes ps WHERE ps.product_id = p.id AND ps.is_active = 1) AS stock_total FROM products p $where $order LIMIT ? OFFSET ?";
         $stmt = $conn->prepare($sql);
 
         $select_params = $params;
@@ -258,7 +273,7 @@ foreach ($price_ranges as $range) {
             sort($gender_labels);
         }
         if (empty($gender_labels)) {
-            $gender_labels = ['Men','Women','Unisex'];
+            $gender_labels = $allowed_genders;
         }
     ?>
 

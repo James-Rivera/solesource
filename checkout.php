@@ -186,6 +186,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmtDec->bind_param('ii', $ci['qty'], $sizeId);
                     $stmtDec->execute();
                     $stmtDec->close();
+
+                    $stmtDecProd = $conn->prepare('UPDATE products SET stock_quantity = GREATEST(stock_quantity - ?, 0) WHERE id = ?');
+                    $stmtDecProd->bind_param('ii', $ci['qty'], $ci['id']);
+                    $stmtDecProd->execute();
+                    $stmtDecProd->close();
                 } else {
                     $stmtDec = $conn->prepare('UPDATE products SET stock_quantity = GREATEST(stock_quantity - ?, 0) WHERE id = ?');
                     $stmtDec->bind_param('ii', $ci['qty'], $ci['id']);

@@ -861,6 +861,11 @@ body {
 .order-row:hover { background-color: #fafafa; }
 .order-row:last-child { border-bottom: none; }
 
+/* Quick Actions */
+.quick-actions { margin-bottom: 2rem; }
+.quick-actions-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.quick-action-card { display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: inherit; }
+
 /* =========================================
    8. PAGE: SETTINGS & FORMS
    ========================================= */
@@ -1028,6 +1033,11 @@ body {
         gap: 0.75rem;
         padding: 1.5rem;
     }
+
+    /* Prevent dropdown clipping in orders table */
+    .orders-table-container { overflow: visible; }
+    .order-table-row { position: relative; }
+    .action-dropdown-menu { z-index: 1200; }
 
     .order-table-header, 
     .product-table-header, 

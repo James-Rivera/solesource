@@ -11,6 +11,35 @@ if (empty($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 $success_message = '';
 $error_message = '';
 
+function ensure_secondary_gender_column(mysqli $conn, string &$error_message): bool {
+    static $checked = false;
+    if ($checked) { return true; }
+    $checked = true;
+    $exists = false;
+    $schemaStmt = $conn->prepare("SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'products' AND column_name = 'secondary_gender' LIMIT 1");
+    if ($schemaStmt && $schemaStmt->execute()) {
+        $res = $schemaStmt->get_result();
+        $exists = $res && $res->num_rows > 0;
+    }
+    if ($schemaStmt) { $schemaStmt->close(); }
+    if ($exists) { return true; }
+    $alter = $conn->query("ALTER TABLE products ADD COLUMN secondary_gender ENUM('Men','Women','None') NOT NULL DEFAULT 'None'");
+    if (!$alter) {
+        $error_message = 'Database is missing secondary_gender column and could not be updated: ' . $conn->error;
+        return false;
+    }
+    return true;
+}
+
+function slugify($text) {
+    $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+    $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+    $text = preg_replace('~[^-\w]+~', '', $text);
+    $text = trim($text, '-');
+    $text = preg_replace('~-+~', '-', $text);
+    return strtolower($text ?: 'product');
+}
+
 function generate_sku($brand, $name) {
     $brand_part = strtoupper(preg_replace('/[^A-Z0-9]/i', '', substr($brand, 0, 2)) ?: 'SS');
     $name_part = strtoupper(preg_replace('/[^A-Z0-9]/i', '', substr($name, 0, 3)) ?: 'PRD');
@@ -18,26 +47,40 @@ function generate_sku($brand, $name) {
     return $brand_part . '-' . $name_part . '-' . $rand;
 }
 
+function recalc_product_stock(mysqli $conn, int $productId): void {
+    $stmt = $conn->prepare("UPDATE products p SET stock_quantity = (SELECT COALESCE(SUM(stock_quantity),0) FROM product_sizes WHERE product_id = p.id AND is_active = 1) WHERE p.id = ?");
+	$stmt->bind_param('i', $productId);
+	$stmt->execute();
+	$stmt->close();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_product') {
     $name = trim($_POST['name'] ?? '');
     $brand = trim($_POST['brand'] ?? '');
     $price = trim($_POST['price'] ?? '');
-    $gender = trim($_POST['gender'] ?? 'Unisex');
+    $genderMen = isset($_POST['gender_men']);
+    $genderWomen = isset($_POST['gender_women']);
     $sport = trim($_POST['sport'] ?? '');
     $colorway = trim($_POST['colorway'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $release_date = trim($_POST['release_date'] ?? '');
     $sku = trim($_POST['sku'] ?? '');
-    $stock_quantity = (int)($_POST['stock_quantity'] ?? 0);
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     $status = 'active';
 
     if ($name === '' || $brand === '' || $price === '' || !is_numeric($price)) {
         $error_message = 'Please provide Name, Brand, and a numeric Price.';
+    } elseif (!$genderMen && !$genderWomen) {
+        $error_message = 'Select at least one gender (Men or Women).';
+    } elseif (!ensure_secondary_gender_column($conn, $error_message)) {
+        // error message already set
     } else {
         if ($sku === '') {
             $sku = generate_sku($brand, $name);
         }
+
+        $primary_gender = $genderWomen && !$genderMen ? 'Women' : 'Men';
+        $secondary_gender = ($genderMen && $genderWomen) ? 'Women' : 'None';
 
         $image_path = '';
         if (!empty($_FILES['image']['name'])) {
@@ -54,8 +97,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 if (!in_array($ext, $allowed)) {
                     $error_message = 'Invalid image type. Allowed: jpg, jpeg, png, webp.';
                 } else {
-                    $newname = uniqid('prod_', true) . '.' . $ext;
-                    $target = $upload_dir . $newname;
+					$slug = slugify($brand . '-' . $name);
+					$newname = $slug . '-' . uniqid() . '.' . $ext;
+					$target = $upload_dir . $newname;
                     if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
                         // Save relative path for frontend
                         $image_path = 'assets/img/products/' . $newname;
@@ -67,21 +111,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         if ($error_message === '') {
-            $sql = "INSERT INTO products (sku, name, brand, gender, sport, colorway, description, release_date, image, price, stock_quantity, is_featured, total_sold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'active')";
+            $sql = "INSERT INTO products (sku, name, brand, gender, secondary_gender, sport, colorway, description, release_date, image, price, stock_quantity, is_featured, total_sold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, 'active')";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param(
-                'sssssssssdii',
+                'ssssssssssdi',
                 $sku,
                 $name,
                 $brand,
-                $gender,
+                $primary_gender,
+                $secondary_gender,
                 $sport,
                 $colorway,
                 $description,
                 $release_date,
                 $image_path,
                 $price,
-                $stock_quantity,
                 $is_featured
             );
         }
@@ -89,8 +133,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         if ($error_message === '') {
             if ($stmt->execute()) {
                 $success_message = 'Product added successfully.';
+                $newProductId = $stmt->insert_id;
+                if ($newProductId) { recalc_product_stock($conn, (int)$newProductId); }
             } else {
-                $error_message = 'Insert failed. Please try again.';
+                $error_message = $stmt->error ?: $conn->error ?: 'Insert failed. Please try again.';
             }
             $stmt->close();
         }
@@ -98,12 +144,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Fetch products with aggregated size stock (fallback to legacy stock_quantity)
+$filter = $_GET['filter'] ?? '';
 $products = [];
 $sqlProducts = "SELECT p.*, COALESCE(SUM(ps.stock_quantity), p.stock_quantity) AS stock_total
                 FROM products p
                 LEFT JOIN product_sizes ps ON ps.product_id = p.id AND ps.is_active = 1
-                GROUP BY p.id
-                ORDER BY p.created_at DESC";
+                GROUP BY p.id";
+if ($filter === 'lowstock') {
+    $sqlProducts .= " HAVING COALESCE(SUM(ps.stock_quantity), p.stock_quantity) < 3";
+}
+$sqlProducts .= " ORDER BY p.created_at DESC";
 $result = $conn->query($sqlProducts);
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -161,12 +211,16 @@ if ($result && $result->num_rows > 0) {
                             <input type="number" step="0.01" name="price" class="form-control" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Gender</label>
-                            <select name="gender" class="form-select">
-                                <option value="Men">Men</option>
-                                <option value="Women">Women</option>
-                                <option value="Unisex" selected>Unisex</option>
-                            </select>
+                            <label class="form-label">Product Target</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="gender_men" id="gender_men" checked>
+                                <label class="form-check-label" for="gender_men">Men</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="gender_women" id="gender_women">
+                                <label class="form-check-label" for="gender_women">Women</label>
+                            </div>
+                            <small class="text-muted">Select one or both. If both, product will show for Men and Women.</small>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Sport</label>
@@ -177,10 +231,6 @@ if ($result && $result->num_rows > 0) {
                                 <option value="Lifestyle">Lifestyle</option>
                                 <option value="Basketball">Basketball</option>
                             </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Stock Quantity</label>
-                            <input type="number" name="stock_quantity" class="form-control" value="0" min="0">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Colorway</label>

@@ -142,27 +142,28 @@ if ($stmt) {
                         </div>
                         <div data-label="Joined"><?php echo htmlspecialchars($user['created_formatted']); ?></div>
                         <div data-label="Actions">
-                            <div class="user-actions">
-                                <a class="admin-action-btn sm" href="orders.php?user=<?php echo urlencode($user['id']); ?>">
-                                    <i class="bi bi-receipt"></i>
-                                    <span>Orders</span>
-                                </a>
-                                <form method="post" class="d-inline">
-                                    <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
-                                    <input type="hidden" name="action" value="<?php echo htmlspecialchars($toggleActiveAction); ?>">
-                                    <button type="submit" class="admin-action-btn sm <?php echo $toggleActiveClass; ?>" data-confirm="<?php echo $isActive ? 'Suspend this user?' : 'Activate this user?'; ?>">
-                                        <i class="bi <?php echo $isActive ? 'bi-pause-circle' : 'bi-play-circle'; ?>"></i>
-                                        <span><?php echo $toggleActiveLabel; ?></span>
-                                    </button>
-                                </form>
-                                <form method="post" class="d-inline">
-                                    <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
-                                    <input type="hidden" name="action" value="<?php echo htmlspecialchars($roleAction); ?>">
-                                    <button type="submit" class="admin-action-btn sm" data-confirm="<?php echo $isAdmin ? 'Set this admin back to customer?' : 'Promote this user to admin?'; ?>">
-                                        <i class="bi <?php echo $isAdmin ? 'bi-person' : 'bi-person-gear'; ?>"></i>
-                                        <span><?php echo $roleLabel; ?></span>
-                                    </button>
-                                </form>
+                            <div class="dropdown">
+                                <button class="admin-action-btn sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-gear"></i>
+                                    <span>Manage</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end action-dropdown-menu">
+                                    <a class="dropdown-item" href="orders.php?user=<?php echo urlencode($user['id']); ?>">View orders</a>
+                                    <form method="post" class="dropdown-item p-0">
+                                        <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
+                                        <input type="hidden" name="action" value="<?php echo htmlspecialchars($toggleActiveAction); ?>">
+                                        <button type="submit" class="dropdown-action <?php echo $toggleActiveClass; ?>" data-confirm="<?php echo $isActive ? 'Suspend this user?' : 'Activate this user?'; ?>">
+                                            <?php echo $toggleActiveLabel; ?>
+                                        </button>
+                                    </form>
+                                    <form method="post" class="dropdown-item p-0">
+                                        <input type="hidden" name="user_id" value="<?php echo (int) $user['id']; ?>">
+        						<input type="hidden" name="action" value="<?php echo htmlspecialchars($roleAction); ?>">
+                                        <button type="submit" class="dropdown-action" data-confirm="<?php echo $isAdmin ? 'Set this admin back to customer?' : 'Promote this user to admin?'; ?>">
+                                            <?php echo $roleLabel; ?>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -10,7 +10,7 @@ if (empty($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 
 $revenue = 0;
 $pendingOrders = 0;
-$totalUsers = 0;
+$totalOrders = 0;
 $lowStock = 0;
 
 $res = $conn->query("SELECT COALESCE(SUM(total_amount),0) AS revenue FROM orders WHERE status IN ('shipped','delivered')");
@@ -18,26 +18,26 @@ if ($res && $row = $res->fetch_assoc()) {
     $revenue = (float) $row['revenue'];
 }
 
+$res = $conn->query("SELECT COUNT(*) AS cnt FROM orders");
+if ($res && $row = $res->fetch_assoc()) {
+    $totalOrders = (int) $row['cnt'];
+}
+
 $res = $conn->query("SELECT COUNT(*) AS cnt FROM orders WHERE status = 'pending'");
 if ($res && $row = $res->fetch_assoc()) {
     $pendingOrders = (int) $row['cnt'];
 }
 
-$res = $conn->query("SELECT COUNT(*) AS cnt FROM users");
-if ($res && $row = $res->fetch_assoc()) {
-    $totalUsers = (int) $row['cnt'];
-}
-
-$res = $conn->query("SELECT COUNT(*) AS cnt FROM products WHERE stock_quantity < 10");
+$res = $conn->query("SELECT COUNT(*) AS cnt FROM product_sizes WHERE is_active = 1 AND stock_quantity < 3");
 if ($res && $row = $res->fetch_assoc()) {
     $lowStock = (int) $row['cnt'];
 }
 
 $stats = [
-    ['label' => 'Total Revenue', 'value' => '₱' . number_format($revenue, 2, '.', ','), 'icon' => 'bi-currency-dollar'],
+    ['label' => 'Total Sales', 'value' => '₱' . number_format($revenue, 2, '.', ','), 'icon' => 'bi-currency-dollar'],
+    ['label' => 'Total Orders', 'value' => $totalOrders, 'icon' => 'bi-receipt'],
     ['label' => 'Pending Orders', 'value' => $pendingOrders, 'icon' => 'bi-clock-history'],
-    ['label' => 'Total Users', 'value' => $totalUsers, 'icon' => 'bi-people'],
-    ['label' => 'Low Stock', 'value' => $lowStock, 'icon' => 'bi-exclamation-triangle'],
+    ['label' => 'Stock Alerts (<3)', 'value' => $lowStock, 'icon' => 'bi-exclamation-triangle'],
 ];
 
 $recent_orders = [];
@@ -90,6 +90,36 @@ if ($stmt) {
                     </div>
                 <?php endforeach; ?>
             </div>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions mb-4">
+                <div class="section-header">
+                    <h2 class="section-title-small">Quick Actions</h2>
+                </div>
+                <div class="stats-grid quick-actions-grid">
+                    <a class="stat-card quick-action-card" href="products.php#addProductForm">
+                        <div>
+                            <div class="stat-label">Catalog</div>
+                            <div class="stat-value" style="font-size:1.3rem;">Add New Product</div>
+                        </div>
+                        <i class="bi bi-plus-circle"></i>
+                    </a>
+                    <a class="stat-card quick-action-card" href="orders.php?filter=pending">
+                        <div>
+                            <div class="stat-label">Orders</div>
+                            <div class="stat-value" style="font-size:1.3rem;">Check Pending</div>
+                        </div>
+                        <i class="bi bi-truck"></i>
+                    </a>
+                    <a class="stat-card quick-action-card" href="products.php?filter=lowstock">
+                        <div>
+                            <div class="stat-label">Inventory</div>
+                            <div class="stat-value" style="font-size:1.3rem;">View Stock Alerts</div>
+                        </div>
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </a>
+                </div>
+            </section>
 
             <!-- Recent Orders -->
             <section>
