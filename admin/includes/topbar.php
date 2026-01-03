@@ -3,18 +3,23 @@
         <button class="icon-button ghost" type="button" aria-label="Toggle sidebar" data-toggle-sidebar>
             <i class="bi bi-layout-sidebar"></i>
         </button>
-        <div class="topbar-brand">
-            <span class="brand-mark">SoleSource</span>
-            <span class="brand-sub">Admin</span>
+        <div class="topbar-brand" aria-label="SoleSource Admin">
+            <img src="../assets/img/logo-big.png" alt="SoleSource">
         </div>
     </div>
     <div class="topbar-actions">
         <a class="topbar-link" href="../index.php" target="_blank" rel="noopener">View Store</a>
         <a class="topbar-link" href="orders.php">Orders</a>
         <a class="topbar-link" href="products.php">Products</a>
-        <a class="btn-top primary" href="orders.php">Create Order</a>
-        <div class="topbar-avatar" title="Admin">
-            <i class="bi bi-person"></i>
+        <a class="btn-top primary" href="products.php#addProductForm">Create Product</a>
+        <div class="dropdown">
+            <button class="btn-top" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account menu">
+                <i class="bi bi-person-circle"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="settings.php">Settings</a></li>
+                <li><a class="dropdown-item" href="../logout.php">Log out</a></li>
+            </ul>
         </div>
     </div>
 </header>

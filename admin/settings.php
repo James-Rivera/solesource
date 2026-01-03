@@ -16,12 +16,16 @@ $message = isset($_GET['message']) ? $_GET['message'] : '';
     <link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
+    <?php include 'includes/topbar.php'; ?>
     <div class="admin-container">
         <?php include 'includes/sidebar.php'; ?>
 
         <main class="admin-content">
             <div class="admin-header">
-                <h1 class="admin-page-title">System Control</h1>
+                <div>
+                    <h1 class="admin-page-title">Settings</h1>
+                    <p class="admin-page-subtitle">Manage admin preferences</p>
+                </div>
             </div>
 
             <?php if ($message === 'backup_success'): ?>

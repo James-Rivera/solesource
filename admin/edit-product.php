@@ -123,6 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     <link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
+    <?php include 'includes/topbar.php'; ?>
     <div class="admin-container">
         <?php include 'includes/sidebar.php'; ?>
 

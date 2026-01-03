@@ -75,15 +75,9 @@ if ($stmt) {
         <main class="admin-content">
             <!-- Header -->
             <div class="admin-header">
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <button class="sidebar-toggle" type="button" data-toggle-sidebar>
-                        <i class="bi bi-layout-sidebar-inset"></i>
-                        <span>Toggle Sidebar</span>
-                    </button>
-                    <div>
-                        <h1 class="admin-page-title">Overview</h1>
-                        <p class="admin-page-subtitle">Monitor your store's performance and recent activity</p>
-                    </div>
+                <div>
+                    <h1 class="admin-page-title">Overview</h1>
+                    <p class="admin-page-subtitle">Monitor your store's performance and recent activity</p>
                 </div>
             </div>
 

@@ -110,13 +110,17 @@ if ($result && $result->num_rows > 0) {
     <link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
+    <?php include 'includes/topbar.php'; ?>
     <div class="admin-container">
         <?php include 'includes/sidebar.php'; ?>
 
         <main class="admin-content">
             <div class="admin-header">
-                <h1 class="admin-page-title">Inventory</h1>
-                <button class="btn btn-add-product" type="button" data-bs-toggle="collapse" data-bs-target="#addProductForm" aria-expanded="false" aria-controls="addProductForm">Add Product</button>
+                <div>
+                    <h1 class="admin-page-title">Products</h1>
+                    <p class="admin-page-subtitle">Manage your catalog</p>
+                </div>
+                <button class="btn btn-add-product" type="button" data-bs-toggle="collapse" data-bs-target="#addProductForm" aria-expanded="false" aria-controls="addProductForm">Create Product</button>
             </div>
 
             <?php if ($success_message): ?>

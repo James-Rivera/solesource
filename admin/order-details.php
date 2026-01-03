@@ -61,6 +61,7 @@ elseif ($status === 'cancelled') $statusClass = 'text-danger';
     <link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
+    <?php include 'includes/topbar.php'; ?>
     <div class="admin-container">
         <?php include 'includes/sidebar.php'; ?>
 
