@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeToggle = document.querySelector('.btn-gender.active');
     const fromToggle = normalizeGender(activeToggle?.dataset.gender || '');
     const fromHidden = normalizeGender(hiddenGender?.value || '');
-    const resolved = fromToggle !== 'Men' || activeToggle ? fromToggle : fromHidden;
+    const resolved = fromToggle || fromHidden || 'Men';
     return resolved === 'Both' ? 'Men' : resolved;
   }
 
@@ -60,18 +60,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function filterSizes() {
-    const sys = hiddenSystem?.value || systemBtns?.[0]?.dataset.system || '';
-    const gen = normalizeGender(hiddenGender?.value || genderBtns?.[0]?.dataset.gender || '');
+    const sys = hiddenSystem?.value || systemBtns?.[0]?.dataset.system || 'US';
+    const gen = currentGender();
     let firstSelectable = null;
     sizeBtns.forEach(btn => {
-      const matchSystem = sys === 'EU' ? true : (!sys || btn.dataset.sizeSystem === sys);
       const sizeGender = normalizeGender(btn.dataset.sizeGender || '');
-      const match = matchSystem && (!gen || sizeGender === gen || sizeGender === 'Both');
+      const matchGender = sizeGender === gen || sizeGender === 'Both';
+      const matchSystem = sys === 'EU' ? true : (!sys || btn.dataset.sizeSystem === sys);
+      const match = matchGender && matchSystem;
       const tile = btn.closest('.size-tile');
-      const displayStyle = match ? '' : 'none';
-      btn.style.display = displayStyle;
-      if (tile) { tile.style.display = displayStyle; }
-      if (match && !btn.classList.contains('disabled') && !firstSelectable) {
+      const hide = !match;
+      btn.style.display = hide ? 'none' : '';
+      btn.classList.toggle('d-none', hide);
+      btn.hidden = hide;
+      if (tile) {
+        tile.style.display = hide ? 'none' : '';
+        tile.classList.toggle('d-none', hide);
+        tile.hidden = hide;
+      }
+      if (hide && btn.classList.contains('active')) {
+        btn.classList.remove('active');
+      }
+      const stockVal = parseInt(btn.dataset.stock || '0', 10);
+      if (match && !btn.classList.contains('disabled') && stockVal > 0 && !firstSelectable) {
         firstSelectable = btn;
       }
     });

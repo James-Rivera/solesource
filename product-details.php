@@ -44,7 +44,7 @@ $recommended = array_slice($recommended, 0, 4);
 
 // Load available sizes for this product (US as source of truth; EU derived client-side)
 $sizeOptions = [];
-$sizeStmt = $conn->prepare("SELECT id, size_label, size_system, gender, stock_quantity, is_active FROM product_sizes WHERE product_id = ? AND size_system = 'US' AND is_active = 1 ORDER BY stock_quantity > 0 DESC, size_label ASC");
+$sizeStmt = $conn->prepare("SELECT id, size_label, size_system, gender, stock_quantity, is_active FROM product_sizes WHERE product_id = ? AND size_system = 'US' AND is_active = 1 ORDER BY stock_quantity > 0 DESC, CAST(size_label AS DECIMAL(10,2)) ASC");
 $sizeStmt->bind_param('i', $requested_id);
 $sizeStmt->execute();
 $sizeRes = $sizeStmt->get_result();
@@ -54,6 +54,9 @@ while ($row = $sizeRes->fetch_assoc()) {
     $sizeOptions[] = $row;
 }
 $sizeStmt->close();
+
+// Ensure numeric sort regardless of DB collation
+usort($sizeOptions, fn($a, $b) => (float)($a['size_label'] ?? 0) <=> (float)($b['size_label'] ?? 0));
 
 if (empty($sizeOptions)) {
     $sizeOptions[] = [
@@ -69,23 +72,31 @@ if (empty($sizeOptions)) {
 $selectedSizeId = null;
 $selectedSizeLabel = '';
 $selectedSystem = 'US';
-$selectedGender = $sizeOptions[0]['gender'] ?? $primaryGender;
-foreach ($sizeOptions as $opt) {
-    if ((int) ($opt['stock_quantity'] ?? 0) > 0 && (int) ($opt['is_active'] ?? 0) === 1) {
-        $selectedSizeId = $opt['id'];
-        $selectedSizeLabel = $opt['size_label'];
-        $selectedSystem = $opt['size_system'];
-        $selectedGender = $opt['gender'];
-        break;
+$selectedGender = $primaryGender;
+
+$pickSize = static function(array $sizes, string $preferredGender) {
+    foreach ($sizes as $opt) {
+        if ((int) ($opt['is_active'] ?? 0) !== 1) { continue; }
+        if (($opt['gender'] ?? 'Men') !== $preferredGender) { continue; }
+        if ((int) ($opt['stock_quantity'] ?? 0) <= 0) { continue; }
+        return $opt;
     }
+    return null;
+};
+
+$initial = $pickSize($sizeOptions, $primaryGender);
+if (!$initial && $secondaryGender !== 'None') {
+    $initial = $pickSize($sizeOptions, $secondaryGender);
 }
-if ($selectedSizeLabel === '' && !empty($sizeOptions)) {
-    $selectedSizeId = $sizeOptions[0]['id'];
-    $selectedSizeLabel = $sizeOptions[0]['size_label'];
-    $selectedSystem = $sizeOptions[0]['size_system'];
-    $selectedGender = $sizeOptions[0]['gender'];
+if (!$initial && !empty($sizeOptions)) {
+    $initial = $sizeOptions[0];
 }
-if ($selectedGender === 'Both') { $selectedGender = $primaryGender; }
+if ($initial) {
+    $selectedSizeId = $initial['id'];
+    $selectedSizeLabel = $initial['size_label'];
+    $selectedSystem = $initial['size_system'];
+    $selectedGender = $initial['gender'] === 'Both' ? $primaryGender : $initial['gender'];
+}
 
 // Build unique lists for system and gender toggles
 $availableSystems = ['US','EU'];
@@ -100,6 +111,17 @@ $availableGenders = array_values(array_unique(array_filter(array_merge(
     [$primaryGender],
     $secondaryGender !== 'None' ? [$secondaryGender] : []
 ), fn($g) => in_array($g, ['Men','Women'], true))));
+
+// Prepare size lists for initial render; JS will toggle visibility client-side
+$visibleSizeOptions = array_values(array_filter(
+    $sizeOptions,
+    fn($opt) => ($opt['gender'] ?? 'Men') === $selectedGender || ($opt['gender'] ?? '') === 'Both'
+));
+$hiddenSizeOptions = array_values(array_filter(
+    $sizeOptions,
+    fn($opt) => ($opt['gender'] ?? 'Men') !== $selectedGender && ($opt['gender'] ?? '') !== 'Both'
+));
+$renderSizeOptions = array_merge($visibleSizeOptions, $hiddenSizeOptions);
 
 $breadcrumb_active = $product['name'];
 ?>
@@ -119,21 +141,22 @@ $breadcrumb_active = $product['name'];
     <?php include 'includes/header.php'; ?>
 
     <style>
-        /* Stabilize size grid layout and disabled styling */
+        /* Size grid: flexible, gap-based layout; no fixed placeholders */
         .size-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
-            justify-content: center;
+            justify-content: flex-start;
         }
         .size-grid .size-tile { position: relative; }
         .size-grid .btn-size {
             display: flex;
             align-items: center;
             justify-content: center;
+            min-width: 90px;
             height: 50px;
-            width: 100%;
-            padding: 8px 10px;
+            padding: 8px 14px;
+            width: auto;
         }
         .size-grid .btn-size.disabled,
         .size-grid .btn-size:disabled {
@@ -201,11 +224,12 @@ $breadcrumb_active = $product['name'];
                     </div>
 
                     <div class="size-grid mb-4" id="sizeSelector">
-                        <?php foreach ($sizeOptions as $opt): 
+                        <?php foreach ($renderSizeOptions as $opt): 
                             $outOfStock = (int) ($opt['stock_quantity'] ?? 0) <= 0;
                             $isSelected = $selectedSizeId === $opt['id'] && $selectedSizeLabel === $opt['size_label'];
+                            $isVisible = ($opt['gender'] ?? 'Men') === $selectedGender || ($opt['gender'] ?? '') === 'Both';
                         ?>
-                            <div class="size-tile d-flex flex-column align-items-start gap-1">
+                            <div class="size-tile d-flex flex-column align-items-start gap-1" style="<?php echo $isVisible ? '' : 'display:none;'; ?>">
                                 <button
                                     type="button"
                                     class="btn-size<?php echo $isSelected ? ' active' : ''; ?><?php echo $outOfStock ? ' disabled' : ''; ?>"

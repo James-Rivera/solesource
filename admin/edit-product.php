@@ -44,23 +44,7 @@ function ensure_secondary_gender_column(mysqli $conn, string &$error_message): b
 }
 
 function ensure_size_gender_enum(mysqli $conn, string &$error_message): bool {
-    static $checked = false;
-    if ($checked) { return true; }
-    $checked = true;
-    $colType = '';
-    $schemaStmt = $conn->prepare("SELECT column_type FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'product_sizes' AND column_name = 'gender' LIMIT 1");
-    if ($schemaStmt && $schemaStmt->execute()) {
-        $res = $schemaStmt->get_result();
-        $colType = $res && $res->num_rows ? ($res->fetch_assoc()['column_type'] ?? '') : '';
-    }
-    if ($schemaStmt) { $schemaStmt->close(); }
-    if (stripos($colType, 'both') !== false) { return true; }
-    $alter = $conn->query("ALTER TABLE product_sizes MODIFY COLUMN gender ENUM('Men','Women','Both') NOT NULL");
-    if (!$alter) {
-        $error_message = 'Could not enable Both gender for sizes: ' . $conn->error;
-        add_debug($GLOBALS['debug_logs'], $error_message);
-        return false;
-    }
+    // Column already exists with Men/Women; avoid altering enum to include disallowed values
     return true;
 }
 
@@ -155,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($ids as $idx => $sid) {
                     $sid = (int) $sid;
                     $label = trim($labels[$idx] ?? '');
-                    $genderVal = in_array(($genders[$idx] ?? 'Men'), ['Men','Women','Both'], true) ? $genders[$idx] : 'Men';
+                    $genderVal = (($genders[$idx] ?? 'Men') === 'Women') ? 'Women' : 'Men';
                     $stockVal = (int) ($stocks[$idx] ?? 0);
                     $isActive = in_array($sid, $activeIds, true) ? 1 : 0;
                     $stmtUpdate->bind_param('ssiiii', $label, $genderVal, $stockVal, $isActive, $sid, $productId);
@@ -174,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'add_size') {
         if (ensure_size_gender_enum($conn, $error_message)) {
             $label = trim($_POST['new_size_label'] ?? '');
-            $genderVal = in_array(($_POST['new_size_gender'] ?? 'Men'), ['Men','Women','Both'], true) ? $_POST['new_size_gender'] : 'Men';
+            $genderVal = (($_POST['new_size_gender'] ?? 'Men') === 'Women') ? 'Women' : 'Men';
             $stockVal = (int) ($_POST['new_size_stock'] ?? 0);
             if ($label === '') {
                 $error_message = 'Size label is required.';
@@ -447,14 +431,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="card card-body mt-4">
                 <?php
+                    $primaryGender = ($product['gender'] ?? 'Men') === 'Women' ? 'Women' : 'Men';
                     $targetMen = ($product['gender'] ?? '') === 'Men' || ($product['secondary_gender'] ?? '') === 'Men';
                     $targetWomen = ($product['gender'] ?? '') === 'Women' || ($product['secondary_gender'] ?? '') === 'Women';
-                    $menSizes = array_values(array_filter($productSizes, fn($ps) => ($ps['gender'] ?? 'Men') === 'Men'));
-                    $womenSizes = array_values(array_filter($productSizes, fn($ps) => ($ps['gender'] ?? 'Women') === 'Women'));
-                    $bothSizes = array_values(array_filter($productSizes, fn($ps) => ($ps['gender'] ?? '') === 'Both'));
-                    $showMen = $targetMen;
-                    $showWomen = $targetWomen;
-                    $showBoth = ($targetMen && $targetWomen) || !empty($bothSizes);
+                    $menSizes = [];
+                    $womenSizes = [];
+                    foreach ($productSizes as $ps) {
+                        $rawGender = $ps['gender'] ?? 'Men';
+                        $normalized = $rawGender === 'Women' ? 'Women' : ($rawGender === 'Men' ? 'Men' : $primaryGender);
+                        if ($normalized === 'Women') { $womenSizes[] = $ps; }
+                        else { $menSizes[] = $ps; }
+                    }
+                    $showMen = $targetMen || !empty($menSizes);
+                    $showWomen = $targetWomen || !empty($womenSizes);
                     $totalStock = array_sum(array_map(fn($ps) => !empty($ps['is_active']) ? (int)($ps['stock_quantity'] ?? 0) : 0, $productSizes));
                 ?>
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
@@ -555,51 +544,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </table>
                     <?php endif; ?>
 
-                    <?php if ($showBoth): ?>
-                    <h6 class="fw-bold">Shared Inventory (Both, US)</h6>
-                    <table class="table align-middle mb-3">
-                        <thead>
-                            <tr>
-                                <th>Label</th><th>System</th><th>Gender</th><th>Stock</th><th>Active</th><th>Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($bothSizes)): ?>
-                                <tr><td colspan="6" class="text-muted">No shared sizes.</td></tr>
-                            <?php else: ?>
-                                <?php foreach ($bothSizes as $ps): ?>
-                                    <tr>
-                                        <td>
-                                            <input type="hidden" name="size_id[]" value="<?php echo (int) $ps['id']; ?>">
-                                            <input type="text" name="size_label[]" class="form-control" value="<?php echo htmlspecialchars($ps['size_label']); ?>" required>
-                                        </td>
-                                        <td>
-                                            <input type="hidden" name="size_system[]" value="US">
-                                            <span class="text-muted small">US</span>
-                                        </td>
-                                        <td>
-                                            <input type="hidden" name="size_gender[]" value="Both">
-                                            <span class="badge bg-light text-dark">Both</span>
-                                        </td>
-                                        <td style="max-width: 120px;">
-                                            <input type="number" name="size_stock[]" class="form-control" value="<?php echo (int) ($ps['stock_quantity'] ?? 0); ?>" min="0">
-                                        </td>
-                                        <td class="text-center">
-                                            <input class="form-check-input" type="checkbox" name="size_active[]" value="<?php echo (int) $ps['id']; ?>" <?php echo !empty($ps['is_active']) ? 'checked' : ''; ?>>
-                                        </td>
-                                        <td class="text-center">
-                                            <input type="hidden" name="delete_size_id" value="<?php echo (int) $ps['id']; ?>">
-                                            <button type="submit" name="action" value="delete_size" class="btn btn-link text-danger p-0" aria-label="Delete size" onclick="return confirm('Delete this size?');" formaction="edit-product.php?id=<?php echo urlencode($productId); ?>" formmethod="POST" formnovalidate>
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                    <?php endif; ?>
-
                     <div class="text-end">
                         <button type="submit" name="action" value="update_sizes" class="admin-action-btn">Update Sizes</button>
                     </div>
@@ -621,7 +565,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <select name="new_size_gender" class="form-select">
                             <?php if ($targetMen): ?><option value="Men">Men</option><?php endif; ?>
                             <?php if ($targetWomen): ?><option value="Women">Women</option><?php endif; ?>
-                            <?php if ($targetMen && $targetWomen): ?><option value="Both">Both</option><?php endif; ?>
                         </select>
                     </div>
                     <div class="col-md-2">

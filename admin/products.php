@@ -80,6 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         $primary_gender = $genderWomen && !$genderMen ? 'Women' : 'Men';
+        // enforce enum to Men/Women only (no Unisex/Both)
+        $primary_gender = $primary_gender === 'Women' ? 'Women' : 'Men';
         $secondary_gender = ($genderMen && $genderWomen) ? 'Women' : 'None';
 
         $image_path = '';
@@ -111,7 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         if ($error_message === '') {
-            $sql = "INSERT INTO products (sku, name, brand, gender, secondary_gender, sport, colorway, description, release_date, image, price, stock_quantity, is_featured, total_sold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0, 'active')";
+            // stock_quantity now calculated from product_sizes; omit from INSERT
+            $sql = "INSERT INTO products (sku, name, brand, gender, secondary_gender, sport, colorway, description, release_date, image, price, is_featured, total_sold, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'active')";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param(
                 'ssssssssssdi',
@@ -132,9 +135,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         if ($error_message === '') {
             if ($stmt->execute()) {
-                $success_message = 'Product added successfully.';
-                $newProductId = $stmt->insert_id;
-                if ($newProductId) { recalc_product_stock($conn, (int)$newProductId); }
+                $newProductId = (int) ($stmt->insert_id ?: $conn->insert_id);
+                if ($newProductId) { recalc_product_stock($conn, $newProductId); }
+                header('Location: edit-product.php?id=' . $newProductId);
+                exit;
             } else {
                 $error_message = $stmt->error ?: $conn->error ?: 'Insert failed. Please try again.';
             }
@@ -146,6 +150,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Fetch products with aggregated size stock (fallback to legacy stock_quantity)
 $filter = $_GET['filter'] ?? '';
 $products = [];
+$lowStockSizes = [];
+
+if ($filter === 'lowstock') {
+    $alertSql = "SELECT ps.id, ps.product_id, ps.size_label, ps.gender, ps.stock_quantity, p.name AS product_name, p.image, p.brand
+                 FROM product_sizes ps
+                 JOIN products p ON p.id = ps.product_id
+                 WHERE ps.is_active = 1 AND ps.stock_quantity < 3
+                 ORDER BY ps.stock_quantity ASC, CAST(ps.size_label AS DECIMAL(10,2)) ASC";
+    $alertRes = $conn->query($alertSql);
+    if ($alertRes && $alertRes->num_rows > 0) {
+        while ($row = $alertRes->fetch_assoc()) {
+            $lowStockSizes[] = $row;
+        }
+    }
+}
+
 $sqlProducts = "SELECT p.*, COALESCE(SUM(ps.stock_quantity), p.stock_quantity) AS stock_total
                 FROM products p
                 LEFT JOIN product_sizes ps ON ps.product_id = p.id AND ps.is_active = 1
@@ -264,6 +284,57 @@ if ($result && $result->num_rows > 0) {
                     </form>
                 </div>
             </div>
+
+            <?php if ($filter === 'lowstock'): ?>
+                <div class="card card-body mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="mb-0">Low Stock Sizes ( &lt; 3 )</h5>
+                        <span class="badge bg-warning text-dark px-3 py-2">Threshold: 3</span>
+                    </div>
+                    <?php if (empty($lowStockSizes)): ?>
+                        <div class="text-muted">No low stock sizes found.</div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Size</th>
+                                        <th>Gender</th>
+                                        <th>Stock</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($lowStockSizes as $ls): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <?php if (!empty($ls['image'])): ?>
+                                                        <img src="<?php echo htmlspecialchars('../' . $ls['image']); ?>" alt="<?php echo htmlspecialchars($ls['product_name'] ?? ''); ?>" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">
+                                                    <?php endif; ?>
+                                                    <div>
+                                                        <div class="fw-semibold"><?php echo htmlspecialchars($ls['product_name'] ?? ''); ?></div>
+                                                        <?php if (!empty($ls['brand'])): ?><div class="text-muted small"><?php echo htmlspecialchars($ls['brand']); ?></div><?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><?php echo htmlspecialchars($ls['size_label'] ?? ''); ?></td>
+                                            <td><?php echo htmlspecialchars($ls['gender'] ?? ''); ?></td>
+                                            <td>
+                                                <span class="badge bg-danger-subtle text-danger fw-semibold px-3 py-2"><?php echo (int) ($ls['stock_quantity'] ?? 0); ?></span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a class="action-link" href="edit-product.php?id=<?php echo urlencode((string) ($ls['product_id'] ?? 0)); ?>">Edit Product</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
 
             <div class="products-table-container">
                 <!-- Table Header -->
