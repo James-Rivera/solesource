@@ -1,0 +1,170 @@
+/* Order confirmation page specific styles */
+.confirmation-page {
+    background: #f6f6f6;
+    color: #111;
+    font-family: var(--brand-font, 'Outfit', sans-serif);
+}
+
+.confirmation-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.confirmation-hero {
+    background: #E35926;
+    color: #fff;
+    padding: 1.5rem 2rem;
+}
+
+.confirmation-hero .label {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+}
+
+.confirmation-hero .order-id {
+    font-size: 0.9rem;
+    margin: 0.2rem 0 0;
+    opacity: 0.95;
+}
+
+.confirmation-hero .status-btn {
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 0.65rem 1.4rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.confirmation-body {
+    padding: 2.5rem 2.25rem 3rem;
+}
+
+.brand-mark {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.hero-title {
+    font-size: clamp(2.6rem, 4vw, 3.6rem);
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0.35rem 0 0.75rem;
+}
+
+.hero-subcontainer{
+    padding-left: 10rem;
+    padding-right: 10rem;
+    margin-bottom: 5rem;
+    margin-top: 2rem;
+}
+
+.hero-subtext {
+    color: #5c5c5c;
+    font-size: 0.95rem;
+    max-width: 720px;
+    margin: 0 auto 1.75rem;
+    line-height: 1.5;
+    text-align: justify;
+}
+
+.section-divider {
+    border-top: 1px solid #121212;
+    margin: 1.8rem 0;
+}
+
+.shipping-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+.shipping-address {
+    font-size: 0.85rem;
+    color: #444;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.order-summary-title {
+    font-size: 1.25remrem;
+    letter-spacing: 0.35px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--brand-black);
+}
+
+.product-name {
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    margin-bottom: 0.15rem;
+    line-height: 1.3;
+}
+
+.product-meta {
+    font-size: 0.8rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.product-price {
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: #111;
+    text-transform: uppercase;
+}
+
+.summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: 0.4rem 0;
+    font-size: 0.95rem;
+}
+
+.summary-label {
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    color: #333;
+}
+
+.summary-value {
+    font-weight: 300;
+    color: #222;
+    text-align: right;
+    text-transform: uppercase;
+    font-size: 0.92rem;
+}
+
+.cta-btn {
+    background: #E35926;
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    padding: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.25px;
+}
+
+.cta-btn:hover {
+    background: #cc4e21;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .confirmation-body { padding: 1.75rem 1.35rem 2.5rem; }
+    .confirmation-hero { padding: 1.25rem 1.35rem; }
+}

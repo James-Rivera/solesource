@@ -1,0 +1,15 @@
+/* GLOBAL CONFIGURATION */
+:root {
+    /* Brand Colors */
+    --brand-black: #121212;       
+    --brand-dark-gray: #333333;
+    --brand-orange: #E9713F;     
+    --brand-white: #FFFFFF;
+    --brand-background: #F8F9FA;
+    
+    /* Font */
+    --brand-font: 'Outfit', sans-serif;
+    --text-active: #FFFFFF;
+    --text-inactive: #B0B0B0;
+    --text-active-inverse: #121212;
+}

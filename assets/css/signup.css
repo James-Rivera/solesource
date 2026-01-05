@@ -1,0 +1,144 @@
+/* Signup page specific styles */
+.signup-page {
+    background: #f8f9fa;
+    color: #111;
+    font-family: var(--brand-font, 'Outfit', sans-serif);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.signup-header {
+    background: #111;
+    padding: 14px 0;
+}
+
+.signup-logo {
+    height: 28px;
+}
+
+.signup-main {
+    min-height: 90vh;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0 4rem;
+}
+
+.auth-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 50px;
+}
+
+.signup-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.signup-card {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 3rem 3.5rem;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.signup-title {
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #111;
+    font-size: 2rem;
+    letter-spacing: 0.3px;
+    margin-bottom: 24px;
+}
+
+.signup-card .form-control {
+    border-radius: 4px;
+    min-height: 55px;
+    font-size: 1rem;
+    padding: 14px 14px;
+}
+
+.newsletter-label {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.btn-signup-primary {
+    background: #E35926;
+    color: #fff;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    min-height: 55px;
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-signup-primary:hover {
+    background: #cc4e21;
+    color: #fff;
+}
+
+.btn-signup-secondary {
+    background: #fff;
+    border: 1px solid #111;
+    color: #111;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    min-height: 55px;
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-signup-secondary:hover {
+    background: #f2f2f2;
+    color: #111;
+    border-color: #111;
+}
+
+.signup-legal {
+    font-size: 0.95rem;
+    color: #555;
+    text-align: center;
+}
+
+.switch-copy {
+    font-size: 0.95rem;
+    color: #555;
+    text-align: center;
+}
+
+.need-help {
+    border-top: 1px solid #ddd;
+    margin-top: 96px;
+    padding: 48px 0 60px;
+    color: #111;
+    background: #f8f9fa;
+}
+
+.need-help .help-title {
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.need-help .help-copy {
+    font-size: 1rem;
+    color: #444;
+}
+
+.need-help .help-link {
+    font-weight: 700;
+    text-decoration: none;
+}

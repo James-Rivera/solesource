@@ -1,0 +1,153 @@
+/* Login page specific styles */
+.login-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.login-page {
+    background: #f6f6f6;
+    color: #111;
+    font-family: var(--brand-font, 'Outfit', sans-serif);
+}
+
+.login-header {
+    background: #111;
+    padding: 14px 0;
+}
+
+.login-logo {
+    height: 28px;
+}
+
+.login-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.login-main {
+    min-height: 80vh;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 0 6rem;
+}
+
+.auth-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 50px;
+}
+
+.login-card {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 3rem 3.5rem;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.login-title {
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #111;
+    font-size: 2rem;
+    letter-spacing: 0.3px;
+    margin-bottom: 24px;
+}
+
+.login-card .form-control {
+    border-radius: 4px;
+    min-height: 55px;
+    font-size: 1rem;
+    padding: 14px 14px;
+}
+
+.toggle-eye-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #888;
+}
+
+.toggle-eye-btn:hover {
+    color: #555;
+}
+
+.forgot-link {
+    text-decoration: underline;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.btn-login-primary {
+    background: #E35926;
+    color: #fff;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    min-height: 55px;
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-login-primary:hover {
+    background: #cc4e21;
+    color: #fff;
+}
+
+.btn-login-secondary {
+    background: #fff;
+    border: 1px solid #111;
+    color: #111;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    min-height: 55px;
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-login-secondary:hover {
+    background: #f2f2f2;
+    color: #111;
+    border-color: #111;
+}
+
+.need-help {
+    border-top: 1px solid #ddd;
+    padding: 90px 0 80px;
+    color: #111;
+    background: #f8f9fa;
+}
+
+.need-help .help-title {
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.need-help .help-copy {
+    color: #444;
+    font-size: 1rem;
+}
+
+.need-help .help-link {
+    font-weight: 700;
+    text-decoration: none;
+    color: #111;
+}
+
+.need-help .help-link:hover {
+    text-decoration: underline;
+}
