@@ -2,6 +2,7 @@
   const apiEndpoint = 'includes/ai-complete.php';
   let isOpen = false;
   let isSending = false;
+  let greeted = false;
 
   const style = document.createElement('style');
   style.textContent = `
@@ -68,6 +69,12 @@
     }
   }
 
+  function greetIfNeeded() {
+    if (greeted) return;
+    appendMessage('Hi! I can help with SoleSource orders, shipping, returns, or product questions.', 'bot');
+    greeted = true;
+  }
+
   async function sendMessage() {
     const text = textarea.value.trim();
     if (!text || isSending) return;
@@ -83,6 +90,9 @@
       });
       const json = await res.json();
       if (!json.ok) {
+        if (json.raw) {
+          console.error('AI error raw:', json.raw);
+        }
         appendMessage('Sorry, that did not work. Tap Send to try again.', 'bot');
       } else if (json.data) {
         const pretty = typeof json.data === 'object' ? JSON.stringify(json.data, null, 2) : String(json.data);
@@ -101,7 +111,10 @@
   function togglePanel() {
     isOpen = !isOpen;
     panel.classList.toggle('open', isOpen);
-    if (isOpen) textarea.focus();
+    if (isOpen) {
+      greetIfNeeded();
+      textarea.focus();
+    }
   }
 
   toggle.addEventListener('click', togglePanel);

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/env.php';
 
 /**
- * Unified AI completion client for hosted APIs and Ollama.
+ * Unified AI completion client for hosted APIs (OpenAI/Gemini) and Ollama.
  * Returns an array: ['ok' => bool, 'data' => array|null, 'error' => string|null, 'raw' => string|null]
  */
 function ai_complete(string $userMessage, array $context = []): array
@@ -14,11 +14,15 @@ function ai_complete(string $userMessage, array $context = []): array
 
     $provider = getenv('AI_PROVIDER') ?: 'api';
     $apiKey = getenv('AI_API_KEY') ?: '';
+    $geminiKey = getenv('GEMINI_API_KEY') ?: ($provider === 'gemini' ? $apiKey : '');
     $model = getenv('AI_MODEL') ?: 'gpt-4o-mini';
     $baseUrl = getenv('OLLAMA_BASE_URL') ?: 'http://localhost:11434';
     $systemPrompt = getenv('AI_SYSTEM_PROMPT') ?: 'You are a SoleSource support assistant. Answer only about SoleSource site usage, orders, shipping, returns, or products. If asked anything else, politely refuse.';
 
-    if ($provider !== 'ollama' && $apiKey === '') {
+    if ($provider === 'api' && $apiKey === '') {
+        return ['ok' => false, 'error' => 'missing_api_key', 'data' => null, 'raw' => null];
+    }
+    if ($provider === 'gemini' && $geminiKey === '') {
         return ['ok' => false, 'error' => 'missing_api_key', 'data' => null, 'raw' => null];
     }
 
@@ -41,6 +45,24 @@ function ai_complete(string $userMessage, array $context = []): array
             'model' => $model,
             'messages' => $messages,
             'stream' => false,
+        ];
+        $headers = ['Content-Type: application/json'];
+    } elseif ($provider === 'gemini') {
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent?key=' . urlencode($geminiKey);
+        $userText = $message . (!empty($context) ? "\nContext: " . json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : '');
+        $payload = [
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [ ['text' => $userText] ],
+                ],
+            ],
+            'systemInstruction' => [
+                'parts' => [ ['text' => $systemPrompt] ],
+            ],
+            'generationConfig' => [
+                'responseMimeType' => 'application/json',
+            ],
         ];
         $headers = ['Content-Type: application/json'];
     } else {
@@ -82,6 +104,8 @@ function ai_complete(string $userMessage, array $context = []): array
     $content = null;
     if ($provider === 'ollama') {
         $content = $res['message']['content'] ?? null;
+    } elseif ($provider === 'gemini') {
+        $content = $res['candidates'][0]['content']['parts'][0]['text'] ?? null;
     } else {
         $content = $res['choices'][0]['message']['content'] ?? null;
     }
