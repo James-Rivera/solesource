@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!g) return 'Men';
     const lower = g.toLowerCase();
     if (lower === 'women') return 'Women';
-    if (lower === 'both') return 'Both';
+    if (lower === 'both' || lower === 'unisex') return 'Both';
     return 'Men';
   };
 
@@ -36,11 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return resolved === 'Both' ? 'Men' : resolved;
   }
 
-  function toEuLabel(usLabel) {
+  function genderForBtn(btn) {
+    const btnGender = normalizeGender(btn?.dataset?.sizeGender || '');
+    if (btnGender === 'Both') {
+      return currentGender();
+    }
+    return btnGender || currentGender();
+  }
+
+  function toEuLabel(usLabel, genderHint) {
     if (!usLabel) return usLabel;
     const numeric = parseFloat((usLabel.match(/([0-9]+(?:\.[0-9]+)?)/)?.[1]) || '');
     if (Number.isNaN(numeric)) return usLabel;
-    const gender = currentGender();
+    const gender = normalizeGender(genderHint || currentGender());
     const offset = gender === 'Women' ? 31.5 : 33;
     const euVal = numeric + offset;
     const formatted = Number.isInteger(euVal) ? euVal.toFixed(0) : euVal.toFixed(1);
@@ -51,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sys = hiddenSystem?.value || 'US';
     sizeBtns.forEach(btn => {
       const base = btn.dataset.usLabel || btn.dataset.size || '';
-      const label = sys === 'EU' ? toEuLabel(base) : base;
+      const label = sys === 'EU' ? toEuLabel(base, genderForBtn(btn)) : base;
       const labelSpan = btn.querySelector('.size-text');
       if (labelSpan) {
         labelSpan.textContent = label;

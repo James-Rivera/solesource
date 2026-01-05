@@ -384,11 +384,19 @@ foreach ($price_ranges as $range) {
 
                 <!-- Product Grid -->
                 <div class="col-12 col-lg-9">
-                    <div class="row g-4">
-                        <?php foreach ($display_items as $shoe): ?>
-                            <?php include 'includes/product-card.php'; ?>
-                        <?php endforeach; ?>
-                    </div>
+                    <?php if (empty($display_items)): ?>
+                        <div class="card border-0 shadow-sm p-4 h-100 d-flex align-items-center justify-content-center text-center">
+                            <h5 class="fw-bold text-brand-black mb-2">No products found</h5>
+                            <p class="text-muted mb-3">Try adjusting filters or search to find a match.</p>
+                            <a href="shop.php" class="btn btn-dark">Clear filters</a>
+                        </div>
+                    <?php else: ?>
+                        <div class="row g-4">
+                            <?php foreach ($display_items as $shoe): ?>
+                                <?php include 'includes/product-card.php'; ?>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
             </div>

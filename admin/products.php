@@ -48,10 +48,22 @@ function generate_sku($brand, $name) {
 }
 
 function recalc_product_stock(mysqli $conn, int $productId): void {
+    // If stock_quantity column was removed, skip the update quietly
+    $colCheck = $conn->prepare("SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'products' AND column_name = 'stock_quantity' LIMIT 1");
+    $hasColumn = false;
+    if ($colCheck && $colCheck->execute()) {
+        $res = $colCheck->get_result();
+        $hasColumn = $res && $res->num_rows > 0;
+    }
+    if ($colCheck) { $colCheck->close(); }
+    if (!$hasColumn) { return; }
+
     $stmt = $conn->prepare("UPDATE products p SET stock_quantity = (SELECT COALESCE(SUM(stock_quantity),0) FROM product_sizes WHERE product_id = p.id AND is_active = 1) WHERE p.id = ?");
-	$stmt->bind_param('i', $productId);
-	$stmt->execute();
-	$stmt->close();
+    if ($stmt) {
+        $stmt->bind_param('i', $productId);
+        $stmt->execute();
+        $stmt->close();
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_product') {
@@ -166,12 +178,12 @@ if ($filter === 'lowstock') {
     }
 }
 
-$sqlProducts = "SELECT p.*, COALESCE(SUM(ps.stock_quantity), p.stock_quantity) AS stock_total
+$sqlProducts = "SELECT p.*, COALESCE(SUM(ps.stock_quantity), 0) AS stock_total
                 FROM products p
                 LEFT JOIN product_sizes ps ON ps.product_id = p.id AND ps.is_active = 1
                 GROUP BY p.id";
 if ($filter === 'lowstock') {
-    $sqlProducts .= " HAVING COALESCE(SUM(ps.stock_quantity), p.stock_quantity) < 3";
+    $sqlProducts .= " HAVING COALESCE(SUM(ps.stock_quantity), 0) < 3";
 }
 $sqlProducts .= " ORDER BY p.created_at DESC";
 $result = $conn->query($sqlProducts);
@@ -357,7 +369,7 @@ if ($result && $result->num_rows > 0) {
                             <?php echo htmlspecialchars($product['name']); ?>
                         </div>
                         <div class="stock-cell" data-label="Stock">
-                            <?php $stockVal = (int)($product['stock_total'] ?? $product['stock_quantity'] ?? 0); ?>
+                            <?php $stockVal = (int)($product['stock_total'] ?? 0); ?>
                             <?php if ($stockVal === 0): ?>
                                 <span class="stock-out">Out of Stock</span>
                             <?php elseif ($stockVal < 10): ?>

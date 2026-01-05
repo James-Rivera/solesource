@@ -2,6 +2,19 @@
 session_start();
 require_once 'includes/connect.php';
 
+$convert_size_label = static function ($row, $desiredSystem = 'US', $fallback = '') {
+  if (!$row) { return $fallback; }
+  $usLabel = $row['size_label'] ?? $fallback;
+  $gender = strtolower($row['gender'] ?? 'men');
+  if (strtolower($desiredSystem) !== 'eu') { return $usLabel; }
+  $numeric = (float) (preg_replace('/[^0-9.]/', '', $usLabel) ?: 0);
+  if ($numeric <= 0) { return $usLabel; }
+  $offset = ($gender === 'women') ? 31.5 : 33.0;
+  $eu = $numeric + $offset;
+  $formatted = floor($eu) == $eu ? number_format($eu, 0) : number_format($eu, 1);
+  return 'EU ' . $formatted;
+};
+
 // Handle quantity updates and removals submitted from the page
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $action = $_POST['action'] ?? '';
@@ -39,6 +52,7 @@ $cartItems = [];
 $grandTotal = 0;
 $cartProductIds = [];
 $userWishlistIds = [];
+$sizeRows = [];
 
 // Fetch wishlist ids for current user (for heart state)
 if (isset($_SESSION['user_id'])) {
@@ -57,6 +71,23 @@ if (!empty($sessionCart)) {
   $productIds = array_unique(array_map(fn($item) => (int) ($item['id'] ?? 0), $sessionCart));
   $productIds = array_filter($productIds, fn($id) => $id > 0);
   $productIds = array_values($productIds); // reindex for binding refs
+
+  $sizeIds = array_unique(array_filter(array_map(fn($item) => isset($item['size_id']) ? (int) $item['size_id'] : 0, $sessionCart)));
+
+  if ($sizeIds) {
+    $ph = implode(',', array_fill(0, count($sizeIds), '?'));
+    $typesSz = str_repeat('i', count($sizeIds));
+    $stmtSz = $conn->prepare("SELECT id, product_id, size_label, size_system, gender, stock_quantity FROM product_sizes WHERE id IN ($ph) AND is_active = 1");
+    $bindSz = [$typesSz];
+    foreach ($sizeIds as $idx => $sid) { $bindSz[] = &$sizeIds[$idx]; }
+    call_user_func_array([$stmtSz, 'bind_param'], $bindSz);
+    $stmtSz->execute();
+    $resSz = $stmtSz->get_result();
+    while ($row = $resSz->fetch_assoc()) {
+      $sizeRows[(int) $row['id']] = $row;
+    }
+    $stmtSz->close();
+  }
 
   if ($productIds) {
     $placeholders = implode(',', array_fill(0, count($productIds), '?'));
@@ -80,6 +111,8 @@ if (!empty($sessionCart)) {
     foreach ($sessionCart as $item) {
       $id = (int) ($item['id'] ?? 0);
       $size = $item['size'] ?? '';
+      $sizeId = isset($item['size_id']) ? (int) $item['size_id'] : null;
+      $sizeSystem = $item['size_system'] ?? 'US';
       if (!$id || !isset($products[$id])) {
         continue;
       }
@@ -90,12 +123,15 @@ if (!empty($sessionCart)) {
       $lineTotal = $unitPrice * $qty;
       $grandTotal += $lineTotal;
 
+      $sizeRow = $sizeId && isset($sizeRows[$sizeId]) ? $sizeRows[$sizeId] : null;
+      $displaySize = $sizeRow ? $convert_size_label($sizeRow, $sizeSystem, $size) : $size;
+
       $cartItems[] = [
         'id' => $id,
         'name' => $product['name'] ?? ($item['name'] ?? ''),
         'brand' => $product['brand'] ?? ($item['brand'] ?? ''),
-        'size' => $size,
-        'size_id' => $item['size_id'] ?? null,
+        'size' => $displaySize,
+        'size_id' => $sizeId,
         'price' => $unitPrice,
         'qty' => $qty,
         'image' => $product['image'] ?? ($item['image'] ?? ''),

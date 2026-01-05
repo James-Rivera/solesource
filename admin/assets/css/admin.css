@@ -322,7 +322,7 @@ body {
     background: #fff;
     border: 1px solid #e5e5e5;
     border-radius: 8px;
-    overflow: hidden; /* Ensures borders radius works */
+    overflow: visible; /* Allow dropdowns/menus to overflow without clipping */
 }
 
 /* Section Headers (e.g., Recent Orders) */

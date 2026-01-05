@@ -4,7 +4,13 @@ include 'includes/connect.php';
 include 'includes/products.php'; // still used for recommendations/search
 
 $normalizeGender = static function ($gender) {
-    return in_array($gender, ['Men', 'Women', 'Both'], true) ? $gender : 'Men';
+    if (in_array($gender, ['Men', 'Women', 'Both'], true)) {
+        return $gender;
+    }
+    if (strtolower((string) $gender) === 'unisex') {
+        return 'Both';
+    }
+    return 'Men';
 };
 
 // Securely fetch product by id from DB
@@ -33,7 +39,8 @@ $product['secondary_gender'] = $secondaryGender;
 $size_label = "SELECT US " . ($primaryGender === 'Women' ? "WOMEN'S" : "MEN'S") . " SIZE";
 
 // Gallery images (reuse main if no additional)
-$gallery_images = [$product['image'], $product['image'], $product['image']];
+$main_image = $product['image'] ?: 'assets/svg/logo-big-white.svg';
+$gallery_images = [$main_image, $main_image, $main_image];
 
 // Recommended items (shuffle and take 4 excluding current)
 $recommended = array_values(array_filter($all_products, function($p) use ($requested_id) {
@@ -97,6 +104,10 @@ if ($initial) {
     $selectedSystem = $initial['size_system'];
     $selectedGender = $initial['gender'] === 'Both' ? $primaryGender : $initial['gender'];
 }
+
+$hasStock = array_reduce($sizeOptions, static function ($carry, $opt) {
+    return $carry || ((int)($opt['stock_quantity'] ?? 0) > 0 && (int)($opt['is_active'] ?? 0) === 1);
+}, false);
 
 // Build unique lists for system and gender toggles
 $availableSystems = ['US','EU'];
@@ -186,7 +197,7 @@ $breadcrumb_active = $product['name'];
                 <div class="col-lg-7">
                     <div class="product-gallery position-relative mb-3">
                         <div class="product-gallery-main bg-white">
-                            <img id="productMainImage" src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-gallery-img">
+                            <img id="productMainImage" src="<?php echo htmlspecialchars($main_image); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-gallery-img">
                         </div>
                         <button class="product-gallery-nav prev" type="button"><i class="bi bi-chevron-left"></i></button>
                         <button class="product-gallery-nav next" type="button"><i class="bi bi-chevron-right"></i></button>
@@ -260,8 +271,9 @@ $breadcrumb_active = $product['name'];
                         data-product-name="<?php echo htmlspecialchars($product['name']); ?>"
                         data-product-brand="<?php echo htmlspecialchars($product['brand']); ?>"
                         data-product-price="<?php echo htmlspecialchars($product['price']); ?>"
-                        data-product-image="<?php echo htmlspecialchars($product['image']); ?>"
-                    >Add to Cart</button>
+                        data-product-image="<?php echo htmlspecialchars($main_image); ?>"
+                        <?php echo $hasStock ? '' : 'disabled aria-disabled="true"'; ?>
+                    ><?php echo $hasStock ? 'Add to Cart' : 'Out of Stock'; ?></button>
 
                     <div class="mb-3 size-label text-uppercase fw-bold small">About This Product</div>
 

@@ -185,35 +185,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'delete_size') {
         $deleteId = (int) ($_POST['delete_size_id'] ?? 0);
         if ($deleteId > 0) {
-            $stmtDel = $conn->prepare("DELETE FROM product_sizes WHERE id = ? AND product_id = ?");
-            if (!$stmtDel) {
-                $error_message = $conn->error;
-                add_debug($debug_logs, 'Prepare failed (delete_size): ' . $conn->error);
+            $stmtSoft = $conn->prepare("UPDATE product_sizes SET is_active = 0, stock_quantity = 0 WHERE id = ? AND product_id = ?");
+            if (!$stmtSoft) {
+                $error_message = $conn->error ?: 'Failed to deactivate size.';
+                add_debug($debug_logs, 'Prepare failed (delete_size soft): ' . ($conn->error ?: ''));
             } else {
-                $stmtDel->bind_param('ii', $deleteId, $productId);
-                $ok = $stmtDel->execute();
-                $err = $stmtDel->error ?: $conn->error;
-                $stmtDel->close();
-                if ($ok) {
-                    $success_message = 'Size deleted.';
+                $stmtSoft->bind_param('ii', $deleteId, $productId);
+                if ($stmtSoft->execute()) {
+                    $success_message = 'Size deactivated (soft delete).';
+                    $error_message = '';
                 } else {
-                    $stmtSoft = $conn->prepare("UPDATE product_sizes SET is_active = 0 WHERE id = ? AND product_id = ?");
-                    if (!$stmtSoft) {
-                        $error_message = $err ?: $conn->error ?: 'Failed to delete/deactivate size.';
-                        add_debug($debug_logs, 'Prepare failed (soft delete): ' . ($conn->error ?: ''));
-                    } else {
-                        $stmtSoft->bind_param('ii', $deleteId, $productId);
-                        if ($stmtSoft->execute()) {
-                            $success_message = 'Size deactivated (linked to orders).';
-                            $error_message = '';
-                        } else {
-                            $error_message = $stmtSoft->error ?: $err ?: $conn->error ?: 'Failed to delete/deactivate size.';
-                            $success_message = '';
-                            add_debug($debug_logs, 'Soft delete failed id ' . $deleteId . ': ' . $error_message);
-                        }
-                        $stmtSoft->close();
-                    }
+                    $error_message = $stmtSoft->error ?: $conn->error ?: 'Failed to deactivate size.';
+                    $success_message = '';
+                    add_debug($debug_logs, 'Soft delete failed id ' . $deleteId . ': ' . $error_message);
                 }
+                $stmtSoft->close();
             }
         } else {
             $error_message = 'Invalid size selected for deletion.';
