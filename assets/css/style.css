@@ -583,11 +583,12 @@ s
   color: white !important;
   padding: 10px 20px;
   outline: none;
+  text-align: left !important;
 }
 
 .search-pill::placeholder {
   color: #888;
-  text-align: right;
+  text-align: left;
 }
 
 .search-pill:focus {
