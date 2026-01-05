@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'includes/connect.php';
+require_once 'includes/mailer.php';
 
 $convert_size_label = static function ($row, $desiredSystem = 'US', $fallback = '') {
     if (!$row) { return $fallback; }
@@ -237,6 +238,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtItem->close();
 
             $conn->commit();
+
+            $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+            $orderViewUrl = $baseUrl . '/view_order.php?order_id=' . urlencode($orderId);
+
+            $itemsHtml = '';
+            foreach ($cartItems as $ci) {
+                $lineTotal = number_format($ci['line_total'] ?? 0, 2);
+                $itemsHtml .= '<tr><td style="padding:6px 8px;">' .
+                    htmlspecialchars($ci['name']) . ' (Size ' . htmlspecialchars($ci['size']) . ', Qty ' . (int) $ci['qty'] . ')</td>' .
+                    '<td style="padding:6px 8px; text-align:right;">₱' . $lineTotal . '</td></tr>';
+            }
+
+            $emailSubject = 'Your SoleSource Receipt #' . $orderNumber;
+            $emailBody = '
+                <div style="font-family:Arial,sans-serif; color:#111; line-height:1.5;">
+                    <h2 style="margin:0 0 12px 0;">Thanks for your order, ' . htmlspecialchars($fullName) . '!</h2>
+                    <p style="margin:0 0 8px 0;">Order Number: <strong>' . htmlspecialchars($orderNumber) . '</strong></p>
+                    <p style="margin:0 0 8px 0;">Total: <strong>₱' . number_format($totalAmount, 2) . '</strong></p>
+                    <p style="margin:0 0 12px 0;">Shipping to:<br>' . nl2br(htmlspecialchars($shippingAddress)) . '</p>
+                    <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse; margin:12px 0; font-size:14px;">
+                        <thead>
+                            <tr style="background:#f6f6f6;">
+                                <th style="padding:8px; text-align:left;">Item</th>
+                                <th style="padding:8px; text-align:right;">Line Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>' . $itemsHtml . '</tbody>
+                    </table>
+                    <p style="margin:12px 0;">
+                        <a href="' . htmlspecialchars($orderViewUrl) . '" style="color:#e35926; font-weight:700;">View your order</a>
+                    </p>
+                    <p style="margin:0;">If you have questions, reply to this email.</p>
+                </div>
+            ';
+            $emailAlt = 'Thanks for your order ' . $fullName . "\n" . 'Order: ' . $orderNumber . "\n" . 'Total: ₱' . number_format($totalAmount, 2) . "\nView: " . $orderViewUrl;
+
+            $sendResult = sendEmail($email, $emailSubject, $emailBody, $emailAlt);
+            if ($sendResult !== true) {
+                error_log('Receipt email failed for order ' . $orderId . ': ' . $sendResult);
+            }
+
             unset($_SESSION['cart']);
             header('Location: confirmation.php?order_id=' . urlencode($orderId));
             exit;
