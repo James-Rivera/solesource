@@ -239,40 +239,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $conn->commit();
 
-            $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
-            $orderViewUrl = $baseUrl . '/view_order.php?order_id=' . urlencode($orderId);
+                        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+                        $logoUrl = $baseUrl . '/assets/svg/logo-black.svg';
+                        $orderViewUrl = $baseUrl . '/view_order.php?id=' . urlencode($orderId);
 
-            $itemsHtml = '';
-            foreach ($cartItems as $ci) {
-                $lineTotal = number_format($ci['line_total'] ?? 0, 2);
-                $itemsHtml .= '<tr><td style="padding:6px 8px;">' .
-                    htmlspecialchars($ci['name']) . ' (Size ' . htmlspecialchars($ci['size']) . ', Qty ' . (int) $ci['qty'] . ')</td>' .
-                    '<td style="padding:6px 8px; text-align:right;">₱' . $lineTotal . '</td></tr>';
-            }
+                        $itemsHtml = '';
+                        foreach ($cartItems as $ci) {
+                                $lineTotal = number_format($ci['line_total'] ?? 0, 2);
+                                $itemsHtml .= '<tr>
+                                        <td style="padding:10px 0; font-weight:600; color:#111;">' . htmlspecialchars($ci['name']) . '</td>
+                                        <td style="padding:10px 0; text-align:right; color:#111;">₱' . $lineTotal . '</td>
+                                </tr>
+                                <tr>
+                                        <td style="padding:0 0 12px 0; color:#555; font-size:13px;">Size ' . htmlspecialchars($ci['size']) . ' · Qty ' . (int) $ci['qty'] . '</td>
+                                        <td></td>
+                                </tr>';
+                        }
 
-            $emailSubject = 'Your SoleSource Receipt #' . $orderNumber;
-            $emailBody = '
-                <div style="font-family:Arial,sans-serif; color:#111; line-height:1.5;">
-                    <h2 style="margin:0 0 12px 0;">Thanks for your order, ' . htmlspecialchars($fullName) . '!</h2>
-                    <p style="margin:0 0 8px 0;">Order Number: <strong>' . htmlspecialchars($orderNumber) . '</strong></p>
-                    <p style="margin:0 0 8px 0;">Total: <strong>₱' . number_format($totalAmount, 2) . '</strong></p>
-                    <p style="margin:0 0 12px 0;">Shipping to:<br>' . nl2br(htmlspecialchars($shippingAddress)) . '</p>
-                    <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse; margin:12px 0; font-size:14px;">
-                        <thead>
-                            <tr style="background:#f6f6f6;">
-                                <th style="padding:8px; text-align:left;">Item</th>
-                                <th style="padding:8px; text-align:right;">Line Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>' . $itemsHtml . '</tbody>
-                    </table>
-                    <p style="margin:12px 0;">
-                        <a href="' . htmlspecialchars($orderViewUrl) . '" style="color:#e35926; font-weight:700;">View your order</a>
-                    </p>
-                    <p style="margin:0;">If you have questions, reply to this email.</p>
+                        $emailSubject = 'Your SoleSource Receipt #' . $orderNumber;
+                        $emailBody = '
+        <div style="background:#f7f7f7; padding:24px 0; font-family:Arial,sans-serif; color:#111; line-height:1.5;">
+            <div style="max-width:640px; margin:0 auto; background:#fff; padding:28px; font-family:Arial,sans-serif; color:#111; line-height:1.5;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                    <div style="font-size:22px; font-weight:800; letter-spacing:0.4px; color:#111;">
+                        <img src="' . htmlspecialchars($logoUrl) . '" alt="SoleSource" height="26" style="vertical-align:middle;"> 
+                    </div>
+                    <div style="font-size:13px; color:#555;">Order #' . htmlspecialchars($orderNumber) . '</div>
                 </div>
-            ';
-            $emailAlt = 'Thanks for your order ' . $fullName . "\n" . 'Order: ' . $orderNumber . "\n" . 'Total: ₱' . number_format($totalAmount, 2) . "\nView: " . $orderViewUrl;
+
+                <p style="margin:0 0 14px 0; font-size:16px; font-weight:600;">Thanks for your order, ' . htmlspecialchars($fullName) . '.</p>
+                <p style="margin:0 0 18px 0; color:#555;">We&apos;re getting your items ready. You can view your order anytime.</p>
+
+                <a href="' . htmlspecialchars($orderViewUrl) . '" style="display:inline-block; background:#e35926; color:#fff; padding:12px 18px; text-decoration:none; font-weight:700; border-radius:4px; margin-bottom:18px;">View your order</a>
+
+                <div style="border-top:1px solid #e6e6e6; padding-top:16px; margin-top:6px;">
+                    <div style="display:flex; justify-content:space-between; font-weight:700; margin-bottom:10px;">
+                        <span>Order Summary</span>
+                        <span>₱' . number_format($totalAmount, 2) . '</span>
+                    </div>
+                    <table width="100%" style="border-collapse:collapse;">' . $itemsHtml . '</table>
+                </div>
+
+                <div style="border-top:1px solid #e6e6e6; padding-top:14px; margin-top:16px; color:#555; font-size:13px;">
+                    <div style="font-weight:700; color:#111; margin-bottom:6px;">Shipping to</div>
+                    <div>' . nl2br(htmlspecialchars($shippingAddress)) . '</div>
+                </div>
+
+                <p style="margin:16px 0 0 0; color:#777; font-size:12px;">If you have questions, reply to this email.</p>
+            </div>
+        </div>';
+
+                        $emailAlt = 'Thanks for your order ' . $fullName . "\n" . 'Order: ' . $orderNumber . "\n" . 'Total: ₱' . number_format($totalAmount, 2) . "\nPayment: " . $paymentMethod . "\nShip to: " . $shippingAddress . "\nView: " . $orderViewUrl;
 
             $sendResult = sendEmail($email, $emailSubject, $emailBody, $emailAlt);
             if ($sendResult !== true) {

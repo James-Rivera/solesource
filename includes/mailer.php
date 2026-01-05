@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/env.php';
 require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/PHPMailer.php';
 require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/SMTP.php';
 require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/Exception.php';
