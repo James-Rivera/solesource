@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once 'includes/connect.php';
+require_once 'includes/mailer.php';
+require_once 'includes/receipt_email.php';
 
 $paypalClientId = getenv('PAYPAL_CLIENT_ID');
 
@@ -243,6 +245,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtItem->close();
 
             $conn->commit();
+
+            $emailData = build_receipt_email([
+                'orderId' => $orderId,
+                'orderNumber' => $orderNumber,
+                'fullName' => $fullName,
+                'paymentMethod' => $paymentMethod,
+                'shippingAddress' => $shippingAddress,
+                'cartItems' => $cartItems,
+                'totalAmount' => $totalAmount,
+            ]);
+
+            $sendResult = sendEmail(
+                $email,
+                $emailData['subject'],
+                $emailData['html'],
+                $emailData['alt'],
+                $emailData['embedded']
+            );
+            if ($sendResult !== true) {
+                error_log('Receipt email failed for order ' . $orderId . ': ' . $sendResult);
+            }
+
             unset($_SESSION['cart']);
             header('Location: confirmation.php?order_id=' . urlencode($orderId));
             exit;

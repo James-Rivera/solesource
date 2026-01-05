@@ -477,6 +477,8 @@ CREATE TABLE `users` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+  ALTER TABLE users ADD COLUMN phone VARCHAR(50) NOT NULL AFTER email; -- added phone column
+
 --
 -- Dumping data for table `users`
 --

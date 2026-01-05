@@ -1,0 +1,27 @@
+{
+  "brand": "Jordan",
+  "products": [
+    {"id":"JD-001","name":"Air Jordan 1 Low","category":"Basketball Shoes","gender":"Men","price":7995,"sizes":[7,8,9,10,11,12],"stock":30},
+    {"id":"JD-001W","name":"Air Jordan 1 Low WMNS","category":"Basketball Shoes","gender":"Women","price":7995,"sizes":[5,6,7,8,9,10],"stock":15},
+    {"id":"JD-002","name":"Air Jordan 1 Mid","category":"Basketball Shoes","gender":"Men","price":8495,"sizes":[7,8,9,10,11,12],"stock":28},
+    {"id":"JD-002W","name":"Air Jordan 1 Mid WMNS","category":"Basketball Shoes","gender":"Women","price":8495,"sizes":[5,6,7,8,9,10],"stock":14},
+    {"id":"JD-003","name":"Air Jordan 1 High","category":"Basketball Shoes","gender":"Men","price":8995,"sizes":[7,8,9,10,11,12],"stock":25},
+    {"id":"JD-003W","name":"Air Jordan 1 High WMNS","category":"Basketball Shoes","gender":"Women","price":8995,"sizes":[5,6,7,8,9,10],"stock":12},
+    {"id":"JD-004","name":"Air Jordan 3","category":"Basketball Shoes","gender":"Men","price":10995,"sizes":[7,8,9,10,11,12],"stock":20},
+    {"id":"JD-004U","name":"Air Jordan 3 Unisex","category":"Basketball Shoes","gender":"Unisex","price":10995,"sizes":[5,6,7,8,9,10,11,12],"stock":10},
+    {"id":"JD-005","name":"Air Jordan 4","category":"Basketball Shoes","gender":"Men","price":10995,"sizes":[7,8,9,10,11,12],"stock":20},
+    {"id":"JD-005U","name":"Air Jordan 4 Unisex","category":"Basketball Shoes","gender":"Unisex","price":10995,"sizes":[5,6,7,8,9,10,11,12],"stock":10},
+    {"id":"JD-006","name":"Air Jordan 5","category":"Basketball Shoes","gender":"Men","price":11495,"sizes":[7,8,9,10,11,12],"stock":18},
+    {"id":"JD-006U","name":"Air Jordan 5 Unisex","category":"Basketball Shoes","gender":"Unisex","price":11495,"sizes":[5,6,7,8,9,10,11,12],"stock":8},
+    {"id":"JD-007","name":"Air Jordan 6","category":"Basketball Shoes","gender":"Men","price":11495,"sizes":[7,8,9,10,11,12],"stock":16},
+    {"id":"JD-008","name":"Air Jordan 11","category":"Basketball Shoes","gender":"Men","price":12995,"sizes":[7,8,9,10,11,12],"stock":14},
+    {"id":"JD-008U","name":"Air Jordan 11 Unisex","category":"Basketball Shoes","gender":"Unisex","price":12995,"sizes":[5,6,7,8,9,10,11,12],"stock":6},
+    {"id":"JD-009","name":"Air Jordan 12","category":"Basketball Shoes","gender":"Men","price":12495,"sizes":[7,8,9,10,11,12],"stock":15},
+    {"id":"JD-010","name":"Air Jordan 13","category":"Basketball Shoes","gender":"Men","price":11995,"sizes":[7,8,9,10,11,12],"stock":14},
+    {"id":"JD-011","name":"Jordan Luka 1","category":"Basketball Shoes","gender":"Men","price":9495,"sizes":[7,8,9,10,11,12],"stock":22},
+    {"id":"JD-012","name":"Jordan Luka 2","category":"Basketball Shoes","gender":"Men","price":9995,"sizes":[7,8,9,10,11,12],"stock":20},
+    {"id":"JD-013","name":"Jordan Tatum 1","category":"Basketball Shoes","gender":"Men","price":8995,"sizes":[7,8,9,10,11,12],"stock":24},
+    {"id":"JD-014","name":"Jordan Tatum 2","category":"Basketball Shoes","gender":"Men","price":9495,"sizes":[7,8,9,10,11,12],"stock":22},
+    {"id":"JD-015","name":"Jordan Why Not Zer0.6","category":"Basketball Shoes","gender":"Men","price":9495,"sizes":[7,8,9,10,11,12],"stock":18}
+  ]
+}

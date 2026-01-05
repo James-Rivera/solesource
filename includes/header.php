@@ -58,7 +58,7 @@ if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 			<div class="collapse navbar-collapse" id="topNav">
 				<div class="d-lg-flex align-items-center w-100 gap-3 gap-lg-4">
 					<div class="search-container position-relative flex-grow-1 my-3 my-lg-0 order-lg-2">
-						<input id="globalSearchInput" class="form-control search-pill text-end" type="search" placeholder="Search" aria-label="Search">
+						<input id="globalSearchInput" class="form-control search-pill" type="search" placeholder="Search" aria-label="Search">
 						<div id="globalSearchResults" class="global-search-dropdown d-none"></div>
 					</div>
 

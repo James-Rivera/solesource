@@ -8,6 +8,50 @@ html,body {
   font-family: var(--brand-font);
 }
 
+/* GLOBAL LOADER */
+.global-loader-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 200ms ease;
+}
+.global-loader-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+.global-loader-content {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.global-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 6px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--brand-orange);
+  animation: spin 1s linear infinite;
+}
+.global-loader-logo {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  z-index: 1;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .text-brand-black {
   color: var(--brand-black) !important;
 }
@@ -539,11 +583,12 @@ s
   color: white !important;
   padding: 10px 20px;
   outline: none;
+  text-align: left !important;
 }
 
 .search-pill::placeholder {
   color: #888;
-  text-align: right;
+  text-align: left;
 }
 
 .search-pill:focus {
