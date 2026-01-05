@@ -44,6 +44,10 @@ $composedAddress = implode("\n", array_filter([
     $postalCountry,
 ]));
 $shippingAddress = $composedAddress ?: ($order['shipping_address'] ?? '');
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+$assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,7 +93,7 @@ $shippingAddress = $composedAddress ?: ($order['shipping_address'] ?? '');
 
                         <div class="confirmation-body text-center mt-3">
                             <div class="brand-mark">
-                                <img src="assets/img/logo-big.png" alt="SoleSource Logo" class="brand-logo"/>
+                                <img src="<?php echo htmlspecialchars($assetBase . 'assets/img/logo-big.png'); ?>" alt="SoleSource Logo" class="brand-logo"/>
                             </div>
                             <h1 class="hero-title">IT'S YOURS</h1>
                             <div class="hero-subcontainer">
@@ -116,7 +120,13 @@ $shippingAddress = $composedAddress ?: ($order['shipping_address'] ?? '');
                                     <?php foreach ($orderItems as $item): ?>
                                         <div class="d-flex flex-column flex-md-row align-items-start gap-4 mb-4 pb-4 border-bottom">
                                             <div class="flex-shrink-0 text-center" style="width: 220px; max-width: 100%;">
-                                                <img src="<?php echo htmlspecialchars($item['image'] ?: 'assets/img/products/new/jordan-11-legend-blue.png'); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 100%; height: auto; object-fit: contain;">
+                                                <?php
+                                                    $itemImagePath = $item['image'] ?: 'assets/img/products/new/jordan-11-legend-blue.png';
+                                                    if (!preg_match('/^https?:\/\//i', $itemImagePath)) {
+                                                        $itemImagePath = $assetBase . ltrim($itemImagePath, '/');
+                                                    }
+                                                ?>
+                                                <img src="<?php echo htmlspecialchars($itemImagePath); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 100%; height: auto; object-fit: contain;">
                                             </div>
                                             <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
                                                 <div>
