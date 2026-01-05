@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'includes/connect.php';
+require_once 'includes/sms-config.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php?redirect=profile');
@@ -8,6 +9,9 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = (int) $_SESSION['user_id'];
+
+// Initialize SMS schema
+ensureSMSSchema($conn);
 
 // Track active tab (default profile; switch to settings on post)
 $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
@@ -44,6 +48,13 @@ $personal_success = '';
 $personal_error = '';
 $security_success = '';
 $security_error = '';
+$sms_success = '';
+$sms_error = '';
+$sms_notice = '';
+
+// Initialize variables
+$pending_otp = null;
+$sms_config = null;
 
 // Handle personal info update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_personal') {
@@ -99,7 +110,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     }
 }
 
-// Wishlist from DB
+// Handle SMS OTP Request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'request_sms_otp') {
+    $activeTab = 'settings';
+    $phone_number = trim($_POST['phone_number'] ?? '');
+    $digits = preg_replace('/\D+/', '', $phone_number);
+
+    if ($digits === '') {
+        $sms_error = 'Phone number is required.';
+    } elseif (strlen($digits) < 10 || strlen($digits) > 15) {
+        $sms_error = 'Enter a valid phone number (10-15 digits).';
+    } else {
+        // Mark old pending OTPs as expired
+        $expire_stmt = $conn->prepare("UPDATE otp_verifications SET status = 'expired' WHERE user_id = ? AND status = 'pending'");
+        $expire_stmt->bind_param('i', $userId);
+        $expire_stmt->execute();
+        $expire_stmt->close();
+
+        // Generate OTP
+        $otp_code = generateOTP();
+        $expires_at = date('Y-m-d H:i:s', time() + (OTP_VALIDITY_MINUTES * 60));
+
+        // Insert OTP record
+        $insert_otp = $conn->prepare("INSERT INTO otp_verifications (user_id, phone_number, otp_code, status, expires_at) VALUES (?, ?, ?, 'pending', ?)");
+        $insert_otp->bind_param('isss', $userId, $digits, $otp_code, $expires_at);
+
+        if ($insert_otp->execute()) {
+            // Insert/Update SMS config
+            $upsert_config = $conn->prepare("INSERT INTO sms_config (user_id, phone_number, is_verified) VALUES (?, ?, 0) ON DUPLICATE KEY UPDATE phone_number = ?");
+            $upsert_config->bind_param('iss', $userId, $digits, $digits);
+            $upsert_config->execute();
+            $upsert_config->close();
+
+            // Attempt to send OTP via configured SMS gateway
+            $message = "Your SoleSource verification code is: $otp_code. Valid for " . OTP_VALIDITY_MINUTES . " minutes.";
+            $sent = sendSms($digits, $message);
+
+            // Log SMS attempt
+            $log_stmt = $conn->prepare("INSERT INTO sms_logs (user_id, phone_number, message_type, direction, message_body, status) VALUES (?, ?, 'otp', 'outbound', ?, ?)");
+            $status = $sent ? 'sent' : 'failed';
+            $log_stmt->bind_param('isss', $userId, $digits, $message, $status);
+            $log_stmt->execute();
+            $log_stmt->close();
+
+            $sms_success = 'OTP sent successfully.';
+            $sms_notice = "Code: $otp_code (Dev mode - expires at " . date('h:i A', strtotime($expires_at)) . ")";
+            
+            // Set pending OTP for immediate form display
+            $pending_otp = [
+                'otp_code' => $otp_code,
+                'expires_at' => $expires_at,
+                'attempts' => 0
+            ];
+        } else {
+            $sms_error = 'Failed to generate OTP. Try again. Error: ' . $conn->error;
+        }
+
+        $insert_otp->close();
+    }
+}
+
+// Handle SMS OTP Verification
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'verify_sms_otp') {
+    $activeTab = 'settings';
+    $otp_input = trim($_POST['otp_code'] ?? '');
+    $otp_input = preg_replace('/\D+/', '', $otp_input);
+
+    if ($otp_input === '' || strlen($otp_input) !== OTP_LENGTH) {
+        $sms_error = 'Enter a valid ' . OTP_LENGTH . '-digit code.';
+    } else {
+        // Find pending OTP
+        $find_otp = $conn->prepare("SELECT id, otp_code, attempts, expires_at FROM otp_verifications WHERE user_id = ? AND status = 'pending' ORDER BY created_at DESC LIMIT 1");
+        $find_otp->bind_param('i', $userId);
+        $find_otp->execute();
+        $otp_result = $find_otp->get_result();
+
+        if ($otp_result && $otp_result->num_rows > 0) {
+            $otp_record = $otp_result->fetch_assoc();
+
+            // Check expiration
+            if (strtotime($otp_record['expires_at']) <= time()) {
+                $sms_error = 'OTP has expired. Request a new code.';
+                $update_expired = $conn->prepare("UPDATE otp_verifications SET status = 'expired' WHERE id = ?");
+                $update_expired->bind_param('i', $otp_record['id']);
+                $update_expired->execute();
+                $update_expired->close();
+            } elseif ($otp_record['attempts'] >= MAX_OTP_ATTEMPTS) {
+                $sms_error = 'Too many failed attempts. Request a new code.';
+            } elseif ($otp_input === $otp_record['otp_code']) {
+                // OTP matches - mark as verified
+                $verify_otp = $conn->prepare("UPDATE otp_verifications SET status = 'verified', verified_at = NOW() WHERE id = ?");
+                $verify_otp->bind_param('i', $otp_record['id']);
+                $verify_otp->execute();
+                $verify_otp->close();
+
+                // Get phone number and mark config as verified
+                $get_phone = $conn->prepare("SELECT phone_number FROM otp_verifications WHERE id = ?");
+                $get_phone->bind_param('i', $otp_record['id']);
+                $get_phone->execute();
+                $phone_result = $get_phone->get_result();
+                if ($phone_result && $phone_result->num_rows > 0) {
+                    $phone_row = $phone_result->fetch_assoc();
+                    $verify_config = $conn->prepare("UPDATE sms_config SET is_verified = 1, verified_at = NOW() WHERE user_id = ? AND phone_number = ?");
+                    $verify_config->bind_param('is', $userId, $phone_row['phone_number']);
+                    $verify_config->execute();
+                    $verify_config->close();
+                }
+                $get_phone->close();
+
+                $sms_success = 'Phone number verified successfully!';
+            } else {
+                // Increment attempts
+                $attempts = $otp_record['attempts'] + 1;
+                $update_attempts = $conn->prepare("UPDATE otp_verifications SET attempts = ? WHERE id = ?");
+                $update_attempts->bind_param('ii', $attempts, $otp_record['id']);
+                $update_attempts->execute();
+                $update_attempts->close();
+
+                $remaining = MAX_OTP_ATTEMPTS - $attempts;
+                $sms_error = "Invalid code. $remaining attempt(s) remaining.";
+            }
+        } else {
+            $sms_error = 'No active OTP request found. Request a new code.';
+        }
+
+        $find_otp->close();
+    }
+}
+
+// Get current SMS config status
+$sms_status_stmt = $conn->prepare("SELECT phone_number, is_verified, verified_at FROM sms_config WHERE user_id = ? ORDER BY created_at DESC LIMIT 1");
+$sms_status_stmt->bind_param('i', $userId);
+$sms_status_stmt->execute();
+$sms_config_result = $sms_status_stmt->get_result();
+if ($sms_config_result && $sms_config_result->num_rows > 0) {
+    $sms_config = $sms_config_result->fetch_assoc();
+}
+$sms_status_stmt->close();
+
+// Get pending OTP if exists (only if not already set by POST handler)
+if (!$pending_otp) {
+    $pending_otp_stmt = $conn->prepare("SELECT otp_code, attempts, expires_at FROM otp_verifications WHERE user_id = ? AND status = 'pending' AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1");
+    $pending_otp_stmt->bind_param('i', $userId);
+    $pending_otp_stmt->execute();
+    $pending_otp_result = $pending_otp_stmt->get_result();
+    if ($pending_otp_result && $pending_otp_result->num_rows > 0) {
+        $pending_otp = $pending_otp_result->fetch_assoc();
+        $sms_notice = "Active OTP Code (Dev): " . htmlspecialchars($pending_otp['otp_code']) . " (Expires: " . date('h:i A', strtotime($pending_otp['expires_at'])) . ")";
+    }
+    $pending_otp_stmt->close();
+}
+
 $wishlist_products = [];
 $wlStmt = $conn->prepare("SELECT p.id AS product_id, p.name, p.brand, p.image, p.price FROM user_wishlist uw JOIN products p ON p.id = uw.product_id WHERE uw.user_id = ? ORDER BY uw.created_at DESC");
 $wlStmt->bind_param('i', $userId);
@@ -413,6 +574,60 @@ $addrStmt->close();
                                     <div class="settings-section">
                                         <h3 class="settings-section-title">Manage Account</h3>
                                         <button type="button" class="btn btn-delete-account" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">Delete Account</button>
+                                    </div>
+
+                                    <!-- SMS Verification -->
+                                    <div class="settings-section">
+                                        <?php if ($sms_success): ?>
+                                            <div class="alert alert-success py-2 px-3" role="alert"><?php echo htmlspecialchars($sms_success); ?></div>
+                                        <?php elseif ($sms_error): ?>
+                                            <div class="alert alert-danger py-2 px-3" role="alert"><?php echo htmlspecialchars($sms_error); ?></div>
+                                        <?php endif; ?>
+                                        <?php if ($sms_notice): ?>
+                                            <div class="alert alert-info py-2 px-3" role="alert"><?php echo $sms_notice; ?></div>
+                                        <?php endif; ?>
+
+                                        <h3 class="settings-section-title">PHONE VERIFICATION</h3>
+                                        <div class="settings-detail-item">
+                                            <div class="settings-detail-label">PHONE NUMBER</div>
+                                            <div class="settings-detail-value"><?php echo $sms_config ? htmlspecialchars($sms_config['phone_number']) : '—'; ?></div>
+                                        </div>
+                                        <div class="settings-detail-item">
+                                            <div class="settings-detail-label">STATUS</div>
+                                            <div class="settings-detail-value">
+                                                <?php if ($sms_config && $sms_config['is_verified']): ?>
+                                                    <span class="badge bg-success">Verified</span>
+                                                    <span class="text-muted small ms-2"><?php echo date('M d, Y h:i A', strtotime($sms_config['verified_at'])); ?></span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-secondary">Not Verified</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+
+                                        <form method="POST" class="row g-2 mt-3 align-items-end">
+                                            <input type="hidden" name="action" value="request_sms_otp">
+                                            <div class="col-md-6 col-lg-5">
+                                                <label class="form-label text-muted small fw-bold text-uppercase mb-1">Phone Number</label>
+                                                <input type="text" name="phone_number" class="form-control" placeholder="09XXXXXXXXX" value="<?php echo $pending_otp || $sms_config ? htmlspecialchars($sms_config['phone_number'] ?? '') : ''; ?>" <?php echo $pending_otp ? 'disabled' : ''; ?>>
+                                            </div>
+                                            <div class="col-md-6 col-lg-3">
+                                                <button class="btn btn-dark w-100" type="submit" <?php echo $pending_otp ? 'disabled' : ''; ?>>Request OTP</button>
+                                            </div>
+                                        </form>
+
+                                        <?php if ($pending_otp): ?>
+                                            <form method="POST" class="row g-2 mt-3 align-items-end">
+                                                <input type="hidden" name="action" value="verify_sms_otp">
+                                                <div class="col-md-6 col-lg-4">
+                                                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Verification Code</label>
+                                                    <input type="text" name="otp_code" class="form-control" placeholder="<?php echo OTP_LENGTH; ?>-digit code" maxlength="<?php echo OTP_LENGTH; ?>" inputmode="numeric">
+                                                </div>
+                                                <div class="col-md-6 col-lg-3">
+                                                    <button class="btn btn-outline-dark w-100" type="submit">Verify Code</button>
+                                                </div>
+                                                <div class="col-12 small text-muted">Waiting for SMS from Android device...</div>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
 
