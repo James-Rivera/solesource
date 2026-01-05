@@ -57,9 +57,12 @@ function sendEmail(string $to, string $subject, string $htmlBody, string $altBod
 
         // Attach inline images when provided
         foreach ($embedded as $embed) {
-            if (!empty($embed['path']) && !empty($embed['cid']) && is_readable($embed['path'])) {
-                $mail->addEmbeddedImage($embed['path'], $embed['cid']);
+            if (empty($embed['path']) || empty($embed['cid']) || !is_readable($embed['path'])) {
+                continue;
             }
+            $name = $embed['name'] ?? basename($embed['path']);
+            $type = $embed['type'] ?? (@mime_content_type($embed['path']) ?: 'application/octet-stream');
+            $mail->addEmbeddedImage($embed['path'], $embed['cid'], $name, 'base64', $type);
         }
 
         $mail->isHTML(true);

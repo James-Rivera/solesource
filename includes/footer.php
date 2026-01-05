@@ -1,3 +1,10 @@
+<div id="globalLoader" class="global-loader-backdrop" aria-hidden="true">
+    <div class="global-loader-content">
+        <div class="global-loader-ring"></div>
+        <img src="assets/img/svg/white-logo.svg" alt="Loading" class="global-loader-logo">
+    </div>
+</div>
+
 <footer class="bg-brand-black text-white py-5">
     <div class="container-xxl">
         <div class="row gy-4">
@@ -84,3 +91,35 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/main.js"></script>
 <script src="assets/js/cart.js"></script>
+<script>
+(function() {
+    const loader = document.getElementById('globalLoader');
+    if (!loader) { return; }
+
+    function showLoader() {
+        loader.classList.add('active');
+    }
+    function hideLoader() {
+        loader.classList.remove('active');
+    }
+
+    // Expose to window for optional manual control
+    window.showGlobalLoader = showLoader;
+    window.hideGlobalLoader = hideLoader;
+
+    // Show on initial load until full page ready
+    showLoader();
+    window.addEventListener('load', hideLoader);
+
+    // Optional: show briefly on navigation clicks
+    document.addEventListener('click', function (e) {
+        const target = e.target.closest('a, button');
+        if (!target) return;
+        const href = target.getAttribute('href');
+        const isLocalNav = href && !href.startsWith('#') && !href.startsWith('javascript:') && !target.hasAttribute('data-bs-toggle');
+        if (isLocalNav) {
+            showLoader();
+        }
+    });
+})();
+</script>
