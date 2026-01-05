@@ -37,7 +37,7 @@ function mailer_config(): array
     return $config;
 }
 
-function sendEmail(string $to, string $subject, string $htmlBody, string $altBody = '')
+function sendEmail(string $to, string $subject, string $htmlBody, string $altBody = '', array $embedded = [])
 {
     $cfg = mailer_config();
     $mail = new PHPMailer(true);
@@ -55,10 +55,30 @@ function sendEmail(string $to, string $subject, string $htmlBody, string $altBod
         $mail->setFrom($cfg['from_email'], $cfg['from_name']);
         $mail->addAddress($to);
 
+        // Attach inline images when provided
+        foreach ($embedded as $embed) {
+            if (!empty($embed['path']) && !empty($embed['cid']) && is_readable($embed['path'])) {
+                $mail->addEmbeddedImage($embed['path'], $embed['cid']);
+            }
+        }
+
         $mail->isHTML(true);
+        $mail->ContentType = 'text/html';
+        $mail->Encoding = 'base64';
         $mail->Subject = $subject;
+        // Force HTML as the primary part; leave AltBody empty unless explicitly provided
         $mail->Body = $htmlBody;
-        $mail->AltBody = $altBody ?: strip_tags($htmlBody);
+        $mail->AltBody = $altBody ?: '';
+
+        // Optional debug: set MAIL_DEBUG_DUMP=/tmp/mail.eml to capture the MIME we send
+        $dumpPath = getenv('MAIL_DEBUG_DUMP');
+        if ($dumpPath) {
+            // Defer generation until after we set bodies and headers
+            $mime = $mail->preSend() ? $mail->getSentMIMEMessage() : '';
+            if ($mime) {
+                file_put_contents($dumpPath, $mime);
+            }
+        }
 
         $mail->send();
         return true;

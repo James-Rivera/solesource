@@ -2,6 +2,7 @@
 session_start();
 require_once 'includes/connect.php';
 require_once 'includes/mailer.php';
+require_once 'includes/receipt_email.php';
 
 $convert_size_label = static function ($row, $desiredSystem = 'US', $fallback = '') {
     if (!$row) { return $fallback; }
@@ -239,59 +240,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $conn->commit();
 
-                        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
-                        $logoUrl = $baseUrl . '/assets/svg/logo-black.svg';
-                        $orderViewUrl = $baseUrl . '/view_order.php?id=' . urlencode($orderId);
+            $emailData = build_receipt_email([
+                'orderId' => $orderId,
+                'orderNumber' => $orderNumber,
+                'fullName' => $fullName,
+                'paymentMethod' => $paymentMethod,
+                'shippingAddress' => $shippingAddress,
+                'cartItems' => $cartItems,
+                'totalAmount' => $totalAmount,
+            ]);
 
-                        $itemsHtml = '';
-                        foreach ($cartItems as $ci) {
-                                $lineTotal = number_format($ci['line_total'] ?? 0, 2);
-                                $itemsHtml .= '<tr>
-                                        <td style="padding:10px 0; font-weight:600; color:#111;">' . htmlspecialchars($ci['name']) . '</td>
-                                        <td style="padding:10px 0; text-align:right; color:#111;">₱' . $lineTotal . '</td>
-                                </tr>
-                                <tr>
-                                        <td style="padding:0 0 12px 0; color:#555; font-size:13px;">Size ' . htmlspecialchars($ci['size']) . ' · Qty ' . (int) $ci['qty'] . '</td>
-                                        <td></td>
-                                </tr>';
-                        }
-
-                        $emailSubject = 'Your SoleSource Receipt #' . $orderNumber;
-                        $emailBody = '
-        <div style="background:#f7f7f7; padding:24px 0; font-family:Arial,sans-serif; color:#111; line-height:1.5;">
-            <div style="max-width:640px; margin:0 auto; background:#fff; padding:28px; font-family:Arial,sans-serif; color:#111; line-height:1.5;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-                    <div style="font-size:22px; font-weight:800; letter-spacing:0.4px; color:#111;">
-                        <img src="' . htmlspecialchars($logoUrl) . '" alt="SoleSource" height="26" style="vertical-align:middle;"> 
-                    </div>
-                    <div style="font-size:13px; color:#555;">Order #' . htmlspecialchars($orderNumber) . '</div>
-                </div>
-
-                <p style="margin:0 0 14px 0; font-size:16px; font-weight:600;">Thanks for your order, ' . htmlspecialchars($fullName) . '.</p>
-                <p style="margin:0 0 18px 0; color:#555;">We&apos;re getting your items ready. You can view your order anytime.</p>
-
-                <a href="' . htmlspecialchars($orderViewUrl) . '" style="display:inline-block; background:#e35926; color:#fff; padding:12px 18px; text-decoration:none; font-weight:700; border-radius:4px; margin-bottom:18px;">View your order</a>
-
-                <div style="border-top:1px solid #e6e6e6; padding-top:16px; margin-top:6px;">
-                    <div style="display:flex; justify-content:space-between; font-weight:700; margin-bottom:10px;">
-                        <span>Order Summary</span>
-                        <span>₱' . number_format($totalAmount, 2) . '</span>
-                    </div>
-                    <table width="100%" style="border-collapse:collapse;">' . $itemsHtml . '</table>
-                </div>
-
-                <div style="border-top:1px solid #e6e6e6; padding-top:14px; margin-top:16px; color:#555; font-size:13px;">
-                    <div style="font-weight:700; color:#111; margin-bottom:6px;">Shipping to</div>
-                    <div>' . nl2br(htmlspecialchars($shippingAddress)) . '</div>
-                </div>
-
-                <p style="margin:16px 0 0 0; color:#777; font-size:12px;">If you have questions, reply to this email.</p>
-            </div>
-        </div>';
-
-                        $emailAlt = 'Thanks for your order ' . $fullName . "\n" . 'Order: ' . $orderNumber . "\n" . 'Total: ₱' . number_format($totalAmount, 2) . "\nPayment: " . $paymentMethod . "\nShip to: " . $shippingAddress . "\nView: " . $orderViewUrl;
-
-            $sendResult = sendEmail($email, $emailSubject, $emailBody, $emailAlt);
+            $sendResult = sendEmail(
+                $email,
+                $emailData['subject'],
+                $emailData['html'],
+                $emailData['alt'],
+                $emailData['embedded']
+            );
             if ($sendResult !== true) {
                 error_log('Receipt email failed for order ' . $orderId . ': ' . $sendResult);
             }
