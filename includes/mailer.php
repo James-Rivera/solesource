@@ -53,6 +53,9 @@ function sendEmail(string $to, string $subject, string $htmlBody, string $altBod
         $mail->CharSet = 'UTF-8';
 
         $mail->setFrom($cfg['from_email'], $cfg['from_name']);
+        $mail->clearReplyTos();
+        $mail->addCustomHeader('Auto-Submitted', 'auto-generated');
+        $mail->addCustomHeader('X-Auto-Response-Suppress', 'All');
         $mail->addAddress($to);
 
         // Attach inline images when provided

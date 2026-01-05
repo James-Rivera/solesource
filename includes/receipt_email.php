@@ -26,8 +26,6 @@ function build_receipt_email(array $data): array
     // Build item rows (table layout is safest across email clients)
     $itemsHtml = '';
     $subtotal = 0;
-    $embedded = [];
-    $cidCounter = 1;
     foreach ($cartItems as $ci) {
         $lineTotalValue = (float)($ci['line_total'] ?? 0);
         $lineTotal = number_format($lineTotalValue, 2);
@@ -35,26 +33,10 @@ function build_receipt_email(array $data): array
 
         $img = $ci['image'] ?? '';
         $img = str_replace('\\', '/', $img);
-        $imgSrc = '';
-        if ($img) {
-            $relativePath = ltrim($img, '/');
-            $localPath = realpath(__DIR__ . '/../' . $relativePath);
-            if ($localPath && is_readable($localPath)) {
-                $cid = 'item_' . $cidCounter++;
-                $mime = @mime_content_type($localPath) ?: 'application/octet-stream';
-                $embedded[] = ['path' => $localPath, 'cid' => $cid, 'name' => basename($localPath), 'type' => $mime];
-                $imgSrc = 'cid:' . $cid;
-            }
+        if ($img && stripos($img, 'http') !== 0) {
+            $img = $assetBase . ltrim($img, '/');
         }
-        if (!$imgSrc) {
-            if ($img && stripos($img, 'http') !== 0) {
-                $imgSrc = $assetBase . ltrim($img, '/');
-            } elseif ($img) {
-                $imgSrc = $img;
-            } else {
-                $imgSrc = 'https://via.placeholder.com/120x120.png?text=SoleSource';
-            }
-        }
+        $imgSrc = $img ?: 'https://via.placeholder.com/120x120.png?text=SoleSource';
 
         $metaParts = [];
         if (!empty($ci['style'])) {
@@ -83,31 +65,14 @@ function build_receipt_email(array $data): array
     $heroUrl = '';
     if (!empty($cartItems[0]['image'])) {
         $img = str_replace('\\', '/', $cartItems[0]['image']);
-        $relativePath = ltrim($img, '/');
-        $localPath = realpath(__DIR__ . '/../' . $relativePath);
-        if ($localPath && is_readable($localPath)) {
-            $cid = 'hero_item';
-            $mime = @mime_content_type($localPath) ?: 'application/octet-stream';
-            $embedded[] = ['path' => $localPath, 'cid' => $cid, 'name' => basename($localPath), 'type' => $mime];
-            $heroUrl = 'cid:' . $cid;
-        } else {
-            $heroUrl = (stripos($img, 'http') === 0) ? $img : $assetBase . $relativePath;
-        }
+        $heroUrl = (stripos($img, 'http') === 0) ? $img : $assetBase . ltrim($img, '/');
     }
     if (!$heroUrl) {
-        $placeholderPath = realpath(__DIR__ . '/../assets/img/logo-big.png');
-        if ($placeholderPath && is_readable($placeholderPath)) {
-            $embedded[] = ['path' => $placeholderPath, 'cid' => 'hero_placeholder'];
-            $heroUrl = 'cid:hero_placeholder';
-        } else {
-            $heroUrl = $assetBase . 'assets/img/logo-big.png';
-        }
+        $heroUrl = $assetBase . 'assets/img/logo-big.png';
     }
 
     // Logo for CID embedding if present
-    $logoCid = 'logo_receipt';
-    $logoPath = __DIR__ . '/../assets/svg/logo-black.svg';
-    $logoSrc = (is_readable($logoPath)) ? 'cid:' . $logoCid : $assetBase . 'assets/svg/logo-black.svg';
+    $logoSrc = $assetBase . 'assets/img/logo-big.png';
 
     $emailSubject = 'Your SoleSource Receipt #' . $orderNumber;
     $emailBody = '<!DOCTYPE html><html><body style="margin:0; padding:0; background:' . $panelBg . ';">
@@ -187,15 +152,11 @@ function build_receipt_email(array $data): array
         'Ship to: ' . $shippingAddress . "\n" .
         'View: ' . $orderViewUrl;
 
-    if (is_readable($logoPath)) {
-        $embedded[] = ['path' => $logoPath, 'cid' => $logoCid, 'name' => basename($logoPath), 'type' => (@mime_content_type($logoPath) ?: 'image/svg+xml')];
-    }
-
     return [
         'subject' => $emailSubject,
         'html' => $emailBody,
         'alt' => $emailAlt,
-        'embedded' => $embedded,
+        'embedded' => [],
     ];
 }
 
