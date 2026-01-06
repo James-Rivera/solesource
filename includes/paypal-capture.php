@@ -2,6 +2,8 @@
 session_start();
 header('Content-Type: application/json');
 require_once __DIR__ . '/connect.php';
+require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/receipt_email.php';
 
 function ensure_payment_table(mysqli $conn): void {
     $sql = "CREATE TABLE IF NOT EXISTS payment_transactions (
@@ -313,6 +315,28 @@ try {
     $stmtPay->close();
 
     $conn->commit();
+
+    $emailData = build_receipt_email([
+        'orderId' => $orderId,
+        'orderNumber' => $orderNumber,
+        'fullName' => $fullName,
+        'paymentMethod' => 'PayPal',
+        'shippingAddress' => $shippingAddress,
+        'cartItems' => $cartItems,
+        'totalAmount' => $subtotal,
+        'orderDate' => date('F j, Y'),
+    ]);
+    $emailResult = sendEmail(
+        $email,
+        $emailData['subject'],
+        $emailData['html'],
+        $emailData['alt'],
+        $emailData['embedded']
+    );
+    if ($emailResult !== true) {
+        error_log('PayPal receipt email failed for order ' . $orderId . ': ' . $emailResult);
+    }
+
     unset($_SESSION['cart']);
 
     echo json_encode(['ok' => true, 'status' => $status, 'order_id' => $orderId, 'paypal_capture_id' => $paypalCaptureId]);
