@@ -3,9 +3,9 @@ session_start();
 require_once 'includes/connect.php';
 
 // SMS gateway settings
-$gateway_url = getenv('SMS_GATEWAY_URL') ?: 'http://192.168.1.5:8080';
-$gateway_user = getenv('SMS_GATEWAY_USER') ?: 'sms';
-$gateway_pass = getenv('SMS_GATEWAY_PASS') ?: '_GkVArG2';
+$gateway_url = getenv('SMS_GATEWAY_URL') ?: 'http://192.168.1.5:8080';  //replace with your gateway URL
+$gateway_user = getenv('SMS_GATEWAY_USER') ?: 'sms'; //replace with your gateway username
+$gateway_pass = getenv('SMS_GATEWAY_PASS') ?: '_GkVArG2'; //replace with your gateway password
 
 $error_message = '';
 
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insert->bind_param('sssss', $full_name, $email, $phone_digits, $hashed, $role);
             if ($insert->execute()) {
                 // Send welcome SMS
-                $message = "Welcome to SoleSource! Your account has been created successfully. Thank you for joining us!";
+                $message = "Welcome to SoleSource, $full_name! Your account has been created successfully. Thank you for joining us!";
                 $url = rtrim($gateway_url, '/') . '/messages';
                 $payload = [
                     'phoneNumbers' => [$phone_digits],
