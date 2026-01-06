@@ -9,6 +9,8 @@ if (!isset($_GET['order_id']) || !isset($_SESSION['user_id'])) {
 
 $orderId = (int) $_GET['order_id'];
 $userId = (int) $_SESSION['user_id'];
+$emailJobId = isset($_SESSION['email_job_id']) ? (int) $_SESSION['email_job_id'] : null;
+unset($_SESSION['email_job_id']);
 
 $stmtOrder = $conn->prepare('SELECT o.*, u.full_name FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ? AND o.user_id = ? LIMIT 1');
 $stmtOrder->bind_param('ii', $orderId, $userId);
@@ -86,6 +88,13 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
                         </div>
                     </div>
                     <?php unset($_SESSION['email_notice']); ?>
+                <?php endif; ?>
+                <?php if ($emailJobId): ?>
+                    <div class="col-lg-8 col-md-10">
+                        <div id="emailStatus" class="alert alert-info" role="status" data-job-id="<?php echo (int) $emailJobId; ?>">
+                            We’re sending your receipt…
+                        </div>
+                    </div>
                 <?php endif; ?>
                 <div class="col-lg-8 col-md-10">
                     <div class="confirmation-card">
@@ -196,5 +205,46 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
     <?php include 'includes/footer.php'; ?>
 
 </body>
+
+<?php if ($emailJobId): ?>
+<script>
+(function() {
+    const statusEl = document.getElementById('emailStatus');
+    if (!statusEl) return;
+    const jobId = statusEl.dataset.jobId;
+    const setState = (text, level) => {
+        statusEl.textContent = text;
+        statusEl.classList.remove('alert-info', 'alert-success', 'alert-warning', 'alert-danger');
+        statusEl.classList.add(level);
+    };
+    const poll = () => {
+        fetch('includes/email-status.php?job_id=' + encodeURIComponent(jobId), { cache: 'no-store' })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    setState('We could not confirm email delivery yet.', 'alert-warning');
+                    setTimeout(poll, 8000);
+                    return;
+                }
+                if (data.status === 'sent') {
+                    setState('Receipt email sent.', 'alert-success');
+                    return;
+                }
+                if (data.status === 'failed') {
+                    setState('We could not send your receipt. Please check your email or contact support.', 'alert-danger');
+                    return;
+                }
+                setState('We’re sending your receipt…', 'alert-info');
+                setTimeout(poll, 5000);
+            })
+            .catch(() => {
+                setState('Waiting for email status…', 'alert-warning');
+                setTimeout(poll, 8000);
+            });
+    };
+    poll();
+})();
+</script>
+<?php endif; ?>
 
 </html>

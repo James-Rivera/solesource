@@ -257,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             try {
-                queueEmail(
+                $queueId = queueEmail(
                     $conn,
                     $email,
                     $emailData['subject'],
@@ -265,6 +265,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $emailData['alt'],
                     $emailData['embedded']
                 );
+                $_SESSION['email_job_id'] = (int) $queueId;
                 $_SESSION['email_notice'] = 'We’re sending your receipt now. If you don’t see it in a few minutes, please check your spam folder.';
             } catch (Throwable $e) {
                 $_SESSION['email_notice'] = 'Receipt email could not be queued. We will retry shortly.';

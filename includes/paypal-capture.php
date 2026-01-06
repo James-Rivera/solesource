@@ -335,6 +335,7 @@ try {
             $emailData['alt'],
             $emailData['embedded']
         );
+        $_SESSION['email_job_id'] = $queuedEmailId;
     } catch (Throwable $e) {
         error_log('PayPal receipt email queue failed for order ' . $orderId . ': ' . $e->getMessage());
     }
