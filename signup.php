@@ -2,16 +2,25 @@
 session_start();
 require_once 'includes/connect.php';
 
+// SMS gateway settings
+$gateway_url = getenv('SMS_GATEWAY_URL') ?: 'http://192.168.1.5:8080';  //replace with your gateway URL
+$gateway_user = getenv('SMS_GATEWAY_USER') ?: 'sms'; //replace with your gateway username
+$gateway_pass = getenv('SMS_GATEWAY_PASS') ?: '_GkVArG2'; //replace with your gateway password
+
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $phone_raw = trim($_POST['phone'] ?? '');
+    $phone_digits = preg_replace('/\D+/', '', $phone_raw);
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if ($full_name === '' || $email === '' || $password === '' || $confirm_password === '') {
+    if ($full_name === '' || $email === '' || $phone_digits === '' || $password === '' || $confirm_password === '') {
         $error_message = 'All fields are required.';
+    } elseif (strlen($phone_digits) < 10) {
+        $error_message = 'Please enter a valid phone number.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = 'Please enter a valid email address.';
     } elseif ($password !== $confirm_password) {
@@ -28,9 +37,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
             $role = 'customer';
-            $insert = $conn->prepare("INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)");
-            $insert->bind_param('ssss', $full_name, $email, $hashed, $role);
+            $insert = $conn->prepare("INSERT INTO users (full_name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)");
+            $insert->bind_param('sssss', $full_name, $email, $phone_digits, $hashed, $role);
             if ($insert->execute()) {
+                // Send welcome SMS
+                $message = "Welcome to SoleSource, $full_name! Your account has been created successfully. Thank you for joining us!";
+                $url = rtrim($gateway_url, '/') . '/messages';
+                $payload = [
+                    'phoneNumbers' => [$phone_digits],
+                    'message'      => $message,
+                ];
+                $options = [
+                    'http' => [
+                        'method'  => 'POST',
+                        'header'  => [
+                            'Content-Type: application/json',
+                            'Authorization: Basic ' . base64_encode("$gateway_user:$gateway_pass"),
+                        ],
+                        'content' => json_encode($payload),
+                        'timeout' => 10,
+                    ],
+                ];
+                $context = stream_context_create($options);
+                @file_get_contents($url, false, $context);
+                
                 header('Location: login.php');
                 exit;
             } else {
@@ -80,6 +110,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div class="mb-3">
                             <input type="email" name="email" class="form-control" placeholder="Email address" aria-label="Email address" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+                        </div>
+                        <div class="mb-3">
+                            <input type="tel" name="phone" class="form-control" placeholder="Phone number" aria-label="Phone number" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>">
                         </div>
                         <div class="mb-3">
                             <input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password">

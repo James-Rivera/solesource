@@ -8,6 +8,7 @@ html,body {
   font-family: var(--brand-font);
 }
 
+
 /* GLOBAL LOADER */
 .global-loader-backdrop {
   position: fixed;

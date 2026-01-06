@@ -4,6 +4,8 @@ require_once 'includes/connect.php';
 require_once 'includes/mailer.php';
 require_once 'includes/receipt_email.php';
 
+$paypalClientId = getenv('PAYPAL_CLIENT_ID');
+
 $convert_size_label = static function ($row, $desiredSystem = 'US', $fallback = '') {
     if (!$row) { return $fallback; }
     $usLabel = $row['size_label'] ?? $fallback;
@@ -143,6 +145,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $country = 'Philippines';
     $paymentMethod = trim($_POST['payment'] ?? 'COD');
 
+    if ($paymentMethod === 'PayPal') {
+        $errors[] = 'Please complete payment using the PayPal button below. No order was created.';
+    }
+
     $required = [
         'Email' => $email,
         'Phone' => $phone,
@@ -250,15 +256,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'totalAmount' => $totalAmount,
             ]);
 
-            $sendResult = sendEmail(
-                $email,
-                $emailData['subject'],
-                $emailData['html'],
-                $emailData['alt'],
-                $emailData['embedded']
-            );
-            if ($sendResult !== true) {
-                error_log('Receipt email failed for order ' . $orderId . ': ' . $sendResult);
+            try {
+                $queueId = queueEmail(
+                    $conn,
+                    $email,
+                    $emailData['subject'],
+                    $emailData['html'],
+                    $emailData['alt'],
+                    $emailData['embedded']
+                );
+                $_SESSION['email_job_id'] = (int) $queueId;
+                $_SESSION['email_notice'] = 'We’re sending your receipt now. If you don’t see it in a few minutes, please check your spam folder.';
+            } catch (Throwable $e) {
+                $_SESSION['email_notice'] = 'Receipt email could not be queued. We will retry shortly.';
+                error_log('Receipt email queue failed for order ' . $orderId . ': ' . $e->getMessage());
             }
 
             unset($_SESSION['cart']);
@@ -286,6 +297,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body class="checkout-page">
+    <div id="globalLoader" class="global-loader-backdrop" aria-hidden="true">
+        <div class="global-loader-content">
+            <div class="global-loader-ring"></div>
+            <img src="assets/img/svg/white-logo.svg" alt="Loading" class="global-loader-logo">
+        </div>
+    </div>
     <header class="checkout-secure-bar">
         <div class="container-xxl d-flex align-items-center justify-content-between">
             <img src="assets/svg/logo-big-white.svg" alt="SoleSource" height="26">
@@ -440,6 +457,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </label>
                                 </div>
                             </div>
+                            <div id="paypal-button-wrap" class="mt-3 d-none">
+                                <div class="small text-muted mb-2">Complete your payment with PayPal.</div>
+                                <div id="paypal-button-container"></div>
+                            </div>
                         </div>
 
                         <div class="mb-4">
@@ -540,6 +561,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
+        <?php if (!empty($paypalClientId)): ?>
+        <script src="https://www.paypal.com/sdk/js?client-id=<?php echo urlencode($paypalClientId); ?>&currency=PHP&intent=capture"></script>
+        <?php endif; ?>
         <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
@@ -861,6 +885,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     });
                 }
             });
+        </script>
+        <script>
+            (function() {
+                const form = document.querySelector('form');
+                const paymentInputs = Array.from(document.querySelectorAll('input[name="payment"]'));
+                const payPalWrap = document.getElementById('paypal-button-wrap');
+                const payPalContainer = document.getElementById('paypal-button-container');
+                const payPalRadio = document.getElementById('pay-paypal');
+                let buttonsInstance = null;
+
+                const showPayPal = () => {
+                    if (payPalWrap) {
+                        payPalWrap.classList.remove('d-none');
+                    }
+                    renderButtons();
+                };
+
+                const hidePayPal = () => {
+                    if (payPalWrap) {
+                        payPalWrap.classList.add('d-none');
+                    }
+                };
+
+                const renderButtons = () => {
+                    if (!payPalContainer || typeof paypal === 'undefined' || buttonsInstance) {
+                        return;
+                    }
+                    buttonsInstance = paypal.Buttons({
+                        style: { shape: 'rect', layout: 'vertical' },
+                        createOrder: async () => {
+                            const res = await fetch('includes/paypal-create.php', { method: 'POST' });
+                            const data = await res.json();
+                            if (!data?.ok || !data.id) {
+                                throw new Error(data?.error || 'Failed to create PayPal order');
+                            }
+                            return data.id;
+                        },
+                        onApprove: async (data) => {
+                            const fd = new FormData(form);
+                            fd.append('order_id', data.orderID);
+                            const res = await fetch('includes/paypal-capture.php', { method: 'POST', body: fd });
+                            const json = await res.json();
+                            if (!json?.ok) {
+                                alert(json?.error || 'PayPal capture failed');
+                                if (buttonsInstance && typeof buttonsInstance.restart === 'function') {
+                                    buttonsInstance.restart();
+                                }
+                                return;
+                            }
+                            window.location = 'confirmation.php?order_id=' + encodeURIComponent(json.order_id);
+                        },
+                        onError: (err) => {
+                            console.error(err);
+                            alert('PayPal error. Please try again.');
+                        },
+                    });
+                    buttonsInstance.render(payPalContainer);
+                };
+
+                paymentInputs.forEach((input) => {
+                    input.addEventListener('change', (evt) => {
+                        if (evt.target.value === 'PayPal') {
+                            showPayPal();
+                        } else {
+                            hidePayPal();
+                        }
+                    });
+                });
+
+                if (payPalRadio && payPalRadio.checked) {
+                    showPayPal();
+                }
+
+                form?.addEventListener('submit', (evt) => {
+                    const payment = new FormData(form).get('payment');
+                    if (payment === 'PayPal') {
+                        evt.preventDefault();
+                        if (!form.checkValidity()) {
+                            form.reportValidity();
+                            return;
+                        }
+                        if (typeof paypal === 'undefined') {
+                            alert('PayPal SDK failed to load. Please refresh and try again.');
+                            return;
+                        }
+                        showPayPal();
+                        payPalContainer?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            })();
+        </script>
+        <script>
+            (function() {
+                const loader = document.getElementById('globalLoader');
+                if (!loader) { return; }
+                const showLoader = () => loader.classList.add('active');
+                const hideLoader = () => loader.classList.remove('active');
+                window.showGlobalLoader = showLoader;
+                window.hideGlobalLoader = hideLoader;
+                showLoader();
+                window.addEventListener('load', hideLoader);
+                document.addEventListener('click', (e) => {
+                    const target = e.target.closest('a, button');
+                    if (!target) return;
+                    const href = target.getAttribute('href');
+                    const isLocalNav = href && !href.startsWith('#') && !href.startsWith('javascript:') && !target.hasAttribute('data-bs-toggle');
+                    if (isLocalNav) {
+                        showLoader();
+                    }
+                });
+            })();
         </script>
 </body>
 

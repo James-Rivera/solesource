@@ -14,26 +14,25 @@ function mailer_config(): array
         return $config;
     }
 
-    $defaults = [
-        'host' => getenv('MAIL_HOST') ?: 'smtp.gmail.com',
-        'port' => getenv('MAIL_PORT') ?: 587,
-        'username' => getenv('MAIL_USER') ?: '',
-        'password' => getenv('MAIL_PASS') ?: '',
-        'secure' => getenv('MAIL_SECURE') ?: 'tls',
-        'from_email' => getenv('MAIL_FROM_EMAIL') ?: 'no-reply@example.com',
-        'from_name' => getenv('MAIL_FROM_NAME') ?: 'SoleSource',
-    ];
-
-    $fileConfig = [];
     $path = __DIR__ . '/mail_config.php';
-    if (file_exists($path)) {
-        $loaded = include $path;
-        if (is_array($loaded)) {
-            $fileConfig = $loaded;
+    if (!file_exists($path)) {
+        throw new RuntimeException('Mail config missing. Ensure includes/mail_config.php exists and uses env vars.');
+    }
+
+    $loaded = include $path;
+    if (!is_array($loaded)) {
+        throw new RuntimeException('Mail config invalid.');
+    }
+
+    $required = ['host', 'port', 'username', 'password', 'secure', 'from_email', 'from_name'];
+    foreach ($required as $key) {
+        if (!array_key_exists($key, $loaded) || $loaded[$key] === '' || $loaded[$key] === null) {
+            throw new RuntimeException('Missing mail config value: ' . $key);
         }
     }
 
-    $config = array_merge($defaults, $fileConfig);
+    $loaded['port'] = (int) $loaded['port'];
+    $config = $loaded;
     return $config;
 }
 
@@ -91,4 +90,36 @@ function sendEmail(string $to, string $subject, string $htmlBody, string $altBod
     } catch (Exception $e) {
         return $e->getMessage();
     }
+}
+
+function ensure_email_queue_table(mysqli $conn): void
+{
+    $sql = "CREATE TABLE IF NOT EXISTS email_queue (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        recipient VARCHAR(255) NOT NULL,
+        subject VARCHAR(255) NOT NULL,
+        body_html LONGTEXT NOT NULL,
+        body_text LONGTEXT NULL,
+        embedded_json LONGTEXT NULL,
+        status ENUM('queued','sending','sent','failed') NOT NULL DEFAULT 'queued',
+        attempts INT NOT NULL DEFAULT 0,
+        last_error TEXT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        sent_at DATETIME NULL,
+        KEY idx_status (status),
+        KEY idx_created (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+    $conn->query($sql);
+}
+
+function queueEmail(mysqli $conn, string $to, string $subject, string $htmlBody, string $altBody = '', array $embedded = []): int
+{
+    ensure_email_queue_table($conn);
+    $embeddedJson = $embedded ? json_encode($embedded) : null;
+    $stmt = $conn->prepare('INSERT INTO email_queue (recipient, subject, body_html, body_text, embedded_json) VALUES (?, ?, ?, ?, ?)');
+    $stmt->bind_param('sssss', $to, $subject, $htmlBody, $altBody, $embeddedJson);
+    $stmt->execute();
+    $id = $stmt->insert_id;
+    $stmt->close();
+    return (int) $id;
 }
