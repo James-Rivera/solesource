@@ -292,6 +292,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body class="checkout-page">
+    <div id="globalLoader" class="global-loader-backdrop" aria-hidden="true">
+        <div class="global-loader-content">
+            <div class="global-loader-ring"></div>
+            <img src="assets/img/svg/white-logo.svg" alt="Loading" class="global-loader-logo">
+        </div>
+    </div>
     <header class="checkout-secure-bar">
         <div class="container-xxl d-flex align-items-center justify-content-between">
             <img src="assets/svg/logo-big-white.svg" alt="SoleSource" height="26">
@@ -961,6 +967,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         showPayPal();
                         payPalContainer?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            })();
+        </script>
+        <script>
+            (function() {
+                const loader = document.getElementById('globalLoader');
+                if (!loader) { return; }
+                const showLoader = () => loader.classList.add('active');
+                const hideLoader = () => loader.classList.remove('active');
+                window.showGlobalLoader = showLoader;
+                window.hideGlobalLoader = hideLoader;
+                showLoader();
+                window.addEventListener('load', hideLoader);
+                document.addEventListener('click', (e) => {
+                    const target = e.target.closest('a, button');
+                    if (!target) return;
+                    const href = target.getAttribute('href');
+                    const isLocalNav = href && !href.startsWith('#') && !href.startsWith('javascript:') && !target.hasAttribute('data-bs-toggle');
+                    if (isLocalNav) {
+                        showLoader();
                     }
                 });
             })();

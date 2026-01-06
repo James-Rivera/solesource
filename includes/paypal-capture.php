@@ -1,6 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
+ob_start(); // Buffer output to keep JSON responses clean
 require_once __DIR__ . '/connect.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/receipt_email.php';
@@ -125,17 +126,24 @@ function sanitize(string $value): string {
     return trim($value);
 }
 
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['ok' => false, 'error' => 'Unauthorized']);
+function respond(int $statusCode, array $payload): void {
+    http_response_code($statusCode);
+    header('Content-Type: application/json');
+    // Clear any previous buffered output to avoid corrupting JSON
+    if (ob_get_length() !== false) {
+        ob_clean();
+    }
+    echo json_encode($payload);
     exit;
+}
+
+if (!isset($_SESSION['user_id'])) {
+    respond(401, ['ok' => false, 'error' => 'Unauthorized']);
 }
 
 $paypalOrderId = sanitize($_POST['order_id'] ?? '');
 if ($paypalOrderId === '') {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'order_id is required']);
-    exit;
+    respond(400, ['ok' => false, 'error' => 'order_id is required']);
 }
 
 $email = sanitize($_POST['email'] ?? '');
@@ -164,17 +172,13 @@ $required = [
 
 foreach ($required as $label => $value) {
     if ($value === '') {
-        http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => $label . ' is required']);
-        exit;
+        respond(400, ['ok' => false, 'error' => $label . ' is required']);
     }
 }
 
 [$cartItems, $subtotal] = build_cart_summary($conn);
 if (empty($cartItems)) {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'Cart is empty']);
-    exit;
+    respond(400, ['ok' => false, 'error' => 'Cart is empty']);
 }
 
 $clientId = getenv('PAYPAL_CLIENT_ID');
@@ -182,16 +186,12 @@ $secret = getenv('PAYPAL_CLIENT_SECRET');
 $baseUrl = getenv('PAYPAL_BASE_URL') ?: 'https://api-m.sandbox.paypal.com';
 
 if (!$clientId || !$secret) {
-    http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Missing PayPal credentials']);
-    exit;
+    respond(500, ['ok' => false, 'error' => 'Missing PayPal credentials']);
 }
 
 $accessToken = get_paypal_token($baseUrl, $clientId, $secret);
 if (!$accessToken) {
-    http_response_code(502);
-    echo json_encode(['ok' => false, 'error' => 'Failed to authenticate with PayPal']);
-    exit;
+    respond(502, ['ok' => false, 'error' => 'Failed to authenticate with PayPal']);
 }
 
 $ch = curl_init($baseUrl . '/v2/checkout/orders/' . urlencode($paypalOrderId) . '/capture');
@@ -209,9 +209,7 @@ $capture = json_decode($response, true);
 
 $status = $capture['status'] ?? '';
 if ($status !== 'COMPLETED') {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'PayPal capture failed', 'payload' => $capture]);
-    exit;
+    respond(400, ['ok' => false, 'error' => 'PayPal capture failed', 'payload' => $capture]);
 }
 
 $paypalCaptureId = '';
@@ -339,9 +337,8 @@ try {
 
     unset($_SESSION['cart']);
 
-    echo json_encode(['ok' => true, 'status' => $status, 'order_id' => $orderId, 'paypal_capture_id' => $paypalCaptureId]);
+    respond(200, ['ok' => true, 'status' => $status, 'order_id' => $orderId, 'paypal_capture_id' => $paypalCaptureId]);
 } catch (Throwable $e) {
     $conn->rollback();
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+    respond(400, ['ok' => false, 'error' => $e->getMessage()]);
 }
