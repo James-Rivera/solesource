@@ -256,15 +256,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'totalAmount' => $totalAmount,
             ]);
 
-            $sendResult = sendEmail(
-                $email,
-                $emailData['subject'],
-                $emailData['html'],
-                $emailData['alt'],
-                $emailData['embedded']
-            );
-            if ($sendResult !== true) {
-                error_log('Receipt email failed for order ' . $orderId . ': ' . $sendResult);
+            try {
+                queueEmail(
+                    $conn,
+                    $email,
+                    $emailData['subject'],
+                    $emailData['html'],
+                    $emailData['alt'],
+                    $emailData['embedded']
+                );
+                $_SESSION['email_notice'] = 'We’re sending your receipt now. If you don’t see it in a few minutes, please check your spam folder.';
+            } catch (Throwable $e) {
+                $_SESSION['email_notice'] = 'Receipt email could not be queued. We will retry shortly.';
+                error_log('Receipt email queue failed for order ' . $orderId . ': ' . $e->getMessage());
             }
 
             unset($_SESSION['cart']);
