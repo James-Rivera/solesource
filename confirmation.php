@@ -79,6 +79,14 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
     <main class="py-5 py-md-6">
         <div class="container">
             <div class="row justify-content-center">
+                <?php if (!empty($_SESSION['email_notice'])): ?>
+                    <div class="col-lg-8 col-md-10">
+                        <div class="alert alert-info" role="alert">
+                            <?php echo htmlspecialchars($_SESSION['email_notice']); ?>
+                        </div>
+                    </div>
+                    <?php unset($_SESSION['email_notice']); ?>
+                <?php endif; ?>
                 <div class="col-lg-8 col-md-10">
                     <div class="confirmation-card">
                         <div class="confirmation-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">

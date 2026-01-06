@@ -324,20 +324,30 @@ try {
         'totalAmount' => $subtotal,
         'orderDate' => date('F j, Y'),
     ]);
-    $emailResult = sendEmail(
-        $email,
-        $emailData['subject'],
-        $emailData['html'],
-        $emailData['alt'],
-        $emailData['embedded']
-    );
-    if ($emailResult !== true) {
-        error_log('PayPal receipt email failed for order ' . $orderId . ': ' . $emailResult);
+
+    $queuedEmailId = null;
+    try {
+        $queuedEmailId = queueEmail(
+            $conn,
+            $email,
+            $emailData['subject'],
+            $emailData['html'],
+            $emailData['alt'],
+            $emailData['embedded']
+        );
+    } catch (Throwable $e) {
+        error_log('PayPal receipt email queue failed for order ' . $orderId . ': ' . $e->getMessage());
     }
 
     unset($_SESSION['cart']);
 
-    respond(200, ['ok' => true, 'status' => $status, 'order_id' => $orderId, 'paypal_capture_id' => $paypalCaptureId]);
+    respond(200, [
+        'ok' => true,
+        'status' => $status,
+        'order_id' => $orderId,
+        'paypal_capture_id' => $paypalCaptureId,
+        'email_job_id' => $queuedEmailId,
+    ]);
 } catch (Throwable $e) {
     $conn->rollback();
     respond(400, ['ok' => false, 'error' => $e->getMessage()]);
