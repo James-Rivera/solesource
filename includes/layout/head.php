@@ -11,3 +11,4 @@ $pageTitle = isset($title) && trim($title) !== '' ? $title : $defaultTitle;
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="SoleSource">
 <link rel="manifest" href="/assets/favicon/site.webmanifest">
+<link rel="stylesheet" href="/assets/css/header.css">
