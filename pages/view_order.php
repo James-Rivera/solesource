@@ -138,13 +138,13 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
                                     <?php foreach ($orderItems as $item): ?>
                                         <div class="d-flex flex-column flex-md-row align-items-start gap-4 mb-4 pb-4 border-bottom">
                                             <div class="flex-shrink-0 text-center" style="width: 250px; max-width: 100%;">
-                                                <img src="<?php echo htmlspecialchars($item['image'] ?: 'assets/img/products/new/jordan-11-legend-blue.png'); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 100%; height: auto; object-fit: contain;">
+                                                <img src="<?php echo htmlspecialchars($item['image'] ?: 'assets/img/products/new/jordan-11-legend-blue.png'); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="img-fluid">
                                             </div>
                                             <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
                                                 <div>
-                                                    <div class="product-name" style="font-weight: 700; font-size: 1.2rem; line-height: 1.3;"><?php echo htmlspecialchars($item['name']); ?></div>
-                                                    <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Brand: <?php echo htmlspecialchars($item['brand']); ?></div>
-                                                    <div class="product-meta text-muted text-uppercase" style="font-size: 0.85rem;">Size: <?php echo htmlspecialchars(($item['size_label'] ?? '') ?: $item['size']); ?> • Qty: <?php echo (int) $item['quantity']; ?></div>
+                                                    <div class="product-name fw-bold fs-5 lh-sm"><?php echo htmlspecialchars($item['name']); ?></div>
+                                                    <div class="product-meta text-muted text-uppercase small">Brand: <?php echo htmlspecialchars($item['brand']); ?></div>
+                                                    <div class="product-meta text-muted text-uppercase small">Size: <?php echo htmlspecialchars(($item['size_label'] ?? '') ?: $item['size']); ?> • Qty: <?php echo (int) $item['quantity']; ?></div>
                                                 </div>
                                                 <div class="product-price fw-bold fs-4 text-md-end">₱<?php echo number_format((float) $item['price_at_purchase'] * (int) $item['quantity'], 2); ?></div>
                                             </div>
@@ -159,11 +159,11 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
                                 <div class="order-summary-title mb-3 text-uppercase">Complete Order Details</div>
                                 <div class="d-flex flex-column gap-3">
                                     <div class="d-flex align-items-start">
-                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Order Number</div>
+                                        <div class="summary-label text-uppercase text-muted small">Order Number</div>
                                         <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars($order['order_number'] ?: $orderDisplayId); ?></div>
                                     </div>
                                     <div class="d-flex align-items-start">
-                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Order Date</div>
+                                        <div class="summary-label text-uppercase text-muted small">Order Date</div>
                                         <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars($orderDate); ?></div>
                                     </div>
                                     <div class="d-flex align-items-start">

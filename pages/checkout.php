@@ -291,6 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
     <link rel="stylesheet" href="assets/css/checkout.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css">
 </head>
@@ -334,7 +335,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
-            <div class="d-flex justify-content-center align-items-center mb-5 text-uppercase fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
+            <div class="d-flex justify-content-center align-items-center mb-5 text-uppercase fw-bold text-small">
                 <span class="text-muted">Bag</span>
                 <span class="mx-3 text-muted">/</span>
                 <span class="text-dark">Checkout</span>

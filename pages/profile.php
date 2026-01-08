@@ -518,7 +518,7 @@ $addrStmt->close();
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="personalInfoForm" class="btn px-4" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Save Changes</button>
+                    <button type="submit" form="personalInfoForm" class="btn btn-brand-orange px-4">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -537,7 +537,7 @@ $addrStmt->close();
                         <input type="hidden" name="action" value="update_password">
                         <div class="mb-4">
                             <label for="emailAddress" class="form-label text-muted small fw-bold text-uppercase mb-1">Email Address</label>
-                            <input type="email" class="form-control form-control-lg" id="emailAddress" value="<?php echo $user['email']; ?>" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                            <input type="email" class="form-control form-control-lg bg-light" id="emailAddress" value="<?php echo $user['email']; ?>" readonly style="cursor: not-allowed;">
                             <small class="text-muted">Email cannot be changed. Contact support if needed.</small>
                         </div>
                         <div class="mb-4">
@@ -556,7 +556,7 @@ $addrStmt->close();
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="securityForm" class="btn px-4" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Update Password</button>
+                    <button type="submit" form="securityForm" class="btn btn-brand-orange px-4">Update Password</button>
                 </div>
             </div>
         </div>
@@ -628,7 +628,7 @@ $addrStmt->close();
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="addressForm" class="btn px-4" id="addressSubmitBtn" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Save Address</button>
+                    <button type="submit" form="addressForm" class="btn btn-brand-orange px-4" id="addressSubmitBtn">Save Address</button>
                 </div>
             </div>
         </div>
@@ -647,7 +647,7 @@ $addrStmt->close();
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" id="deleteAccountConfirmBtn" class="btn px-4" style="background: #dc3545; color: #fff; font-weight: 600;">Delete Account</button>
+                    <button type="button" id="deleteAccountConfirmBtn" class="btn btn-danger px-4 fw-semibold">Delete Account</button>
                 </div>
             </div>
         </div>
@@ -666,7 +666,7 @@ $addrStmt->close();
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
-                    <a href="logout.php" class="btn px-4" style="background: var(--brand-orange); color: #fff; font-weight: 600;">Yes, Log Out</a>
+                    <a href="logout.php" class="btn btn-brand-orange px-4">Yes, Log Out</a>
                 </div>
             </div>
         </div>

@@ -83,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
     <link rel="stylesheet" href="assets/css/signup.css">
 </head>
 <body class="signup-page">
@@ -97,8 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main class="signup-main">
         <div class="container">
             <div class="signup-wrapper">
-                <div class="signup-card">
-                    <div class="signup-title">Create a SoleSource Account</div>
+                <div class="auth-card">
+                    <h1 class="auth-title">Create a SoleSource Account</h1>
                     <?php if (!empty($error_message)): ?>
                         <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
                             <?php echo htmlspecialchars($error_message); ?>
@@ -126,9 +127,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 Sign up to receive SOLESOURCE's email newsletter with special promotions, news and more.
                             </label>
                         </div>
-                        <div class="signup-legal mb-3">By creating an account, you agree to the Terms of Service and Privacy Policy.</div>
+                        <div class="signup-legal small text-muted mb-3">By creating an account, you agree to the Terms of Service and Privacy Policy.</div>
                         <button class="btn btn-signup-primary w-100 mb-3" type="submit">Create Account</button>
-                        <div class="switch-copy mb-2">Already have an account?</div>
+                        <div class="small text-muted mb-2">Already have an account?</div>
                         <a class="btn btn-signup-secondary w-100" href="login.php">Log In</a>
                     </form>
                 </div>

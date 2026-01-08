@@ -284,13 +284,13 @@ foreach ($price_ranges as $range) {
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb justify-content-center bg-transparent mb-2">
                     <li class="breadcrumb-item">
-                        <a href="index.php" class="text-white-50 text-decoration-none text-uppercase" style="font-size: 0.85rem;">Home</a>
+                        <a href="index.php" class="text-white-50 text-decoration-none text-uppercase small">Home</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="shop.php" class="text-white-50 text-decoration-none text-uppercase" style="font-size: 0.85rem;">Shop</a>
+                        <a href="shop.php" class="text-white-50 text-decoration-none text-uppercase small">Shop</a>
                     </li>
                     <?php if ($breadcrumb_active && $breadcrumb_active !== 'Shop'): ?>
-                        <li class="breadcrumb-item active text-white text-uppercase" aria-current="page" style="font-size: 0.85rem;">
+                        <li class="breadcrumb-item active text-white text-uppercase small" aria-current="page">
                             <?php echo htmlspecialchars($breadcrumb_active); ?>
                         </li>
                     <?php endif; ?>

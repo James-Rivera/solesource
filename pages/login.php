@@ -48,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
     <link rel="stylesheet" href="assets/css/login.css">
 </head>
 <body class="login-page">
@@ -62,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <main class="login-main">
         <div class="container mb-5">
             <div class="login-wrapper">
-                <div class="login-card">
-                    <div class="login-title">LOG IN</div>
+                <div class="auth-card">
+                    <h1 class="auth-title">LOG IN</h1>
                     <?php if (!empty($error_message)): ?>
                         <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
                             <?php echo htmlspecialchars($error_message); ?>
@@ -86,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <a href="#" class="forgot-link">forgot password?</a>
                         </div>
                         <button class="btn btn-login-primary w-100" type="submit">LOG IN</button>
-                        <div class="small text-muted mb-3" style="line-height: 1.4;">By logging in, you agree to the Terms of Service and Privacy Policy.</div>
+                        <div class="small text-muted mb-3 lh-sm">By logging in, you agree to the Terms of Service and Privacy Policy.</div>
                         <div class="mb-2 small text-muted">Not a fellow Sole Member?</div>
                         <a class="btn btn-login-secondary w-100" href="signup.php">CREATE ACCOUNT</a>
                     </form>
