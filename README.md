@@ -2,7 +2,7 @@
 
 **Live demo:** http://dev.art2cart.shop
 
-![Live Preview (replace with real screenshot)](http://dev.art2cart.shop/path-to-screenshot.jpg)
+![Live Preview](assets/img/Screenshot.png)
 
 ## Table of Contents
 - Overview
