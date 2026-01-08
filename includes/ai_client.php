@@ -17,7 +17,7 @@ function ai_complete(string $userMessage, array $context = []): array
     $geminiKey = getenv('GEMINI_API_KEY') ?: ($provider === 'gemini' ? $apiKey : '');
     $model = getenv('AI_MODEL') ?: 'gpt-4o-mini';
     $baseUrl = getenv('OLLAMA_BASE_URL') ?: 'http://localhost:11434';
-    $systemPrompt = getenv('AI_SYSTEM_PROMPT') ?: 'You are a SoleSource support assistant. Answer only about SoleSource site usage, orders, shipping, returns, or products. If asked anything else, politely refuse.';
+    $systemPrompt = getenv('AI_SYSTEM_PROMPT') ?: 'You are a SoleSource support assistant. Answer only about SoleSource site usage, orders, shipping, returns, or products. If asked anything else, politely refuse. Respond as strict JSON with this shape: {"reply": string, "actions": [{"type": "setValue", "selector": string, "value": string}], "faqs": [string]}. selectors must be limited to: input[name="email"], input[name="phone"], input[name="full_name"], textarea[name="message"], input[name="order_number"]. Always include reply. actions is optional. faqs is optional.';
 
     if ($provider === 'api' && $apiKey === '') {
         return ['ok' => false, 'error' => 'missing_api_key', 'data' => null, 'raw' => null];
@@ -116,8 +116,13 @@ function ai_complete(string $userMessage, array $context = []): array
 
     $parsed = json_decode($content, true);
     if (!is_array($parsed)) {
-        // Allow non-JSON content to still be returned raw for UI fallback
-        return ['ok' => false, 'error' => 'invalid_response', 'data' => null, 'raw' => $content, 'status' => $httpCode];
+        // Allow plain text responses as a fallback
+        return [
+            'ok' => true,
+            'data' => ['reply' => $content],
+            'error' => null,
+            'raw' => $content,
+        ];
     }
 
     return ['ok' => true, 'data' => $parsed, 'error' => null, 'raw' => $content];

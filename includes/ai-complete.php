@@ -19,6 +19,19 @@ if (!is_array($input)) {
 $message = isset($input['message']) ? trim((string)$input['message']) : '';
 $context = isset($input['context']) && is_array($input['context']) ? $input['context'] : [];
 
+// Seed lightweight fallback knowledge so the bot can be helpful without live data
+$context['kb'] = [
+    'shipping' => 'Shipping typically takes 3-7 business days nationwide.',
+    'returns' => 'All sales are final. Please verify sizing and condition before purchase.',
+    'orderHelp' => 'Provide your order number and email to check status or update your address before shipment.',
+    'topPicks' => [
+        'Nike Air Force 1',
+        'Adidas Ultraboost',
+        'Jordan 1 Mid',
+        'Asics Gel-Kayano'
+    ],
+];
+
 // Add lightweight session context when available
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
