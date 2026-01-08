@@ -307,6 +307,90 @@ foreach ($price_ranges as $range) {
     <!-- Product Grid with Sidebar Filters -->
     <section class="py-5">
         <div class="container">
+
+            <!-- Mobile Filter Trigger -->
+            <div class="d-lg-none mb-3">
+                <button class="btn btn-dark w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterDrawer" aria-controls="filterDrawer">
+                    <span>Filter &amp; Sort</span>
+                    <i class="bi bi-sliders2-vertical"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Filter Drawer -->
+            <div class="offcanvas offcanvas-end filter-drawer" tabindex="-1" id="filterDrawer" aria-labelledby="filterDrawerLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="filterDrawerLabel">Filter &amp; Sort</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <form class="filters-form" id="filtersFormMobile" method="get">
+                        <?php if ($search_term): ?><input type="hidden" name="search" value="<?php echo htmlspecialchars($search_term); ?>"><?php endif; ?>
+                        <?php if ($current_sort): ?><input type="hidden" name="sort" value="<?php echo htmlspecialchars($current_sort); ?>"><?php endif; ?>
+
+                        <div class="accordion-item">
+                            <button type="button" class="accordion-button" data-target="#m-acc-gender">Gender<span class="caret">+</span></button>
+                            <div id="m-acc-gender" class="accordion-body">
+                                <?php foreach ($gender_labels as $g): ?>
+                                    <?php $checked = in_array($g, $selected_genders, true) ? 'checked' : ''; ?>
+                                    <label><input type="checkbox" name="gender[]" value="<?php echo htmlspecialchars($g); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($g); ?> (<?php echo $gender_counts[$g] ?? 0; ?>)</label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <button type="button" class="accordion-button" data-target="#m-acc-sport">Sport<span class="caret">+</span></button>
+                            <div id="m-acc-sport" class="accordion-body">
+                                <?php foreach ($sport_options as $sport): ?>
+                                    <?php $checked = in_array($sport, $selected_sports, true) ? 'checked' : ''; ?>
+                                    <label><input type="checkbox" name="sport[]" value="<?php echo htmlspecialchars($sport); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($sport); ?> (<?php echo $sport_counts[$sport] ?? 0; ?>)</label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <button type="button" class="accordion-button" data-target="#m-acc-brand">Brand<span class="caret">+</span></button>
+                            <div id="m-acc-brand" class="accordion-body">
+                                <?php foreach ($brand_counts as $brand => $count): ?>
+                                    <?php $checked = in_array($brand, $selected_brands, true) ? 'checked' : ''; ?>
+                                    <label><input type="checkbox" name="brand[]" value="<?php echo htmlspecialchars($brand); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($brand); ?> (<?php echo $count; ?>)</label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <button type="button" class="accordion-button" data-target="#m-acc-price">Price Range<span class="caret">+</span></button>
+                            <div id="m-acc-price" class="accordion-body">
+                                <div class="price-range mb-2">
+                                    <input type="number" step="0.01" name="min" placeholder="Min" value="<?php echo htmlspecialchars($price_min ?? ''); ?>">
+                                    <span>-</span>
+                                    <input type="number" step="0.01" name="max" placeholder="Max" value="<?php echo htmlspecialchars($price_max ?? ''); ?>">
+                                </div>
+                                <?php foreach ($price_ranges as $range): ?>
+                                    <?php $checked = in_array($range['label'], $selected_price_ranges, true) ? 'checked' : ''; ?>
+                                    <label><input type="checkbox" name="prange[]" value="<?php echo htmlspecialchars($range['label']); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($range['label']); ?> (<?php echo $price_counts[$range['label']] ?? 0; ?>)</label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <button type="button" class="accordion-button" data-target="#m-acc-size">Size<span class="caret">+</span></button>
+                            <div id="m-acc-size" class="accordion-body">
+                                <div class="size-grid">
+                                    <?php foreach ($size_options as $size): ?>
+                                        <?php $checked = in_array($size, $selected_sizes, true) ? 'checked' : ''; ?>
+                                        <label><input type="checkbox" name="size[]" value="<?php echo htmlspecialchars($size); ?>" <?php echo $checked; ?>> <?php echo htmlspecialchars($size); ?></label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="filter-drawer-actions">
+                    <button type="button" class="btn btn-outline-dark w-50" id="filterClearMobile">Clear All</button>
+                    <button type="submit" form="filtersFormMobile" class="btn btn-dark w-50" id="filterApplyMobile">Apply</button>
+                </div>
+            </div>
+
             <div class="row g-4">
 
                 <!-- Sidebar Filters -->
@@ -391,7 +475,7 @@ foreach ($price_ranges as $range) {
                             <a href="shop.php" class="btn btn-dark">Clear filters</a>
                         </div>
                     <?php else: ?>
-                        <div class="row g-4">
+                        <div class="row g-3 plp-grid">
                             <?php foreach ($display_items as $shoe): ?>
                                 <?php include __DIR__ . '/../includes/partials/product-card.php'; ?>
                             <?php endforeach; ?>
@@ -414,14 +498,22 @@ foreach ($price_ranges as $range) {
     });
 
     const filterForm = document.getElementById('filtersForm');
-    if (filterForm) {
-        filterForm.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            cb.addEventListener('change', () => filterForm.submit());
+    const filterFormMobile = document.getElementById('filtersFormMobile');
+
+    [filterForm, filterFormMobile].forEach(form => {
+        if (!form) return;
+        form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => form.submit());
         });
-        filterForm.querySelectorAll('input[type="number"]').forEach(inp => {
-            inp.addEventListener('change', () => filterForm.submit());
+        form.querySelectorAll('input[type="number"]').forEach(inp => {
+            inp.addEventListener('change', () => form.submit());
         });
-    }
+    });
+
+    document.getElementById('filterClearMobile')?.addEventListener('click', () => {
+        filterFormMobile?.reset();
+        filterFormMobile?.submit();
+    });
 
     // Open all accordions by default on load
     document.querySelectorAll('.accordion-body').forEach(body => {

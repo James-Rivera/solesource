@@ -352,9 +352,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="mb-3">
                                 <input type="text" name="phone" class="form-control" placeholder="Phone" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>" required>
                             </div>
-                            <div class="helper-text">
-                                Become a <a href="#">SOLESOURCE Member</a> to get Member benefits. <a href="login.php">Login</a> or <a href="signup.php">Sign up</a> Now
-                            </div>
                         </div>
 
                         <div class="section-block mb-4">
@@ -467,7 +464,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
 
-                    <div class="col-lg-5">
+                    <div class="col-lg-5 d-none d-lg-block">
                         <div class="summary-card">
                             <div class="summary-header">
                                 <span class="summary-title">ORDER SUMMARY</span>
@@ -509,6 +506,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
     </main>
+
+    <!-- Mobile Summary Drawer Trigger -->
+    <div class="mobile-summary-bar d-lg-none">
+        <div class="d-flex flex-column">
+            <span class="text-muted small">Total</span>
+            <span class="mobile-summary-total">₱<?php echo number_format($subtotal, 2); ?></span>
+        </div>
+        <button class="btn mobile-summary-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSummaryDrawer" aria-controls="mobileSummaryDrawer">
+            View summary
+        </button>
+    </div>
+
+    <!-- Mobile Summary Drawer -->
+    <div class="offcanvas offcanvas-bottom mobile-summary-offcanvas" tabindex="-1" id="mobileSummaryDrawer" aria-labelledby="mobileSummaryDrawerLabel">
+        <div class="mobile-summary-handle"></div>
+        <div class="offcanvas-header pt-0 pb-2">
+            <div>
+                <div class="text-uppercase fw-bold small text-muted">Order Total</div>
+                <div class="fs-4 fw-bold text-brand-black">₱<?php echo number_format($subtotal, 2); ?></div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="summary-card">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>₱<?php echo number_format($subtotal, 2); ?></span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery &amp; Handling</span>
+                    <span>Free</span>
+                </div>
+                <hr class="summary-divider">
+                <div class="summary-row summary-total">
+                    <span>Total</span>
+                    <span>₱<?php echo number_format($subtotal, 2); ?></span>
+                </div>
+                <div class="est-title mt-3">Items</div>
+                <?php foreach ($cartItems as $ci): ?>
+                <div class="mini-product">
+                    <img src="<?php echo htmlspecialchars($ci['image']); ?>" alt="<?php echo htmlspecialchars($ci['name']); ?>" class="mini-thumb">
+                    <div class="flex-grow-1 d-flex flex-column justify-content-between">
+                        <div class="mini-meta">
+                            <div class="mini-brand"><?php echo htmlspecialchars($ci['brand']); ?></div>
+                            <div class="mini-name"><?php echo htmlspecialchars($ci['name']); ?></div>
+                            <div class="mini-attr">Qty <?php echo (int) $ci['qty']; ?></div>
+                            <div class="mini-attr">Size <?php echo htmlspecialchars($ci['size']); ?></div>
+                        </div>
+                        <div class="mini-price">₱<?php echo number_format($ci['line_total'], 2); ?></div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
 
     <footer class="checkout-secure-footer">
         <div class="container-fluid">

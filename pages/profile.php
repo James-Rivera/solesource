@@ -298,7 +298,7 @@ $addrStmt->close();
                                             $orderImage = 'assets/img/products/new/jordan-11-legend-blue.png';
                                         }
                                     ?>
-                                    <div class="order-history-row d-flex align-items-center py-4 <?php echo !$isLast ? 'border-bottom border-light' : ''; ?>">
+                                    <div class="order-history-row d-flex align-items-center flex-lg-row py-4 <?php echo !$isLast ? 'border-bottom border-light' : ''; ?>">
                                         <!-- Product Image -->
                                         <div class="order-history-image flex-shrink-0 me-4">
                                             <img src="<?php echo htmlspecialchars($orderImage); ?>" alt="Order Item" class="rounded">
@@ -347,6 +347,13 @@ $addrStmt->close();
         <div class="tab-pane fade <?php echo $activeTab === 'settings' ? 'show active' : ''; ?>" id="settings" role="tabpanel">
             <section class="py-5">
                 <div class="container-xxl">
+                    <div class="settings-mobile-nav d-lg-none">
+                        <nav class="nav nav-pills" role="tablist">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#personal-info" type="button" role="tab">Details</button>
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#address-view" type="button" role="tab">Addresses</button>
+                            <button class="nav-link" data-bs-toggle="modal" data-bs-target="#logoutModal" type="button">Log out</button>
+                        </nav>
+                    </div>
                     <div class="row">
                         <!-- Sidebar -->
                         <div class="col-lg-3 settings-sidebar">
@@ -373,7 +380,7 @@ $addrStmt->close();
                                     <?php endif; ?>
 
                                     <!-- Personal Details -->
-                                    <div class="settings-section">
+                                    <div class="settings-section" id="settings-details">
                                         <h3 class="settings-section-title">DETAILS</h3>
                                         <div class="settings-detail-item">
                                             <div class="settings-detail-label">NAME</div>
@@ -391,7 +398,7 @@ $addrStmt->close();
                                     </div>
 
                                     <!-- Account Details -->
-                                    <div class="settings-section">
+                                    <div class="settings-section" id="settings-account">
                                         <?php if ($security_success): ?>
                                             <div class="alert alert-success py-2 px-3" role="alert"><?php echo htmlspecialchars($security_success); ?></div>
                                         <?php elseif ($security_error): ?>
@@ -410,7 +417,7 @@ $addrStmt->close();
                                     </div>
 
                                     <!-- Manage Account -->
-                                    <div class="settings-section">
+                                    <div class="settings-section" id="settings-manage">
                                         <h3 class="settings-section-title">Manage Account</h3>
                                         <button type="button" class="btn btn-delete-account" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">Delete Account</button>
                                     </div>

@@ -21,8 +21,13 @@
 
   const style = document.createElement('style');
   style.textContent = `
-  .ai-chat-toggle { position: fixed; bottom: 18px; right: 18px; z-index: 1600; background: #ff5007; color: #fff; border: none; border-radius: 999px; padding: 12px 16px; box-shadow: 0 12px 28px rgba(0,0,0,0.22); display: flex; gap: 8px; align-items: center; font-weight: 700; letter-spacing: 0.4px; cursor: pointer; }
+  .ai-chat-toggle { position: fixed; bottom: 18px; right: 18px; z-index: 1600; background: #ff5007; color: #fff; border: none; border-radius: 999px; padding: 0 16px; width: auto; height: 46px; box-shadow: 0 12px 28px rgba(0,0,0,0.22); display: inline-flex; gap: 8px; align-items: center; justify-content: center; font-weight: 700; letter-spacing: 0.4px; cursor: pointer; }
   .ai-chat-toggle:hover { background: #e64703; }
+  .ai-chat-label { display: inline; letter-spacing: 0.3px; }
+  @media (max-width: 991px) {
+    .ai-chat-toggle { width: 52px; height: 52px; padding: 0; border-radius: 50%; gap: 0; }
+    .ai-chat-label { display: none; }
+  }
   .ai-chat-panel { position: fixed; bottom: 80px; right: 18px; width: min(360px, 94vw); height: 70vh; max-height: 70vh; background: #0f0f0f; color: #f5f5f5; border-radius: 16px; box-shadow: 0 16px 38px rgba(0,0,0,0.35); display: none; flex-direction: column; overflow: hidden; z-index: 1600; border: 1px solid rgba(255,255,255,0.08); }
   .ai-chat-panel.open { display: flex; }
   .ai-chat-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); background: #141414; }
@@ -50,7 +55,8 @@
   const toggle = document.createElement('button');
   toggle.className = 'ai-chat-toggle';
   toggle.type = 'button';
-  toggle.innerHTML = '<span>Ask SoleSource</span>';
+  toggle.setAttribute('aria-label', 'Ask SoleSource');
+  toggle.innerHTML = '<i class="bi bi-chat-dots-fill" aria-hidden="true"></i><span class="ai-chat-label">Ask SoleSource</span><span class="visually-hidden">Ask SoleSource</span>';
 
   const panel = document.createElement('div');
   panel.className = 'ai-chat-panel';

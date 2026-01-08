@@ -80,3 +80,28 @@
 .btn-reset:hover { color: #111; }
 
 @media (max-width: 991px) { .filters-sidebar { position: static; margin-bottom: 1rem; } }
+
+/* Mobile filter drawer */
+.filter-drawer {
+  height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  overflow: hidden;
+}
+.filter-drawer .offcanvas-header {
+  border-bottom: 1px solid #e5e5e5;
+}
+.filter-drawer-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem 1.1rem;
+  background: #fff;
+  border-top: 1px solid #e5e5e5;
+}
+@media (max-width: 991px) {
+  .filters-sidebar { display: none; }
+}

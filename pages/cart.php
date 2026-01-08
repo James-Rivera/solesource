@@ -284,7 +284,7 @@ $stmtRec->close();
 </section>
 
 <section class="pb-5">
-  <div class="container">
+  <div class="container container-sm px-0">
     <h6 class="recommend-text text-brand-black mb-4">Recommended for you</h6>
     <div class="position-relative">
       <button class="rec-nav rec-nav-prev" type="button" aria-label="Scroll left"><i class="bi bi-chevron-left"></i></button>

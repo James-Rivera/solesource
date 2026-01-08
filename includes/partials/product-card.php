@@ -5,7 +5,7 @@ $href = $productId ? 'product-details.php?id=' . urlencode($productId) : '#';
 $stockTotal = (int)($shoe['stock_total'] ?? $shoe['stock_quantity'] ?? 0);
 $image = !empty($shoe['image']) ? $shoe['image'] : 'assets/svg/logo-big-white.svg';
 ?>
-<div class="col-6 col-md-3">
+<div class="col-6 col-md-3 product-col">
     <div class="product-card h-100 d-flex flex-column position-relative">
         <?php if ($stockTotal <= 0): ?>
             <span class="badge bg-dark position-absolute top-0 end-0 m-2">Out of Stock</span>
