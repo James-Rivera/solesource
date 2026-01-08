@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../includes/connect.php';
-require_once __DIR__ . '/../includes/products.php'; // still used for recommendations/search
+require_once __DIR__ . '/../includes/products/products.php'; // still used for recommendations/search
 
 $normalizeGender = static function ($gender) {
     if (in_array($gender, ['Men', 'Women', 'Both'], true)) {
@@ -140,14 +140,14 @@ $title = 'SoleSource | ' . ($product['name'] ?? 'Product');
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <?php include __DIR__ . '/../includes/head.php'; ?>
+    <?php include __DIR__ . '/../includes/layout/head.php'; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-    <?php include __DIR__ . '/../includes/header.php'; ?>
+    <?php include __DIR__ . '/../includes/layout/header.php'; ?>
 
     <style>
         /* Size grid: flexible, gap-based layout; no fixed placeholders */
@@ -331,14 +331,14 @@ $title = 'SoleSource | ' . ($product['name'] ?? 'Product');
                 <h3 class="fw-bold text-brand-black mb-4">Recommended For You</h3>
                 <div class="row g-4">
                     <?php foreach ($recommended as $shoe): ?>
-                        <?php include __DIR__ . '/../includes/product-card.php'; ?>
+                        <?php include __DIR__ . '/../includes/partials/product-card.php'; ?>
                     <?php endforeach; ?>
                 </div>
             </section>
         </div>
     </main>
 
-    <?php include __DIR__ . '/../includes/footer.php'; ?>
+    <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
     <script src="assets/js/product-details.js"></script>
 </body>
 </html>

@@ -57,7 +57,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
 <head>
     <?php
     $title = 'SoleSource | Order Confirmation';
-    include __DIR__ . '/../includes/head.php';
+    include __DIR__ . '/../includes/layout/head.php';
     ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
@@ -67,7 +67,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
 </head>
 
 <body class="confirmation-page">
-    <?php include __DIR__ . '/../includes/header.php'; ?>
+    <?php include __DIR__ . '/../includes/layout/header.php'; ?>
 
     <header class="checkout-hero py-4 bg-light">
         <div class="container-xxl">
@@ -202,7 +202,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
         </div>
     </main>
 
-    <?php include __DIR__ . '/../includes/footer.php'; ?>
+    <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
 
 </body>
 
@@ -218,7 +218,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
         statusEl.classList.add(level);
     };
     const poll = () => {
-        fetch('includes/email-status.php?job_id=' + encodeURIComponent(jobId), { cache: 'no-store' })
+        fetch('/includes/orders/email-status.php?job_id=' + encodeURIComponent(jobId), { cache: 'no-store' })
             .then(r => r.json())
             .then(data => {
                 if (!data.success) {

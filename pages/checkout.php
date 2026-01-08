@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../includes/connect.php';
 require_once __DIR__ . '/../includes/mailer.php';
-require_once __DIR__ . '/../includes/receipt_email.php';
+require_once __DIR__ . '/../includes/orders/receipt_email.php';
 
 $paypalClientId = getenv('PAYPAL_CLIENT_ID');
 
@@ -285,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <?php
     $title = 'SoleSource | Checkout';
-    include __DIR__ . '/../includes/head.php';
+    include __DIR__ . '/../includes/layout/head.php';
     ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
@@ -837,7 +837,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 const loadSavedAddresses = async () => {
                     try {
-                        const res = await fetch('includes/address-list.php');
+                        const res = await fetch('/includes/account/address-list.php');
                         if (res.status === 401) {
                             window.location.href = 'login.php?redirect=checkout';
                             return;
@@ -914,7 +914,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     buttonsInstance = paypal.Buttons({
                         style: { shape: 'rect', layout: 'vertical' },
                         createOrder: async () => {
-                            const res = await fetch('includes/paypal-create.php', { method: 'POST' });
+                            const res = await fetch('/includes/orders/paypal-create.php', { method: 'POST' });
                             const data = await res.json();
                             if (!data?.ok || !data.id) {
                                 throw new Error(data?.error || 'Failed to create PayPal order');
@@ -924,7 +924,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         onApprove: async (data) => {
                             const fd = new FormData(form);
                             fd.append('order_id', data.orderID);
-                            const res = await fetch('includes/paypal-capture.php', { method: 'POST', body: fd });
+                            const res = await fetch('/includes/orders/paypal-capture.php', { method: 'POST', body: fd });
                             const json = await res.json();
                             if (!json?.ok) {
                                 alert(json?.error || 'PayPal capture failed');

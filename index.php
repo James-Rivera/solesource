@@ -33,7 +33,7 @@ $title = 'SoleSource | Premium Sneakers';
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <?php include __DIR__ . '/includes/head.php'; ?>
+    <?php include __DIR__ . '/includes/layout/head.php'; ?>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -43,7 +43,7 @@ $title = 'SoleSource | Premium Sneakers';
 </head>
 <body>
 
-    <?php include __DIR__ . '/includes/header.php'; ?>
+    <?php include __DIR__ . '/includes/layout/header.php'; ?>
 
 
     <?php
@@ -105,7 +105,7 @@ $title = 'SoleSource | Premium Sneakers';
 
             <div class="row g-4">
                 <?php foreach ($new_releases as $shoe): ?>
-                    <?php include __DIR__ . '/includes/product-card.php'; ?>
+                    <?php include __DIR__ . '/includes/partials/product-card.php'; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -153,7 +153,7 @@ $title = 'SoleSource | Premium Sneakers';
 
             <div class="row g-4">
                 <?php foreach ($best_sellers as $shoe): ?>
-                    <?php include __DIR__ . '/includes/product-card.php'; ?>
+                    <?php include __DIR__ . '/includes/partials/product-card.php'; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -225,7 +225,7 @@ $title = 'SoleSource | Premium Sneakers';
     </section>
 
 
-    <?php include __DIR__ . '/includes/footer.php'; ?>
+    <?php include __DIR__ . '/includes/layout/footer.php'; ?>
 
 
 </body>

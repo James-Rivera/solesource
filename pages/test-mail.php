@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/../includes/mailer.php';
-require __DIR__ . '/../includes/receipt_email.php';
+require __DIR__ . '/../includes/orders/receipt_email.php';
 
 // Use the shared receipt builder to validate styling and inline images
 $to = getenv('MAIL_TEST_TO') ?: getenv('MAIL_FROM_EMAIL') ?: 'constantinodyu11@gmail.com';

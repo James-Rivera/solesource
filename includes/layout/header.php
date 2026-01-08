@@ -1,5 +1,5 @@
 <?php
-include __DIR__ . '/products.php';
+include __DIR__ . '/../products/products.php';
 if (session_status() === PHP_SESSION_NONE) {
 	session_start();
 }
@@ -293,7 +293,7 @@ async function queryProducts(term) {
 	searchController = new AbortController();
 
 	try {
-		const res = await fetch(`includes/search.php?q=${encodeURIComponent(term)}`, { signal: searchController.signal });
+		const res = await fetch(`/includes/search/search.php?q=${encodeURIComponent(term)}`, { signal: searchController.signal });
 		if (!res.ok) throw new Error('search failed');
 		const data = await res.json();
 		renderResults(data.results || []);

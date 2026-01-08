@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/connect.php';
+require_once __DIR__ . '/../connect.php';
 
 function ensure_payment_table(mysqli $conn): void {
     $sql = "CREATE TABLE IF NOT EXISTS payment_transactions (
