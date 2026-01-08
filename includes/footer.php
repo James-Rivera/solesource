@@ -63,8 +63,12 @@
                 </a>
             </div>
         </div>
-    </div>
-</footer>
+        </div>
+    </footer>
+    <script>
+        // Expose the logged-in user id (or null) so frontend code can scope session data per account
+        window.appUserId = <?php echo isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 'null'; ?>;
+    </script>
 
 <div class="offcanvas offcanvas-end offcanvas-cart" tabindex="-1" id="cartDrawer" aria-labelledby="cartDrawerLabel">
     <div class="offcanvas-header border-bottom">

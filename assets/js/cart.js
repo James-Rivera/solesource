@@ -85,6 +85,20 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshCart: loadCart
   };
 
+  // Hide the chat toggle while the cart drawer is visible to avoid overlap
+  cartDrawerEl?.addEventListener('show.bs.offcanvas', () => {
+    window.dispatchEvent(new CustomEvent('ai-chat:close'));
+    const chatToggle = document.querySelector('.ai-chat-toggle');
+    const chatPanel = document.querySelector('.ai-chat-panel');
+    if (chatToggle) chatToggle.style.display = 'none';
+    if (chatPanel) chatPanel.classList.remove('open');
+  });
+
+  cartDrawerEl?.addEventListener('hidden.bs.offcanvas', () => {
+    const chatToggle = document.querySelector('.ai-chat-toggle');
+    if (chatToggle) chatToggle.style.display = '';
+  });
+
   // Recommended scroller progress
   const recScroller = document.getElementById('recScroller');
   const recThumb = document.getElementById('recThumb');

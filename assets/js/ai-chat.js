@@ -6,9 +6,12 @@
   let chatLog = [];
   let lastUserMessage = '';
 
-  const STORAGE_VERSION = 'v4';
-  const STORAGE_KEY = 'aiChatLog_' + STORAGE_VERSION;
-  const OPEN_KEY = 'aiChatOpen_' + STORAGE_VERSION;
+  const STORAGE_VERSION = 'v5';
+  const userKey = (typeof window.appUserId === 'number' && !Number.isNaN(window.appUserId))
+    ? `user_${window.appUserId}`
+    : 'guest';
+  const STORAGE_KEY = `aiChatLog_${STORAGE_VERSION}_${userKey}`;
+  const OPEN_KEY = `aiChatOpen_${STORAGE_VERSION}_${userKey}`;
   const QUICK_PROMPTS = [
     'Where is my order?',
     'How do I return an item?',
@@ -72,8 +75,8 @@
 
   function saveState() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(chatLog.slice(-50)));
-      localStorage.setItem(OPEN_KEY, isOpen ? '1' : '0');
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(chatLog.slice(-50)));
+      sessionStorage.setItem(OPEN_KEY, isOpen ? '1' : '0');
     } catch (e) {
       // ignore storage errors
     }
@@ -81,12 +84,12 @@
 
   function loadState() {
     try {
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]');
       if (Array.isArray(stored)) {
         chatLog = stored;
         chatLog.forEach(msg => appendMessage(msg.text, msg.role, false));
       }
-      isOpen = localStorage.getItem(OPEN_KEY) === '1';
+      isOpen = sessionStorage.getItem(OPEN_KEY) === '1';
       if (isOpen) {
         panel.classList.add('open');
       }
@@ -133,6 +136,13 @@
     } else {
       sendBtn.textContent = 'Send';
     }
+  }
+
+  function closePanel() {
+    if (!isOpen) return;
+    isOpen = false;
+    panel.classList.remove('open');
+    saveState();
   }
 
   QUICK_PROMPTS.forEach((text) => {
@@ -252,6 +262,7 @@
 
   document.body.appendChild(toggle);
   document.body.appendChild(panel);
+  window.addEventListener('ai-chat:close', closePanel);
   loadState();
   if (isOpen) {
     greetIfNeeded();
