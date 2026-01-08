@@ -2,7 +2,7 @@
 // Centralized products provider (DB-backed) for legacy consumers.
 // NOTE: do not close the shared $conn here; it may be reused by callers.
 
-require_once __DIR__ . '/connect.php';
+require_once __DIR__ . '/../connect.php';
 
 $all_products = [];
 

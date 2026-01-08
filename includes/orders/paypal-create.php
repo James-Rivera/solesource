@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once __DIR__ . '/connect.php';
+require_once __DIR__ . '/../connect.php';
 
 function build_cart_summary(mysqli $conn): array {
     $sessionCart = $_SESSION['cart'] ?? [];

@@ -7,10 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const subtotalEl = document.getElementById('cartSubtotal');
 
   const api = {
-    get: () => fetch('includes/cart-get.php').then(r => r.json()),
-    add: (p) => fetch('includes/cart-add.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).then(r => r.json()),
-    update: (p) => fetch('includes/cart-update.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).then(r => r.json()),
-    remove: (p) => fetch('includes/cart-remove.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).then(r => r.json()),
+    get: () => fetch('/includes/cart/cart-get.php').then(r => r.json()),
+    add: (p) => fetch('/includes/cart/cart-add.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).then(r => r.json()),
+    update: (p) => fetch('/includes/cart/cart-update.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).then(r => r.json()),
+    remove: (p) => fetch('/includes/cart/cart-remove.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).then(r => r.json()),
   };
 
   function toggleEmpty(hasItems) {
@@ -84,6 +84,20 @@ document.addEventListener('DOMContentLoaded', () => {
     close: () => offcanvas.hide(),
     refreshCart: loadCart
   };
+
+  // Hide the chat toggle while the cart drawer is visible to avoid overlap
+  cartDrawerEl?.addEventListener('show.bs.offcanvas', () => {
+    window.dispatchEvent(new CustomEvent('ai-chat:close'));
+    const chatToggle = document.querySelector('.ai-chat-toggle');
+    const chatPanel = document.querySelector('.ai-chat-panel');
+    if (chatToggle) chatToggle.style.display = 'none';
+    if (chatPanel) chatPanel.classList.remove('open');
+  });
+
+  cartDrawerEl?.addEventListener('hidden.bs.offcanvas', () => {
+    const chatToggle = document.querySelector('.ai-chat-toggle');
+    if (chatToggle) chatToggle.style.display = '';
+  });
 
   // Recommended scroller progress
   const recScroller = document.getElementById('recScroller');

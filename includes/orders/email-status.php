@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/connect.php';
+require_once __DIR__ . '/../connect.php';
 
 $jobId = isset($_GET['job_id']) ? (int) $_GET['job_id'] : 0;
 if ($jobId <= 0) {

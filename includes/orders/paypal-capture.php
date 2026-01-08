@@ -2,9 +2,9 @@
 session_start();
 header('Content-Type: application/json');
 ob_start(); // Buffer output to keep JSON responses clean
-require_once __DIR__ . '/connect.php';
-require_once __DIR__ . '/mailer.php';
-require_once __DIR__ . '/receipt_email.php';
+require_once __DIR__ . '/../connect.php';
+require_once __DIR__ . '/../mailer.php';
+require_once __DIR__ . '/../orders/receipt_email.php';
 
 function ensure_payment_table(mysqli $conn): void {
     $sql = "CREATE TABLE IF NOT EXISTS payment_transactions (

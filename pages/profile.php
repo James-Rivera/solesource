@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'includes/connect.php';
+require_once __DIR__ . '/../includes/connect.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php?redirect=profile');
@@ -149,16 +149,16 @@ $addrStmt->close();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SoleSource | My Account</title>
+    <?php
+    $title = 'SoleSource | My Account';
+    include __DIR__ . '/../includes/layout/head.php';
+    ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/account.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css">
-    <?php include 'includes/head-meta.php'; ?>
     <style>
         /* Force HR visibility */
         hr {
@@ -170,7 +170,7 @@ $addrStmt->close();
     </style>
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include __DIR__ . '/../includes/layout/header.php'; ?>
 
     <!-- Account Navigation Tabs -->
     <nav class="account-nav sticky-top">
@@ -245,7 +245,7 @@ $addrStmt->close();
                     <h2 class="account-section-title">My purchases</h2>
                     <div class="row g-4">
                         <?php foreach ($purchasedProducts as $shoe): ?>
-                            <?php include 'includes/product-card.php'; ?>
+                            <?php include __DIR__ . '/../includes/partials/product-card.php'; ?>
                         <?php endforeach; ?>
                         <?php if (empty($purchasedProducts)): ?>
                             <div class="col-12 text-center text-muted">No purchases yet.</div>
@@ -298,7 +298,7 @@ $addrStmt->close();
                                             $orderImage = 'assets/img/products/new/jordan-11-legend-blue.png';
                                         }
                                     ?>
-                                    <div class="order-history-row d-flex align-items-center py-4 <?php echo !$isLast ? 'border-bottom border-light' : ''; ?>">
+                                    <div class="order-history-row d-flex align-items-center flex-lg-row py-4 <?php echo !$isLast ? 'border-bottom border-light' : ''; ?>">
                                         <!-- Product Image -->
                                         <div class="order-history-image flex-shrink-0 me-4">
                                             <img src="<?php echo htmlspecialchars($orderImage); ?>" alt="Order Item" class="rounded">
@@ -347,6 +347,13 @@ $addrStmt->close();
         <div class="tab-pane fade <?php echo $activeTab === 'settings' ? 'show active' : ''; ?>" id="settings" role="tabpanel">
             <section class="py-5">
                 <div class="container-xxl">
+                    <div class="settings-mobile-nav d-lg-none">
+                        <nav class="nav nav-pills" role="tablist">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#personal-info" type="button" role="tab">Details</button>
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#address-view" type="button" role="tab">Addresses</button>
+                            <button class="nav-link" data-bs-toggle="modal" data-bs-target="#logoutModal" type="button">Log out</button>
+                        </nav>
+                    </div>
                     <div class="row">
                         <!-- Sidebar -->
                         <div class="col-lg-3 settings-sidebar">
@@ -373,7 +380,7 @@ $addrStmt->close();
                                     <?php endif; ?>
 
                                     <!-- Personal Details -->
-                                    <div class="settings-section">
+                                    <div class="settings-section" id="settings-details">
                                         <h3 class="settings-section-title">DETAILS</h3>
                                         <div class="settings-detail-item">
                                             <div class="settings-detail-label">NAME</div>
@@ -391,7 +398,7 @@ $addrStmt->close();
                                     </div>
 
                                     <!-- Account Details -->
-                                    <div class="settings-section">
+                                    <div class="settings-section" id="settings-account">
                                         <?php if ($security_success): ?>
                                             <div class="alert alert-success py-2 px-3" role="alert"><?php echo htmlspecialchars($security_success); ?></div>
                                         <?php elseif ($security_error): ?>
@@ -410,7 +417,7 @@ $addrStmt->close();
                                     </div>
 
                                     <!-- Manage Account -->
-                                    <div class="settings-section">
+                                    <div class="settings-section" id="settings-manage">
                                         <h3 class="settings-section-title">Manage Account</h3>
                                         <button type="button" class="btn btn-delete-account" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">Delete Account</button>
                                     </div>
@@ -476,7 +483,7 @@ $addrStmt->close();
         </div>
     </div>
 
-    <?php include 'includes/footer.php'; ?>
+    <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
 
     <!-- Edit Personal Information Modal -->
     <div class="modal fade" id="editPersonalModal" tabindex="-1" aria-labelledby="editPersonalModalLabel" aria-hidden="true">

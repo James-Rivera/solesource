@@ -1,8 +1,8 @@
 <?php
 session_start();
-require_once 'includes/connect.php';
-require_once 'includes/mailer.php';
-require_once 'includes/receipt_email.php';
+require_once __DIR__ . '/../includes/connect.php';
+require_once __DIR__ . '/../includes/mailer.php';
+require_once __DIR__ . '/../includes/orders/receipt_email.php';
 
 $paypalClientId = getenv('PAYPAL_CLIENT_ID');
 
@@ -283,17 +283,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SoleSource | Checkout</title>
+    <?php
+    $title = 'SoleSource | Checkout';
+    include __DIR__ . '/../includes/layout/head.php';
+    ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/checkout.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css">
-    
-    <?php include 'includes/head-meta.php'; ?>
 </head>
 
 <body class="checkout-page">
@@ -352,9 +351,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <div class="mb-3">
                                 <input type="text" name="phone" class="form-control" placeholder="Phone" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>" required>
-                            </div>
-                            <div class="helper-text">
-                                Become a <a href="#">SOLESOURCE Member</a> to get Member benefits. <a href="login.php">Login</a> or <a href="signup.php">Sign up</a> Now
                             </div>
                         </div>
 
@@ -468,7 +464,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
 
-                    <div class="col-lg-5">
+                    <div class="col-lg-5 d-none d-lg-block">
                         <div class="summary-card">
                             <div class="summary-header">
                                 <span class="summary-title">ORDER SUMMARY</span>
@@ -510,6 +506,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
     </main>
+
+    <!-- Mobile Summary Drawer Trigger -->
+    <div class="mobile-summary-bar d-lg-none">
+        <div class="d-flex flex-column">
+            <span class="text-muted small">Total</span>
+            <span class="mobile-summary-total">₱<?php echo number_format($subtotal, 2); ?></span>
+        </div>
+        <button class="btn mobile-summary-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSummaryDrawer" aria-controls="mobileSummaryDrawer">
+            View summary
+        </button>
+    </div>
+
+    <!-- Mobile Summary Drawer -->
+    <div class="offcanvas offcanvas-bottom mobile-summary-offcanvas" tabindex="-1" id="mobileSummaryDrawer" aria-labelledby="mobileSummaryDrawerLabel">
+        <div class="mobile-summary-handle"></div>
+        <div class="offcanvas-header pt-0 pb-2">
+            <div>
+                <div class="text-uppercase fw-bold small text-muted">Order Total</div>
+                <div class="fs-4 fw-bold text-brand-black">₱<?php echo number_format($subtotal, 2); ?></div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="summary-card">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>₱<?php echo number_format($subtotal, 2); ?></span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery &amp; Handling</span>
+                    <span>Free</span>
+                </div>
+                <hr class="summary-divider">
+                <div class="summary-row summary-total">
+                    <span>Total</span>
+                    <span>₱<?php echo number_format($subtotal, 2); ?></span>
+                </div>
+                <div class="est-title mt-3">Items</div>
+                <?php foreach ($cartItems as $ci): ?>
+                <div class="mini-product">
+                    <img src="<?php echo htmlspecialchars($ci['image']); ?>" alt="<?php echo htmlspecialchars($ci['name']); ?>" class="mini-thumb">
+                    <div class="flex-grow-1 d-flex flex-column justify-content-between">
+                        <div class="mini-meta">
+                            <div class="mini-brand"><?php echo htmlspecialchars($ci['brand']); ?></div>
+                            <div class="mini-name"><?php echo htmlspecialchars($ci['name']); ?></div>
+                            <div class="mini-attr">Qty <?php echo (int) $ci['qty']; ?></div>
+                            <div class="mini-attr">Size <?php echo htmlspecialchars($ci['size']); ?></div>
+                        </div>
+                        <div class="mini-price">₱<?php echo number_format($ci['line_total'], 2); ?></div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
 
     <footer class="checkout-secure-footer">
         <div class="container-fluid">
@@ -838,7 +889,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 const loadSavedAddresses = async () => {
                     try {
-                        const res = await fetch('includes/address-list.php');
+                        const res = await fetch('/includes/account/address-list.php');
                         if (res.status === 401) {
                             window.location.href = 'login.php?redirect=checkout';
                             return;
@@ -915,7 +966,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     buttonsInstance = paypal.Buttons({
                         style: { shape: 'rect', layout: 'vertical' },
                         createOrder: async () => {
-                            const res = await fetch('includes/paypal-create.php', { method: 'POST' });
+                            const res = await fetch('/includes/orders/paypal-create.php', { method: 'POST' });
                             const data = await res.json();
                             if (!data?.ok || !data.id) {
                                 throw new Error(data?.error || 'Failed to create PayPal order');
@@ -925,7 +976,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         onApprove: async (data) => {
                             const fd = new FormData(form);
                             fd.append('order_id', data.orderID);
-                            const res = await fetch('includes/paypal-capture.php', { method: 'POST', body: fd });
+                            const res = await fetch('/includes/orders/paypal-capture.php', { method: 'POST', body: fd });
                             const json = await res.json();
                             if (!json?.ok) {
                                 alert(json?.error || 'PayPal capture failed');
