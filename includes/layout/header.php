@@ -159,7 +159,7 @@ if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 			<?php if (!empty($navBrands)): ?>
 			<div class="mobile-nav-group">
 				<div class="mobile-nav-heading">Top Brands</div>
-				<div class="mobile-nav-pills">
+				<div class="mobile-nav-pills py-2">
 					<?php foreach (array_slice($navBrands, 0, 12) as $brand): ?>
 						<a class="mobile-nav-pill" href="shop.php?brand=<?php echo urlencode($brand); ?>"><?php echo htmlspecialchars($brand); ?></a>
 					<?php endforeach; ?>

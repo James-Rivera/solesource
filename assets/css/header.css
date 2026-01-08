@@ -74,10 +74,12 @@
 
 .nav-drawer .offcanvas-header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--brand-orange);
 }
 
 .nav-drawer .btn-close {
   filter: none;
+  color: var(--brand-white);
 }
 
 .nav-drawer .offcanvas-body {
@@ -94,16 +96,17 @@
 }
 
 .mobile-nav-heading {
-  font-size: 0.85rem;
+  font-size: 1.25rem;
   letter-spacing: 0.55px;
   text-transform: uppercase;
   color: var(--brand-dark-gray);
   opacity: 1;
+  font-weight: 700;
 }
 
 .mobile-nav-link {
   color: var(--brand-black);
-  font-weight: 700;
+  font-weight: 300;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   text-decoration: none;
@@ -131,7 +134,7 @@
   background: var(--brand-white);
   color: var(--brand-black);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 300;
   letter-spacing: 0.4px;
   font-size: 0.9rem;
 }
