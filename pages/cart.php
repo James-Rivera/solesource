@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'includes/connect.php';
+require_once __DIR__ . '/../includes/connect.php';
 
 $convert_size_label = static function ($row, $desiredSystem = 'US', $fallback = '') {
   if (!$row) { return $fallback; }
@@ -178,17 +178,17 @@ $stmtRec->close();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SoleSource | Cart</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="assets/css/variables.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <?php include 'includes/head-meta.php'; ?>
+  <?php
+  $title = 'SoleSource | Cart';
+  include __DIR__ . '/../includes/head.php';
+  ?>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/variables.css">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="cart-page">
-<?php include 'includes/header.php'; ?>
+<?php include __DIR__ . '/../includes/header.php'; ?>
 
 <section class="py-5">
   <div class="container-xxl mt-4">
@@ -312,7 +312,7 @@ $stmtRec->close();
   </div>
 </section>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const buttons = document.querySelectorAll('.btn-wishlist');

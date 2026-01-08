@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'includes/connect.php';
+require_once __DIR__ . '/../includes/connect.php';
 
 $error_message = '';
 
@@ -40,15 +40,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SoleSource | Login</title>
+    <?php
+    $title = 'SoleSource | Login';
+    include __DIR__ . '/../includes/head.php';
+    ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/login.css">
-    <?php include 'includes/head-meta.php'; ?>
 </head>
 <body class="login-page">
     <header class="login-header">

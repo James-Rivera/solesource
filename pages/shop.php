@@ -1,5 +1,5 @@
 <?php
-require_once 'includes/connect.php';
+require_once __DIR__ . '/../includes/connect.php';
 
 $brand_options = [];
 $sport_options = [];
@@ -87,20 +87,20 @@ foreach ($price_ranges as $range) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SoleSource | Shop</title>
+    <?php
+    $title = 'SoleSource | Shop';
+    include __DIR__ . '/../includes/head.php';
+    ?>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/filter.css">
-    <?php include 'includes/head-meta.php'; ?>
 </head>
 <body>
 
-    <?php include 'includes/header.php'; ?>
+    <?php include __DIR__ . '/../includes/header.php'; ?>
 
     <?php
         // Helpers
@@ -393,7 +393,7 @@ foreach ($price_ranges as $range) {
                     <?php else: ?>
                         <div class="row g-4">
                             <?php foreach ($display_items as $shoe): ?>
-                                <?php include 'includes/product-card.php'; ?>
+                                <?php include __DIR__ . '/../includes/product-card.php'; ?>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -457,7 +457,7 @@ foreach ($price_ranges as $range) {
         </div>
     </section>
 
-    <?php include 'includes/footer.php'; ?>
+    <?php include __DIR__ . '/../includes/footer.php'; ?>
 
 </body>
 </html>

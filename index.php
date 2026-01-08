@@ -1,21 +1,49 @@
-<?php require_once 'includes/connect.php'; ?>
+<?php
+require_once __DIR__ . '/includes/connect.php';
+
+$routes = [
+    'cart' => __DIR__ . '/pages/cart.php',
+    'checkout' => __DIR__ . '/pages/checkout.php',
+    'confirmation' => __DIR__ . '/pages/confirmation.php',
+    'login' => __DIR__ . '/pages/login.php',
+    'logout' => __DIR__ . '/pages/logout.php',
+    'product' => __DIR__ . '/pages/product-details.php',
+    'product-details' => __DIR__ . '/pages/product-details.php',
+    'profile' => __DIR__ . '/pages/profile.php',
+    'shop' => __DIR__ . '/pages/shop.php',
+    'signup' => __DIR__ . '/pages/signup.php',
+    'view_order' => __DIR__ . '/pages/view_order.php',
+    'view-order' => __DIR__ . '/pages/view_order.php',
+    'test-mail' => __DIR__ . '/pages/test-mail.php',
+];
+
+$pageKey = $_GET['page'] ?? null;
+if ($pageKey !== null) {
+    if (isset($routes[$pageKey]) && is_file($routes[$pageKey])) {
+        require $routes[$pageKey];
+    } else {
+        http_response_code(404);
+        echo 'Page not found';
+    }
+    exit;
+}
+
+$title = 'SoleSource | Premium Sneakers';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SoleSource | Premium Sneakers</title>
+    <?php include __DIR__ . '/includes/head.php'; ?>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
-    <?php include 'includes/head-meta.php'; ?>
 </head>
 <body>
 
-    <?php include 'includes/header.php'; ?>
+    <?php include __DIR__ . '/includes/header.php'; ?>
 
 
     <?php
@@ -77,7 +105,7 @@
 
             <div class="row g-4">
                 <?php foreach ($new_releases as $shoe): ?>
-                    <?php include 'includes/product-card.php'; ?>
+                    <?php include __DIR__ . '/includes/product-card.php'; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -125,7 +153,7 @@
 
             <div class="row g-4">
                 <?php foreach ($best_sellers as $shoe): ?>
-                    <?php include 'includes/product-card.php'; ?>
+                    <?php include __DIR__ . '/includes/product-card.php'; ?>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -197,7 +225,7 @@
     </section>
 
 
-    <?php include 'includes/footer.php'; ?>
+    <?php include __DIR__ . '/includes/footer.php'; ?>
 
 
 </body>

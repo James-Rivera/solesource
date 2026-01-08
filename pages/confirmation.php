@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'includes/connect.php';
+require_once __DIR__ . '/../includes/connect.php';
 
 if (!isset($_GET['order_id']) || !isset($_SESSION['user_id'])) {
     header('Location: index.php');
@@ -55,19 +55,19 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SoleSource | Order Confirmation</title>
+    <?php
+    $title = 'SoleSource | Order Confirmation';
+    include __DIR__ . '/../includes/head.php';
+    ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/confirmation.css">
-    <?php include 'includes/head-meta.php'; ?>
 </head>
 
 <body class="confirmation-page">
-    <?php include 'includes/header.php'; ?>
+    <?php include __DIR__ . '/../includes/header.php'; ?>
 
     <header class="checkout-hero py-4 bg-light">
         <div class="container-xxl">
@@ -202,7 +202,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
         </div>
     </main>
 
-    <?php include 'includes/footer.php'; ?>
+    <?php include __DIR__ . '/../includes/footer.php'; ?>
 
 </body>
 
