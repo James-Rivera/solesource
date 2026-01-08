@@ -63,6 +63,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
     <link rel="stylesheet" href="assets/css/confirmation.css">
 </head>
 
@@ -71,14 +72,14 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
 
     <header class="checkout-hero py-4 bg-light">
         <div class="container-xxl">
-            <div class="d-flex justify-content-center align-items-center text-uppercase fw-bold" style="font-size: 0.9rem; letter-spacing: 1px;">
+            <div class="d-flex justify-content-center align-items-center text-uppercase fw-bold text-small">
                 <span class="text-muted">Bag</span>
                 <span class="mx-3 text-muted">/</span>
                 <span class="text-muted">Checkout</span>
                 <span class="mx-3 text-muted">/</span>
                 <span class="text-dark">Confirmation</span>
     </header>
-    <main class="py-5 py-md-6">
+    <main class="py-5 py-lg-6">
         <div class="container">
             <div class="row justify-content-center">
                 <?php if (!empty($_SESSION['email_notice'])): ?>
@@ -98,7 +99,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
                 <?php endif; ?>
                 <div class="col-lg-8 col-md-10">
                     <div class="confirmation-card">
-                        <div class="confirmation-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div class="confirmation-hero d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 p-4">
                             <div>
                                 <div class="label">ORDER CONFIRMATION ID</div>
                                 <div class="order-id"><?php echo htmlspecialchars($displayOrderId); ?></div>
@@ -143,7 +144,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
                                                         $itemImagePath = $assetBase . ltrim($itemImagePath, '/');
                                                     }
                                                 ?>
-                                                <img src="<?php echo htmlspecialchars($itemImagePath); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 100%; height: auto; object-fit: contain;">
+                                                <img src="<?php echo htmlspecialchars($itemImagePath); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="img-fluid">
                                             </div>
                                             <div class="flex-grow-1 d-flex flex-column justify-content-between gap-2 h-100">
                                                 <div>
