@@ -96,9 +96,10 @@ foreach ($price_ranges as $range) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/pages/shop.css">
     <link rel="stylesheet" href="assets/css/filter.css">
 </head>
-<body>
+<body class="shop-page">
 
     <?php include __DIR__ . '/../includes/layout/header.php'; ?>
 

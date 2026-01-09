@@ -1,0 +1,14 @@
+/* Shop page specific layout overrides (scoped to .shop-page)
+   Keeps PLP mobile two-up behavior only on the shop page.
+*/
+.shop-page .plp-grid {
+  margin: 0 -8px;
+}
+.shop-page .plp-grid > .product-col {
+  padding: 0 8px 16px;
+}
+@media (max-width: 991px) {
+  .shop-page .plp-grid > .product-col {
+    width: 50%;
+  }
+}
