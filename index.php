@@ -252,11 +252,11 @@ $title = 'SoleSource | Premium Sneakers';
                 </div>
             </div>
 
-            <div class="row mt-4 g-4">
+            <div class="row brand-grid mt-4 g-4">
                 <?php foreach ($brands as $brand): ?>
-                    <div class="col-6 col-md-3">
+                    <div class="col-md-6 col-lg-4">
                         <a href="shop.php?brand=<?php echo urlencode($brand['name']); ?>" class="text-decoration-none">
-                            <div class="brand-card d-flex align-items-center justify-content-center h-100">
+                            <div class="brand-card brand-horizontal d-flex align-items-center justify-content-center h-100 py-5">
                                 <img src="<?php echo htmlspecialchars($brand['logo']); ?>" alt="<?php echo htmlspecialchars($brand['name']); ?>" class="img-fluid brand-logo">
                             </div>
                         </a>
