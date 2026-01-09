@@ -28,10 +28,9 @@
     --bs-btn-active-border-color: #b84420;
     --bs-btn-color: #fff;
     --bs-btn-hover-color: #fff;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.35px;
-    min-height: 55px;
     display: flex;
     align-items: center;
     justify-content: center;

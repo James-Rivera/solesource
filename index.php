@@ -80,21 +80,78 @@ $title = 'SoleSource | Premium Sneakers';
     ?>
 
 
-    <section class="hero-section position-relative overflow-hidden">
-        
-        <div class="container h-100 py-5">
-            <div class="row h-100 align-items-center">
-                <div class="col-lg-6 col-md-8">
-                    <h1 class="hero-title mb-4">
-                        <span class="d-block">ADIDAS</span>
-                        <span class="d-block">GAZELLE</span>
-                    </h1>
-                    <a class="hero-cta" href="#">shop now</a>
+    <!-- Boutique Curator Hero Carousel -->
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-pause="hover">
+        <div class="carousel-inner">
+            <!-- Video Slide: Nike AF1 -->
+            <div class="carousel-item active" data-bs-interval="20000">
+                <video class="hero-video" autoplay muted loop playsinline poster="assets/img/products/nike-af1.jpg">
+                    <source src="assets/videos/nike-af1-spec.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="hero-overlay"></div>
+                <div class="carousel-caption d-flex flex-column justify-content-end">
+                    <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
+                        <p class="hero-subtitle text-uppercase mb-2">now available</p>
+                        <hr class="hero-separator" />
+                        <h1 class="display-2 fw-bold mb-4">ADIDAS FORCE 1</h1>
+                        <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">SHOP NOW</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image Slide: Adidas Pharrell -->
+            <div class="carousel-item" data-bs-interval="5000">
+                <img src="assets/img/products/adidas-pharrell.jpg" class="d-block w-100 hero-img" alt="Adidas Pharrell Collaboration">
+                <div class="hero-overlay"></div>
+                <div class="carousel-caption d-flex flex-column justify-content-end">
+                    <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
+                        <p class="hero-subtitle text-uppercase mb-2">now available</p>
+                        <hr class="hero-separator" />
+                        <h1 class="display-2 fw-bold mb-4">ADIDAS x PHARRELL</h1>
+                        <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">VIEW MORE</a>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- Image Slide: Jordan Legacy -->
+            <div class="carousel-item" data-bs-interval="5000">
+                <img src="assets/img/products/jordan-legacy.jpg" class="d-block w-100 hero-img" alt="Jordan Legacy Collection">
+                <div class="hero-overlay"></div>
+                <div class="carousel-caption d-flex flex-column justify-content-end">
+                    <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
+                        <p class="hero-subtitle text-uppercase mb-2">now available</p>
+                        <hr class="hero-separator" />
+                        <h1 class="display-2 fw-bold mb-4">JORDAN LEGACY</h1>
+                    </div>
+                    <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">EXPLORE</a>
+                </div>
+            </div>
+
+            <!-- Image Slide: Asics Innovation -->
+            <div class="carousel-item" data-bs-interval="5000">
+                <img src="assets/img/products/asics-innovation.jpg" class="d-block w-100 hero-img" alt="Asics Innovation">
+                <div class="hero-overlay"></div>
+                <div class="carousel-caption d-flex flex-column justify-content-end">
+                    <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
+                        <p class="hero-subtitle text-uppercase mb-2">now available</p>
+                        <hr class="hero-separator" />
+                        <h1 class="display-2 fw-bold mb-4">ASICS INNOVATION</h1>
+                    </div>
+                    <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">DISCOVER</a>
                 </div>
             </div>
         </div>
-        <div class="hero-media"></div>
-    </section>
+
+        <!-- Carousel Controls - Minimalist Chevrons -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Previous slide">
+            <span class="carousel-control-prev-icon" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Next slide">
+            <span class="carousel-control-next-icon" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+        </button>
+    </div>
 
     <section class="py-5">
         <div class="container">
@@ -116,7 +173,7 @@ $title = 'SoleSource | Premium Sneakers';
     </section>
 
     <!-- Carousel Section - fix functionality later -->
-    <section class="py-5">
+    <section class="py-3">
         <div class="container-xxl">
             <div id="retroCarousel" class="carousel slide retro-carousel" data-bs-ride="carousel">
                 <div class="carousel-inner rounded-5 overflow-hidden">

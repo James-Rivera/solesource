@@ -123,6 +123,322 @@ a:hover {
   opacity: 0.85;
 }
 
+/* BOUTIQUE CURATOR HERO CAROUSEL */
+#heroCarousel {
+  position: relative;
+  width: 100%;
+}
+
+.carousel-inner {
+  min-height: 90vh;
+  display: flex;
+  align-items: stretch;
+}
+
+.carousel-item {
+  position: relative;
+  min-height: 80vh;
+  display: flex;
+  align-items: flex-end;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.carousel-item.active {
+  opacity: 1;
+}
+
+.carousel-item:not(.active) {
+  opacity: 0;
+}
+
+/* Video and Image Media */
+.hero-video,
+.hero-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.hero-video {
+  /* Ensure videos maintain aspect ratio on mobile */
+  display: block;
+}
+
+/* Overlay Layer */
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+/* Caption Styling */
+.carousel-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  text-align: left;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
+  padding: 6rem 2rem 3rem;
+  margin: 0;
+  width: 100%;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.carousel-caption h1 {
+  color: var(--brand-white);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.carousel-caption .hero-subtitle {
+  color: var(--text-inactive);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem 0;
+}
+
+/* Ghost Button - Premium Boutique Style */
+.btn-brand-orange {
+  background-color: transparent;
+  border-color: var(--brand-white);
+  border-width: 2px;
+  color: var(--brand-white);
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 0.75rem 2rem;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.btn-brand-orange:hover {
+  background-color: #FF5722;
+  border-color: #FF5722;
+  color: var(--brand-white);
+  box-shadow: 0 8px 16px rgba(255, 87, 34, 0.3);
+}
+
+.btn-brand-orange:focus {
+  background-color: #FF5722;
+  border-color: #FF5722;
+  color: var(--brand-white);
+  box-shadow: 0 0 0 0.25rem rgba(255, 87, 34, 0.25);
+}
+
+/* Carousel Controls - Minimalist Chevrons */
+.carousel-control-prev,
+.carousel-control-next {
+  width: auto;
+  height: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  background: none;
+  border: none;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+  opacity: 1;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  width: 28px;
+  height: 28px;
+  background-color: transparent;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--brand-white);
+}
+
+.carousel-control-prev {
+  left: 3rem;
+}
+
+.carousel-control-next {
+  right: 3rem;
+}
+
+/* Carousel Indicators - Luxury Dash Style */
+.hero-indicators {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  gap: 20px;
+}
+
+.hero-indicators button {
+  width: 32px;
+  height: 2px;
+  border-radius: 1px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.hero-indicators button.active {
+  background-color: #FF5722;
+  width: 48px;
+}
+
+.hero-indicators button:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+  .carousel-inner {
+    min-height: 60vh;
+  }
+
+  .carousel-item {
+    min-height: 60vh;
+  }
+
+  .hero-video {
+    display: none;
+  }
+
+  .carousel-caption {
+    padding: 4rem 1.5rem 2rem;
+  }
+
+  .carousel-caption h1 {
+    font-size: clamp(2rem, 6vw, 3rem);
+    margin-bottom: 1rem;
+  }
+
+  .carousel-caption .hero-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .btn-brand-orange {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  .carousel-control-prev,
+  .carousel-control-next {
+    opacity: 0.2;
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+  }
+
+  .carousel-control-prev {
+    left: 1.5rem;
+  }
+
+  .carousel-control-next {
+    right: 1.5rem;
+  }
+
+  .hero-indicators {
+    bottom: 1rem;
+    gap: 16px;
+  }
+
+  .hero-indicators button {
+    width: 24px;
+    height: 2px;
+  }
+
+  .hero-indicators button.active {
+    width: 40px;
+  }
+}
+
+@media (max-width: 576px) {
+  .carousel-inner {
+    min-height: 50vh;
+  }
+
+  .carousel-item {
+    min-height: 50vh;
+  }
+
+  .carousel-caption {
+    padding: 3rem 1rem 1.5rem;
+  }
+
+  .carousel-caption h1 {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .carousel-caption .hero-subtitle {
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+  }
+
+  .btn-brand-orange {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8rem;
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  .carousel-control-prev {
+    left: 1rem;
+  }
+
+  .carousel-control-next {
+    right: 1rem;
+  }
+
+  .hero-indicators {
+    bottom: 0.75rem;
+    gap: 12px;
+  }
+
+  .hero-indicators button {
+    width: 20px;
+    height: 1.5px;
+  }
+
+  .hero-indicators button.active {
+    width: 32px;
+  }
+}
+
 /* RETRO ARCHIVE CAROUSEL */
 .retro-carousel .carousel-inner {
   border-radius: 20px;
@@ -183,6 +499,16 @@ a:hover {
 
 .retro-control.carousel-control-next {
   right: 24px;
+}
+
+#retroCarousel .carousel-inner {
+  height: 470px;
+  min-height: auto;
+}
+
+#retroCarousel .carousel-item {
+  height: 470px;
+  min-height: auto;
 }
 
 /* NEW RELEASES */
