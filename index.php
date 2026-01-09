@@ -97,7 +97,7 @@ $title = 'SoleSource | Premium Sneakers';
                     <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
                         <p class="hero-subtitle text-uppercase mb-2">THE ARCHIVE SERIES</p>
                         <hr class="hero-separator" />
-                        <h1 class="display-2 fw-bold mb-4">ICONIC BY DESIGN.</h1>
+                        <h1 class="display-2 fw-bold mb-3">ICONIC BY DESIGN.</h1>
                         <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">SHOP NOW</a>
                     </div>
                 </div>
@@ -116,7 +116,7 @@ $title = 'SoleSource | Premium Sneakers';
                     <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
                         <p class="hero-subtitle text-uppercase mb-2">THE TERRACE CLASSIC</p>
                         <hr class="hero-separator" />
-                        <h1 class="display-2 fw-bold mb-4">SIMPLY TIMELESS</h1>
+                        <h1 class="display-2 fw-bold mb-3">SIMPLY TIMELESS</h1>
                         <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">VIEW MORE</a>
                     </div>
                     
@@ -137,7 +137,7 @@ $title = 'SoleSource | Premium Sneakers';
                     <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
                         <p class="hero-subtitle text-uppercase mb-2">ESTABLISHED 1985</p>
                         <hr class="hero-separator" />
-                        <h1 class="display-2 fw-bold mb-4">JORDAN LEGACY</h1>
+                        <h1 class="display-2 fw-bold mb-3">JORDAN LEGACY</h1>
                         <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">EXPLORE THE GRAILS</a>
                     </div>
                 </div>
@@ -157,7 +157,7 @@ $title = 'SoleSource | Premium Sneakers';
                     <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
                         <p class="hero-subtitle text-uppercase mb-2">PERFORMANCE ART</p>
                         <hr class="hero-separator" />
-                        <h1 class="display-2 fw-bold mb-4">ASICS INNOVATION</h1>
+                        <h1 class="display-2 fw-bold mb-3">ASICS INNOVATION</h1>
                         <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">DISCOVER COMFORT</a>
                     </div>
                 </div>
