@@ -494,11 +494,11 @@ a:hover {
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--brand-white);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #111;
+  color: var(--brand-black);
   font-size: 1.1rem;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
@@ -575,14 +575,6 @@ a:hover {
   text-transform: uppercase;
 }
 
-.text-description {
-  color: var(--text-inactive);
-  font-size: 1rem;
-  line-height: 1.5;
-  font-weight: 400;
-  margin-bottom: 1rem;
-}
-
 .product-title {
   color: var(--brand-black);
   font-weight: 700;
@@ -592,8 +584,8 @@ a:hover {
 }
 .badge-gender {
   display: inline-block;
-  background: #111;
-  color: #fff;
+  background: var(--brand-black);
+  color: var(--brand-white);
   padding: 3px 8px;
   border-radius: 999px;
   font-size: 0.65rem;
@@ -603,8 +595,8 @@ a:hover {
 }
 .size-toggle {
   border: 1px solid #ddd;
-  background: #fff;
-  color: #111;
+  background: var(--brand-white);
+  color: var(--brand-black);
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 0.8rem;
@@ -612,9 +604,9 @@ a:hover {
   text-transform: uppercase;
 }
 .size-toggle.active {
-  border-color: #111;
-  background: #111;
-  color: #fff;
+  border-color: var(--brand-black);
+  background: var(--brand-black);
+  color: var(--brand-white);
 }
 
 .text-description {
@@ -627,8 +619,8 @@ a:hover {
 }
 
 .size-label {
-  color: #121212;
-  font-family: "Outfit", sans-serif;
+  color: var(--brand-black);
+  font-family: var(--brand-font);
   font-size: 1rem;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -647,7 +639,7 @@ a:hover {
 
 /* BRANDS */
 .brand-card {
-  background: #ffffff;
+  background: var(--brand-white);
   border: 1px solid transparent;
   border-radius: 12px;
   min-height: 160px;
@@ -728,8 +720,8 @@ a:hover {
 }
 
 .editorial-section {
-  background-color: #333333;
-  color: #ffffff;
+  background-color: var(--brand-dark-gray);
+  color: var(--brand-white);
 }
 
 .editorial-title {
@@ -745,7 +737,7 @@ a:hover {
 }
 
 .editorial-copy {
-  color: #ffffff;
+  color: var(--brand-white);
   font-weight: 300;
   line-height: 1.7;
   text-align: justify;
@@ -767,7 +759,7 @@ a:hover {
 }
 
 .cta-link {
-  color: #ffffff;
+  color: var(--brand-white);
   text-decoration: underline;
   text-underline-offset: 4px;
   text-transform: lowercase;
@@ -776,7 +768,7 @@ a:hover {
 }
 
 .cta-link:hover {
-  color: #ffffff;
+  color: var(--brand-white);
   opacity: 0.8;
 }
 
@@ -785,12 +777,6 @@ a:hover {
   background: #f6f6f6;
   color: var(--brand-black);
   font-size: 1rem;
-}
-.cart-heading {
-  color: var(--brand-black);
-  font-weight: 700;
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
 }
 .cart-card {
   background: #fff;
@@ -1116,12 +1102,6 @@ input.search-pill {
 
 /* SIDEBAR CART (Offcanvas) */
 .offcanvas-cart {
-  background-color: var(--brand-black);
-  color: white;
-  border-left: 1px solid var(--brand-dark-gray);
-}
-
-.offcanvas-cart {
   background-color: #fff;
   color: #111;
   border-left: 1px solid #d9d9d9;
@@ -1183,18 +1163,9 @@ input.search-pill {
   display: inline-block;
 }
 
-/* PLP two-up grid on mobile */
-.plp-grid {
-  margin: 0 -8px;
-}
-.plp-grid > .product-col {
-  padding: 0 8px 16px;
-}
-@media (max-width: 991px) {
-  .plp-grid > .product-col {
-    width: 50%;
-  }
-}
+/* PLP two-up grid on mobile
+   NOTE: Moved to assets/css/pages/shop.css and scoped to .shop-page
+   to avoid global styles affecting other pages. */
 
 .filter-pill:hover {
   background-color: #d5d5d5;

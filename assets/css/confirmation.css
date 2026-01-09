@@ -2,8 +2,8 @@
 /* Confirmation-card, confirmation-hero, status-btn, section-divider moved to bootstrap-overrides.css */
 
 .confirmation-page {
-  background: #f6f6f6;
-  color: #111;
+  background: var(--brand-background);
+  color: var(--brand-black);
   font-family: var(--brand-font, "Outfit", sans-serif);
 }
 
@@ -110,24 +110,24 @@
   border-bottom: none;
 }
 
-summary-label {
+.summary-label {
   font-weight: 300;
   font-size: 1rem;
-  color: #121212;
+  color: var(--brand-black);
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
 
 .summary-value {
   font-size: 1rem;
-  color: #111;
+  color: var(--brand-black);
   text-align: right;
   max-width: 60%;
 }
 
 .cta-btn {
-  background: #e35926;
-  color: #fff;
+  background: var(--brand-orange);
+  color: var(--brand-white);
   border: none;
   text-transform: uppercase;
   letter-spacing: 0.35px;
@@ -141,17 +141,9 @@ summary-label {
 
 .cta-btn:hover {
   background: #cc4e21;
-  color: #fff;
+  color: var(--brand-white);
 }
 
-.status-btn {
-  display: inline-block;
-  padding: 0.65rem 1.4rem;
-  font-weight: 700;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  border-radius: 4px;
-}
 .other-item + .other-item {
   border-top: 1px solid #eee;
 }

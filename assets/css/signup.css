@@ -34,16 +34,6 @@
 }
 
 /* Help section - unique to signup page layout */
-.need-help {
-    border-top: 1px solid #ddd;
-    padding: 90px 0 80px;
-    color: #111;
-    background: #f8f9fa;
-}
-
-    justify-content: center;
-}
-
 .btn-signup-secondary:hover {
     background: #f2f2f2;
     color: #111;

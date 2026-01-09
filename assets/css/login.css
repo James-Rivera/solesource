@@ -33,41 +33,6 @@
     padding: 6rem 0;
 }
 
-/* Login page specific styles */
-/* Auth-card, auth-title, buttons, and toggles moved to bootstrap-overrides.css */
-
-.login-page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background: #f6f6f6;
-    color: #111;
-    font-family: var(--brand-font, 'Outfit', sans-serif);
-}
-
-.login-header {
-    background: #111;
-    padding: 14px 0;
-}
-
-.login-logo {
-    height: 28px;
-}
-
-.login-wrapper {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.login-main {
-    min-height: 80vh;
-    background: #f8f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6rem 0;
-}
-
 /* Help section - unique to login page layout */
 .need-help {
     border-top: 1px solid #ddd;
