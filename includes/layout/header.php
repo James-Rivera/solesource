@@ -49,7 +49,7 @@ if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 		<div class="container-xxl align-items-center">
 			<div class="d-flex align-items-center w-100 d-lg-none mobile-header-bar">
 				<a class="navbar-brand mb-0" href="index.php">
-					<img src="assets/svg/logo-big-white.svg" alt="SoleSource Logo" height="28">
+					<img src="<?php echo asset('/assets/svg/logo-big-white.svg'); ?>" alt="SoleSource Logo" height="28">
 				</a>
 				<button class="btn text-white mobile-search-btn" type="button" aria-label="Search">
 					<i class="bi bi-search fs-5"></i>
@@ -73,7 +73,7 @@ if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 			</div>
 
 			<a class="navbar-brand d-none d-lg-flex align-items-center" href="index.php">
-				<img src="assets/svg/logo-big-white.svg" alt="SoleSource Logo" height="30">
+				<img src="<?php echo asset('/assets/svg/logo-big-white.svg'); ?>" alt="SoleSource Logo" height="30">
 			</a>
 			<button class="navbar-toggler border-0 d-none" type="button" data-bs-toggle="collapse" data-bs-target="#topNav"
 				aria-controls="topNav" aria-expanded="false" aria-label="Toggle navigation">

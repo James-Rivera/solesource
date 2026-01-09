@@ -1,7 +1,7 @@
 <div id="globalLoader" class="global-loader-backdrop" aria-hidden="true">
     <div class="global-loader-content">
         <div class="global-loader-ring"></div>
-        <img src="assets/img/svg/white-logo.svg" alt="Loading" class="global-loader-logo">
+        <img src="<?php echo asset('/assets/img/svg/white-logo.svg'); ?>" alt="Loading" class="global-loader-logo">
     </div>
 </div>
 
@@ -11,7 +11,7 @@
             
             <div class="col-lg-4 col-md-6 d-flex flex-column align-items-start">
                 <a href="index.php" class="d-inline-block text-decoration-none p-0 m-0 mb-3">
-                    <img src="assets/svg/logo-big-white.svg" alt="SoleSource" height="35" class="d-block" style="margin-left: -5px;"> 
+                    <img src="<?php echo asset('/assets/svg/logo-big-white.svg'); ?>" alt="SoleSource" height="35" class="d-block" style="margin-left: -5px;"> 
                     </a>
                 <p class="text-white small m-0">Verify. Buy. Flex.</p>
             </div>
@@ -93,9 +93,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/main.js"></script>
-<script src="assets/js/cart.js"></script>
-<script src="assets/js/ai-chat.js"></script>
+<script src="<?php echo asset('/assets/js/main.js'); ?>"></script>
+<script src="<?php echo asset('/assets/js/cart.js'); ?>"></script>
+<script src="<?php echo asset('/assets/js/ai-chat.js'); ?>"></script>
 <script>
 (function() {
     const loader = document.getElementById('globalLoader');
