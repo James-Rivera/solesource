@@ -306,14 +306,39 @@ document.addEventListener('DOMContentLoaded', () => {
             addressSubmitBtn?.setAttribute('disabled', 'disabled');
             const res = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify(payload),
             });
-            const data = await res.json();
+
+            if (res.status === 401) {
+                window.location.href = 'login.php?redirect=profile';
+                return false;
+            }
+
+            const ct = (res.headers.get('content-type') || '').toLowerCase();
+            let data = null;
+
+            if (ct.includes('application/json')) {
+                try {
+                    data = await res.json();
+                } catch (parseErr) {
+                    const raw = await res.text().catch(() => '');
+                    console.error('Address API JSON parse error:', parseErr, raw);
+                    setError('Unable to save address. Please try again.');
+                    return false;
+                }
+            } else {
+                const raw = await res.text().catch(() => '');
+                console.error('Address API returned non-JSON:', raw);
+                setError('Unable to save address. Please try again.');
+                return false;
+            }
+
             if (!res.ok || !data?.ok) {
                 setError(data?.error || 'Unable to save address.');
                 return false;
             }
+
             await refreshAddresses();
             modal?.hide();
             document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());

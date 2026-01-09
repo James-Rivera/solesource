@@ -100,17 +100,6 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/confirmation.css">
-    <style>
-        .status-btn {
-            display: inline-block;
-            padding: 0.65rem 1.4rem;
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            border-radius: 4px;
-        }
-        .other-item + .other-item { border-top: 1px solid #eee; }
-    </style>
 </head>
 
 <body class="confirmation-page">
@@ -120,8 +109,8 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-9 col-xl-8">
-                    <div class="confirmation-card">
-                        <div class="confirmation-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div class="confirmation-card ">
+                        <div class="confirmation-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 py-4 px-5">
                             <div>
                                 <div class="label">ORDER ID</div>
                                 <div class="order-id"><?php echo htmlspecialchars($orderDisplayId); ?></div>
@@ -159,24 +148,24 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
                                 <div class="order-summary-title mb-3 text-uppercase">Complete Order Details</div>
                                 <div class="d-flex flex-column gap-3">
                                     <div class="d-flex align-items-start">
-                                        <div class="summary-label text-uppercase text-muted small">Order Number</div>
-                                        <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars($order['order_number'] ?: $orderDisplayId); ?></div>
+                                        <div class="summary-label text-uppercase text-muted">Order Number</div>
+                                        <div class="summary-value text-muted ms-auto text-end"><?php echo htmlspecialchars($order['order_number'] ?: $orderDisplayId); ?></div>
                                     </div>
                                     <div class="d-flex align-items-start">
-                                        <div class="summary-label text-uppercase text-muted small">Order Date</div>
-                                        <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars($orderDate); ?></div>
+                                        <div class="summary-label text-uppercase text-muted">Order Date</div>
+                                        <div class="summary-value text-muted ms-auto text-end"><?php echo htmlspecialchars($orderDate); ?></div>
                                     </div>
                                     <div class="d-flex align-items-start">
-                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Customer</div>
-                                        <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars($order['full_name'] ?? ''); ?></div>
+                                        <div class="summary-label text-uppercase text-muted">Customer</div>
+                                        <div class="summary-value text-muted ms-auto text-end"><?php echo htmlspecialchars($order['full_name'] ?? ''); ?></div>
                                     </div>
                                     <div class="d-flex align-items-start">
-                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Shipping Address</div>
-                                        <div class="summary-value fw-bold ms-auto text-end" style="white-space: pre-line;"><?php echo nl2br(htmlspecialchars($shippingAddress)); ?></div>
+                                        <div class="summary-label text-uppercase text-muted">Shipping Address</div>
+                                        <div class="summary-value text-muted ms-auto text-end" style="white-space: pre-line;"><?php echo nl2br(htmlspecialchars($shippingAddress)); ?></div>
                                     </div>
                                     <div class="d-flex align-items-start">
-                                        <div class="summary-label text-uppercase text-muted" style="font-size: 0.85rem;">Payment</div>
-                                        <div class="summary-value fw-bold ms-auto text-end"><?php echo htmlspecialchars(($order['payment_method'] ?? '') === 'COD' ? 'Cash on Delivery' : ($order['payment_method'] ?? '')); ?></div>
+                                        <div class="summary-label text-uppercase text-muted">Payment</div>
+                                        <div class="summary-value text-muted ms-auto text-end"><?php echo htmlspecialchars(($order['payment_method'] ?? '') === 'COD' ? 'Cash on Delivery' : ($order['payment_method'] ?? '')); ?></div>
                                     </div>
                                 </div>
                             </div>

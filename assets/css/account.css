@@ -517,6 +517,18 @@
   letter-spacing: 0.5px;
 }
 
+.btn-profile-logout{
+  background: #e35926;
+  color: #fff;
+  text-transform: uppercase;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.btn-profile-logout:hover {
+  background: #cc4e21;
+}
+
 @media (max-width: 991px) {
   .profile-hero-icon {
     display: none;
@@ -528,7 +540,6 @@
     gap: 1rem;
     border: 1px solid #ededed;
     border-radius: 12px;
-    background: #fff;
     padding: 1.25rem;
     margin-bottom: 1rem;
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);

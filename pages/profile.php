@@ -370,7 +370,7 @@ $addrStmt->close();
                             <div class="tab-content">
                                 <!-- Personal Information -->
                                 <div class="tab-pane fade show active" id="personal-info">
-                                    <h1 class="settings-content-title">MY DETAILS</h1>
+                                    <h1 class="settings-content-title pt-4 pt-sm-0">MY DETAILS</h1>
                                     <p class="settings-subtitle">Feel free to edit any of your details below so your account is up to date</p>
 
                                     <?php if ($personal_success): ?>
@@ -381,7 +381,7 @@ $addrStmt->close();
 
                                     <!-- Personal Details -->
                                     <div class="settings-section" id="settings-details">
-                                        <h3 class="settings-section-title">DETAILS</h3>
+                                        <h3 class="settings-section-title ">DETAILS</h3>
                                         <div class="settings-detail-item">
                                             <div class="settings-detail-label">NAME</div>
                                             <div class="settings-detail-value"><?php echo $user['name']; ?></div>
@@ -425,7 +425,7 @@ $addrStmt->close();
 
                                 <!-- Address View -->
                                 <div class="tab-pane fade" id="address-view">
-                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 pt-4 pt-sm-0">
                                         <div>
                                             <h1 class="settings-content-title mb-1">MY ADDRESS</h1>
                                             <p class="settings-subtitle mb-0">Please add your address for easier shopping</p>
@@ -617,7 +617,7 @@ $addrStmt->close();
                             <div class="col-12">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="addressDefault" name="is_default" value="1">
-                                    <label class="form-check-label" for="addressDefault">Set as default address</label>
+                                    <label class="form-check-label text-black" for="addressDefault">Set as default address</label>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -666,7 +666,7 @@ $addrStmt->close();
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4 text-brand-black" data-bs-dismiss="modal">Cancel</button>
-                    <a href="logout.php" class="btn btn-brand-orange px-4">Yes, Log Out</a>
+                    <a href="logout.php" class="btn btn-profile-logout px-4 text-brand-white">Yes, Log Out</a>
                 </div>
             </div>
         </div>
