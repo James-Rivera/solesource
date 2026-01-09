@@ -80,35 +80,43 @@ $title = 'SoleSource | Premium Sneakers';
     ?>
 
 
-    <!-- Boutique Curator Hero Carousel -->
+    <!-- Curator Hero Carousel -->
     <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-pause="hover">
         <div class="carousel-inner">
-            <!-- Video Slide: Nike AF1 -->
+            <!-- Video Slide: Nike -->
             <div class="carousel-item active" data-bs-interval="20000">
-                <video class="hero-video" autoplay muted loop playsinline poster="assets/img/products/nike-af1.jpg">
-                    <source src="assets/videos/nike-af1-spec.mp4" type="video/mp4">
+                <!-- Mobile: Static Image -->
+                <img src="assets/img/promo/nike/af1-promo.webp" class="d-block d-md-none w-100 h-100 hero-img" alt="Nike Air Force 1" style="object-fit: cover; height: 70vh;">
+                <!-- Desktop: Video -->
+                <video class="hero-video" autoplay muted loop playsinline poster="assets/img/promo/nike/af1-promo.webp">
+                    <source src="assets/videos/nike-af1-spec.mp4#t=0.001" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
                 <div class="hero-overlay"></div>
                 <div class="carousel-caption d-flex flex-column justify-content-end">
                     <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
-                        <p class="hero-subtitle text-uppercase mb-2">now available</p>
+                        <p class="hero-subtitle text-uppercase mb-2">THE ARCHIVE SERIES</p>
                         <hr class="hero-separator" />
-                        <h1 class="display-2 fw-bold mb-4">ADIDAS FORCE 1</h1>
+                        <h1 class="display-2 fw-bold mb-4">ICONIC BY DESIGN.</h1>
                         <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">SHOP NOW</a>
                     </div>
                 </div>
             </div>
 
             <!-- Image Slide: Adidas Pharrell -->
-            <div class="carousel-item" data-bs-interval="5000">
-                <img src="assets/img/products/adidas-pharrell.jpg" class="d-block w-100 hero-img" alt="Adidas Pharrell Collaboration">
+            <div class="carousel-item" data-bs-interval="20000">
+                <img src="assets/img/promo/adidas/adidas-promo.jpg" class="d-block w-100 h-100 hero-img" alt="Adidas Pharrell Collaboration">
+                <!-- Desktop: Video -->
+                <video class="hero-video" autoplay muted loop playsinline poster="assets/img/promo/nike/af1-promo.webp">
+                    <source src="assets/videos/adi-promo.mp4#t=0.001" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
                 <div class="hero-overlay"></div>
                 <div class="carousel-caption d-flex flex-column justify-content-end">
                     <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
-                        <p class="hero-subtitle text-uppercase mb-2">now available</p>
+                        <p class="hero-subtitle text-uppercase mb-2">THE TERRACE CLASSIC</p>
                         <hr class="hero-separator" />
-                        <h1 class="display-2 fw-bold mb-4">ADIDAS x PHARRELL</h1>
+                        <h1 class="display-2 fw-bold mb-4">SIMPLY TIMELESS</h1>
                         <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">VIEW MORE</a>
                     </div>
                     
@@ -116,30 +124,42 @@ $title = 'SoleSource | Premium Sneakers';
             </div>
 
             <!-- Image Slide: Jordan Legacy -->
-            <div class="carousel-item" data-bs-interval="5000">
-                <img src="assets/img/products/jordan-legacy.jpg" class="d-block w-100 hero-img" alt="Jordan Legacy Collection">
+            <div class="carousel-item" data-bs-interval="20000">
+                <!-- Mobile: Static Image -->
+                <img src="assets/img/promo/jordan/jordan-promo.jpg" class="d-block d-md-none w-100 hero-img" alt="Jordan Legacy">
+                <!-- Desktop: Video -->
+                <video class="hero-video d-none d-md-block" autoplay muted loop playsinline poster="assets/img/promo/jordan/jordan-promo.jpg">
+                    <source src="assets/videos/jordan-legacy.mp4#t=0.001" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
                 <div class="hero-overlay"></div>
                 <div class="carousel-caption d-flex flex-column justify-content-end">
                     <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
-                        <p class="hero-subtitle text-uppercase mb-2">now available</p>
+                        <p class="hero-subtitle text-uppercase mb-2">ESTABLISHED 1985</p>
                         <hr class="hero-separator" />
                         <h1 class="display-2 fw-bold mb-4">JORDAN LEGACY</h1>
+                        <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">EXPLORE THE GRAILS</a>
                     </div>
-                    <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">EXPLORE</a>
                 </div>
             </div>
 
             <!-- Image Slide: Asics Innovation -->
-            <div class="carousel-item" data-bs-interval="5000">
-                <img src="assets/img/products/asics-innovation.jpg" class="d-block w-100 hero-img" alt="Asics Innovation">
+            <div class="carousel-item" data-bs-interval="20000">
+                <!-- Mobile: Static Image -->
+                <img src="assets/img/promo/asics/asics-promo.webp" class="d-block d-md-none w-100 hero-img" alt="Asics Innovation">
+                <!-- Desktop: Video -->
+                <video class="hero-video d-none d-md-block" autoplay muted loop playsinline poster="assets/img/promo/asics/asics-promo.webp">
+                    <source src="assets/videos/asics-innovation.mp4#t=0.001" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
                 <div class="hero-overlay"></div>
                 <div class="carousel-caption d-flex flex-column justify-content-end">
                     <div class="container-xxl hero-caption-grid px-3 px-xxl-0">
-                        <p class="hero-subtitle text-uppercase mb-2">now available</p>
+                        <p class="hero-subtitle text-uppercase mb-2">PERFORMANCE ART</p>
                         <hr class="hero-separator" />
                         <h1 class="display-2 fw-bold mb-4">ASICS INNOVATION</h1>
+                        <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">DISCOVER COMFORT</a>
                     </div>
-                    <a href="index.php?page=shop" class="btn btn-brand-orange btn-lg fw-bold mt-2">DISCOVER</a>
                 </div>
             </div>
         </div>
