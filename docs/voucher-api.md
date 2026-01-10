@@ -35,6 +35,7 @@ Creates a voucher for a student or triggers SMS issuance.
 | `phone-number` | string | required when `channel`=`sms` | E.164 format |
 | `discount-type` | `percent` or `fixed` | optional | Defaults: `percent` |
 | `discount-value` | number | optional | Defaults: 10% for API, 5% for SMS |
+| `expires-at` | ISO datetime | optional | Provide custom expiry (default 7 days) |
 
 ### Responses
 | Status | Body |
@@ -53,6 +54,7 @@ Redeems a voucher during checkout and notifies SoleSource + collaborator backend
 | `voucher-code` | string | yes |
 | `student-id` | string | yes |
 | `order-number` | string | yes |
+| `order-subtotal` | number | optional | Send original order amount before discounts |
 
 ### Responses
 | Status | Body |
@@ -69,10 +71,12 @@ After a successful redemption, SoleSource POSTs to `COLLAB_WEBHOOK_URL` with:
   "code": "REWARD-1A2B",
   "student-id": "course-42",
   "order-number": "ORDER-9001",
+  "order-subtotal": 4999,
   "redeemed-at": "2026-01-15T06:21:00Z",
   "remaining-uses": 0,
   "can-reuse": false,
   "discount-applied": 450,
+  "discount-type": "percent",
   "integration": "course"
 }
 ```
@@ -92,10 +96,11 @@ Checks if a code is valid and returns the configured discount (useful before sho
 | Field | Type | Required |
 | --- | --- | --- |
 | `voucher-code` | string | yes |
+| `order-subtotal` | number | optional |
 
 ### Responses
 | Status | Body |
 | --- | --- |
-| `200 OK` | `{ "ok": true, "voucher": { "code": "REWARD-1A2B", "discount_type": "percent", "discount_value": 10 } }` |
+| `200 OK` | `{ "ok": true, "voucher": { "code": "REWARD-1A2B", "discount_type": "percent", "discount_value": 10, "discount_amount": 450 } }` |
 | `404 Not Found` | `{ "ok": false, "error": "voucher-not-found" }` |
 | `409 Conflict` | `{ "ok": false, "error": "voucher-expired" }` |
