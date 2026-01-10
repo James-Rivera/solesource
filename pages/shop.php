@@ -223,7 +223,7 @@ foreach ($price_ranges as $range) {
 
         // Pagination
         $per_page = 12;
-        $page = max(1, (int)($_GET['page'] ?? 1));
+        $page = max(1, (int)($_GET['page_num'] ?? 1));
         $offset = ($page - 1) * $per_page;
 
         // Total count with current filters
@@ -262,7 +262,8 @@ foreach ($price_ranges as $range) {
 
         $build_page_link = function($targetPage) {
             $query = $_GET;
-            $query['page'] = $targetPage;
+            $query['page_num'] = $targetPage;
+            unset($query['page']); // Remove router param if present
             return 'shop.php?' . http_build_query($query);
         };
 
