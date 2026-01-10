@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../includes/connect.php';
 require_once __DIR__ . '/../includes/mailer.php';
-require_once __DIR__ . '/../includes/orders/receipt_email.php';
+require_once __DIR__ . '/../includes/orders/receipt-email.php';
 
 $paypalClientId = getenv('PAYPAL_CLIENT_ID');
 

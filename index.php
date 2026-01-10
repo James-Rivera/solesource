@@ -8,12 +8,12 @@ $routes = [
     'login' => __DIR__ . '/pages/login.php',
     'logout' => __DIR__ . '/pages/logout.php',
     'product' => __DIR__ . '/pages/product-details.php',
+    //fallback
     'product-details' => __DIR__ . '/pages/product-details.php',
     'profile' => __DIR__ . '/pages/profile.php',
     'shop' => __DIR__ . '/pages/shop.php',
     'signup' => __DIR__ . '/pages/signup.php',
-    'view_order' => __DIR__ . '/pages/view_order.php',
-    'view-order' => __DIR__ . '/pages/view_order.php',
+    'view_order' => __DIR__ . '/pages/view-order.php',
     'test-mail' => __DIR__ . '/pages/test-mail.php',
 ];
 
