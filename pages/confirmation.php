@@ -239,7 +239,7 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
                 setTimeout(poll, 5000);
             })
             .catch(() => {
-                setState('Waiting for email status…', 'alert-warning');
+                setState('We’re finalizing your receipt. It usually arrives within a few minutes—check spam or contact support if it’s missing.', 'alert-warning');
                 setTimeout(poll, 8000);
             });
     };

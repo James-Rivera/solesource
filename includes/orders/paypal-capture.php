@@ -4,7 +4,10 @@ header('Content-Type: application/json');
 ob_start(); // Buffer output to keep JSON responses clean
 require_once __DIR__ . '/../connect.php';
 require_once __DIR__ . '/../mailer.php';
-require_once __DIR__ . '/../orders/receipt_email.php';
+require_once __DIR__ . '/../orders/receipt-email.php';
+require_once __DIR__ . '/../vouchers/service.php';
+
+use Vouchers\ClientError;
 
 function ensure_payment_table(mysqli $conn): void {
     $sql = "CREATE TABLE IF NOT EXISTS payment_transactions (
@@ -181,6 +184,27 @@ if (empty($cartItems)) {
     respond(400, ['ok' => false, 'error' => 'Cart is empty']);
 }
 
+$voucherCode = strtoupper(trim($_POST['voucher_code'] ?? ''));
+$voucherApplied = null;
+$voucherDiscount = 0.0;
+
+if ($voucherCode !== '') {
+    try {
+        $voucherApplied = Vouchers\previewVoucher($conn, $voucherCode);
+        $voucherDiscount = Vouchers\computeDiscount($subtotal, $voucherApplied);
+    } catch (ClientError $e) {
+        $status = $e->getMessage() === 'voucher_not_found' ? 404 : 409;
+        respond($status, ['ok' => false, 'error' => str_replace('_', '-', $e->getMessage())]);
+    } catch (Throwable $e) {
+        respond(500, ['ok' => false, 'error' => 'voucher_unavailable']);
+    }
+}
+
+$totalAmount = max(0.0, $subtotal - $voucherDiscount);
+if ($totalAmount <= 0) {
+    respond(400, ['ok' => false, 'error' => 'voucher_covers_total']);
+}
+
 $clientId = getenv('PAYPAL_CLIENT_ID');
 $secret = getenv('PAYPAL_CLIENT_SECRET');
 $baseUrl = getenv('PAYPAL_BASE_URL') ?: 'https://api-m.sandbox.paypal.com';
@@ -220,8 +244,12 @@ if (!empty($capture['purchase_units'][0]['payments']['captures'][0]['id'])) {
 $userId = (int) $_SESSION['user_id'];
 $orderNumber = 'SO-' . date('YmdHis') . '-' . rand(1000, 9999);
 $shippingAddress = implode(', ', array_filter([$address, $barangay, $city, $province, $region, $postal, $country]));
+$paymentMethod = 'PayPal';
+$orderStatus = 'confirmed';
 
 try {
+    $voucherCodeForSave = $voucherApplied['code'] ?? null;
+    $voucherTypeForSave = $voucherApplied['discount_type'] ?? 'percent';
     $conn->begin_transaction();
 
     // Stock validation with locks
@@ -253,14 +281,16 @@ try {
         }
     }
 
-    $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, payment_method, status, phone, full_name, address, city, province, region, barangay, zip_code, country, shipping_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $paymentMethod = 'PayPal';
-    $orderStatus = 'confirmed';
+    $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, subtotal_amount, voucher_code, voucher_discount, voucher_discount_type, payment_method, status, phone, full_name, address, city, province, region, barangay, zip_code, country, shipping_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmtOrder->bind_param(
-        'isdssssssssssss',
+        'isddsds' . str_repeat('s', 12),
         $userId,
         $orderNumber,
+        $totalAmount,
         $subtotal,
+        $voucherCodeForSave,
+        $voucherDiscount,
+        $voucherTypeForSave,
         $paymentMethod,
         $orderStatus,
         $phone,
@@ -321,7 +351,11 @@ try {
         'paymentMethod' => 'PayPal',
         'shippingAddress' => $shippingAddress,
         'cartItems' => $cartItems,
-        'totalAmount' => $subtotal,
+        'totalAmount' => $totalAmount,
+        'subtotalAmount' => $subtotal,
+        'voucherCode' => $voucherCodeForSave,
+        'voucherDiscount' => $voucherDiscount,
+        'voucherType' => $voucherTypeForSave,
         'orderDate' => date('F j, Y'),
     ]);
 
@@ -341,6 +375,26 @@ try {
     }
 
     unset($_SESSION['cart']);
+
+    if ($voucherApplied) {
+        try {
+            $redeemerId = !empty($voucherApplied['student_id']) ? $voucherApplied['student_id'] : (string) $userId;
+            $redeemResult = Vouchers\markRedeemed($conn, $voucherApplied['code'], $redeemerId, $orderNumber, $voucherDiscount);
+            if (($voucherApplied['source'] ?? '') === 'api' && !empty($voucherApplied['student_id'])) {
+                Vouchers\notifyCollaborator([
+                    'code' => $voucherApplied['code'],
+                    'student-id' => $voucherApplied['student_id'],
+                    'order-number' => $orderNumber,
+                    'redeemed-at' => date(DATE_ATOM),
+                    'remaining-uses' => $redeemResult['remaining_uses'] ?? 0,
+                    'can-reuse' => $redeemResult['canReuse'] ?? false,
+                    'discount-applied' => $voucherDiscount,
+                ]);
+            }
+        } catch (Throwable $e) {
+            error_log('PayPal voucher redeem failed for order ' . $orderNumber . ': ' . $e->getMessage());
+        }
+    }
 
     respond(200, [
         'ok' => true,

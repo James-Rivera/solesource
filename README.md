@@ -15,6 +15,7 @@ It delivers a complete storefront experience with user accounts, checkout, admin
 - Tech Stack
 - Project Structure
 - Integrations & Data
+- Vouchers & Discounts
 - Local Development
 - Environment Variables
 - Database Setup
@@ -41,6 +42,7 @@ It supports both customer-facing shopping flows and administrative operations, m
 - Product detail pages with size selection and recommendations
 - Shopping cart and checkout flow with delivery and payment selection
 - User accounts with profile, wishlist, saved addresses, and order history
+- Voucher codes issued via API/SMS that checkout, receipts, PayPal, and admin views now honor end-to-end
 - AI assistant entrypoint for contextual shopping help
 - Admin dashboard for managing products, users, orders, and settings
 
@@ -89,6 +91,23 @@ It supports both customer-facing shopping flows and administrative operations, m
 - **Email:** SMTP via PHPMailer
 - **AI Assistant:** Configurable provider keys and endpoint
 - **Optional:** SMS gateway integration
+
+---
+
+## Vouchers & Discounts
+- Order records persist `subtotal_amount`, `voucher_code`, `voucher_discount`, and `voucher_discount_type`. Run the latest migration (`sql/migrations/2026-01-17-orders-add-voucher-columns.sql`) after pulling new code to add these columns.
+- Checkout, receipts, PayPal capture, and admin/customer order views automatically display voucher usage once the migration is applied.
+- Public APIs plus SMS intake are documented in [docs/voucher-api.md](docs/voucher-api.md); release notes live in [docs/voucher-change-notes.md](docs/voucher-change-notes.md).
+- Each collaborator gets an API key. All voucher endpoints expect Bearer auth and kebab-case JSON payloads.
+
+### Quick voucher issuance (PowerShell)
+```powershell
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+$headers = @{ Authorization = 'Bearer <API_KEY>'; 'Content-Type' = 'application/json' }
+$body = @{ 'student-id' = 'sandbox-checkout'; 'discount-type' = 'percent'; 'discount-value' = 12 } | ConvertTo-Json
+Invoke-RestMethod -Uri 'https://dev.art2cart.shop/api/vouchers/generate.php' -Headers $headers -Method Post -Body $body
+```
+> If you are hitting the development endpoint behind a self-signed cert, temporarily trust the certificate (recommended) or set `ServerCertificateValidationCallback` in your shell session while testing.
 
 ---
 

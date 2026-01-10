@@ -3,6 +3,7 @@ session_start();
 require_once __DIR__ . '/../includes/connect.php';
 require_once __DIR__ . '/../includes/mailer.php';
 require_once __DIR__ . '/../includes/orders/receipt-email.php';
+require_once __DIR__ . '/../includes/vouchers/service.php';
 
 $paypalClientId = getenv('PAYPAL_CLIENT_ID');
 
@@ -130,9 +131,27 @@ if (empty($cartItems)) {
     exit;
 }
 
+$voucherCodeInput = '';
+$voucherApplied = null;
+$voucherDiscount = 0.0;
+$totalAmount = $subtotal;
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $voucherCodeInput = strtoupper(trim($_POST['voucher_code'] ?? ''));
+    if ($voucherCodeInput !== '') {
+        try {
+            $voucherApplied = Vouchers\previewVoucher($conn, $voucherCodeInput);
+            $voucherDiscount = Vouchers\computeDiscount($subtotal, $voucherApplied);
+        } catch (Vouchers\ClientError $e) {
+            $errors[] = 'Voucher error: ' . str_replace('_', ' ', $e->getMessage());
+        } catch (Throwable $e) {
+            $errors[] = 'Voucher error: unavailable';
+        }
+    }
+    $totalAmount = max(0.0, $subtotal - $voucherDiscount);
+    $isApplyOnly = isset($_POST['apply_voucher']);
+
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $fullName = trim($_POST['full_name'] ?? ($user['full_name'] ?? ''));
@@ -145,31 +164,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $country = 'Philippines';
     $paymentMethod = trim($_POST['payment'] ?? 'COD');
 
-    if ($paymentMethod === 'PayPal') {
-        $errors[] = 'Please complete payment using the PayPal button below. No order was created.';
-    }
+    if (!$isApplyOnly) {
+        if ($paymentMethod === 'PayPal') {
+            $errors[] = 'Please complete payment using the PayPal button below. No order was created.';
+        }
 
-    $required = [
-        'Email' => $email,
-        'Phone' => $phone,
-        'Full Name' => $fullName,
-        'Address (Street/House No.)' => $address,
-        'Region' => $region,
-        'Province/State' => $province,
-        'City/Municipality' => $city,
-        'Barangay' => $barangay,
-        'Postal Code' => $postal,
-        'Country' => $country,
-    ];
-    foreach ($required as $label => $value) {
-        if ($value === '') {
-            $errors[] = "$label is required.";
+        $required = [
+            'Email' => $email,
+            'Phone' => $phone,
+            'Full Name' => $fullName,
+            'Address (Street/House No.)' => $address,
+            'Region' => $region,
+            'Province/State' => $province,
+            'City/Municipality' => $city,
+            'Barangay' => $barangay,
+            'Postal Code' => $postal,
+            'Country' => $country,
+        ];
+        foreach ($required as $label => $value) {
+            if ($value === '') {
+                $errors[] = "$label is required.";
+            }
         }
     }
 
-    if (!$errors) {
+    if (!$errors && !$isApplyOnly) {
         $orderNumber = 'SO-' . date('YmdHis') . '-' . rand(1000, 9999);
-        $totalAmount = $subtotal;
         $shippingAddress = implode(', ', array_filter([$address, $barangay, $city, $province, $region, $postal, $country]));
 
         // Stock validation and reservation
@@ -213,8 +233,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = array_merge($errors, $stockErrors);
         } else {
             // Create order and items, then decrement stock
-            $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, payment_method, phone, full_name, address, city, province, region, barangay, zip_code, country, shipping_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmtOrder->bind_param('isdsssssssssss', $userId, $orderNumber, $totalAmount, $paymentMethod, $phone, $fullName, $address, $city, $province, $region, $barangay, $postal, $country, $shippingAddress);
+            $voucherCodeForSave = $voucherApplied['code'] ?? null;
+            $voucherTypeForSave = $voucherApplied['discount_type'] ?? 'percent';
+            $stmtOrder = $conn->prepare("INSERT INTO orders (user_id, order_number, total_amount, subtotal_amount, voucher_code, voucher_discount, voucher_discount_type, payment_method, phone, full_name, address, city, province, region, barangay, zip_code, country, shipping_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmtOrder->bind_param(
+                'isddsds' . str_repeat('s', 11),
+                $userId,
+                $orderNumber,
+                $totalAmount,
+                $subtotal,
+                $voucherCodeForSave,
+                $voucherDiscount,
+                $voucherTypeForSave,
+                $paymentMethod,
+                $phone,
+                $fullName,
+                $address,
+                $city,
+                $province,
+                $region,
+                $barangay,
+                $postal,
+                $country,
+                $shippingAddress
+            );
             $stmtOrder->execute();
             $orderId = $stmtOrder->insert_id;
             $stmtOrder->close();
@@ -246,6 +288,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $conn->commit();
 
+            if ($voucherApplied) {
+                $voucherRedeemerId = !empty($voucherApplied['student_id']) ? $voucherApplied['student_id'] : (string)$userId;
+                try {
+                    $redeemResult = Vouchers\markRedeemed($conn, $voucherApplied['code'], $voucherRedeemerId, $orderNumber, $voucherDiscount);
+                    if (($voucherApplied['source'] ?? '') === 'api' && !empty($voucherApplied['student_id'])) {
+                        Vouchers\notifyCollaborator([
+                            'code' => $voucherApplied['code'],
+                            'student-id' => $voucherApplied['student_id'],
+                            'order-number' => $orderNumber,
+                            'redeemed-at' => date(DATE_ATOM),
+                            'remaining-uses' => $redeemResult['remaining_uses'] ?? 0,
+                            'can-reuse' => $redeemResult['canReuse'] ?? false,
+                            'discount-applied' => $voucherDiscount,
+                        ]);
+                    }
+                } catch (Throwable $e) {
+                    error_log('Voucher redeem failed for order ' . $orderNumber . ': ' . $e->getMessage());
+                }
+            }
+
             $emailData = build_receipt_email([
                 'orderId' => $orderId,
                 'orderNumber' => $orderNumber,
@@ -254,6 +316,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'shippingAddress' => $shippingAddress,
                 'cartItems' => $cartItems,
                 'totalAmount' => $totalAmount,
+                'subtotalAmount' => $subtotal,
+                'voucherCode' => $voucherCodeForSave,
+                'voucherDiscount' => $voucherDiscount,
+                'voucherType' => $voucherTypeForSave,
             ]);
 
             try {
@@ -322,7 +388,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="container-xxl mt-3">
             <h1>Checkout</h1>
-            <div class="sub"><?php echo '(' . (int) $totalItems . ' item' . ($totalItems === 1 ? '' : 's') . ') - ₱' . number_format($subtotal, 2); ?></div>
+            <div class="sub"><?php echo '(' . (int) $totalItems . ' item' . ($totalItems === 1 ? '' : 's') . ') - ₱' . number_format($totalAmount, 2); ?></div>
         </div>
     </header>
 
@@ -426,6 +492,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="section-block mb-4">
+                            <div class="section-title">Voucher</div>
+                            <div class="input-group">
+                                <input type="text" name="voucher_code" class="form-control" placeholder="Enter voucher code" value="<?php echo htmlspecialchars($voucherCodeInput); ?>">
+                                <button class="btn btn-outline-dark" type="submit" name="apply_voucher" value="1">Apply</button>
+                            </div>
+                            <?php if ($voucherApplied): ?>
+                                <div class="text-success small mt-2">
+                                    Applied <?php echo htmlspecialchars($voucherApplied['code']); ?> &middot;
+                                    <?php echo $voucherApplied['discount_type'] === 'percent'
+                                        ? htmlspecialchars($voucherApplied['discount_value']) . '% off'
+                                        : '₱' . number_format($voucherApplied['discount_value'], 2) . ' off'; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="section-block mb-4">
                             <div class="section-title">Payment</div>
                             <div class="row g-3">
                                 <div class="col-md-4">
@@ -471,12 +553,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span class="summary-title">ORDER SUMMARY</span>
                                 <a href="cart.php" class="summary-link">edit</a>
                             </div>
+                            <?php if ($voucherApplied): ?>
+                            <div class="summary-voucher mb-3 text-success small">
+                                Voucher applied: <?php echo htmlspecialchars($voucherApplied['code']); ?> &middot;
+                                <?php echo $voucherApplied['discount_type'] === 'percent'
+                                    ? htmlspecialchars($voucherApplied['discount_value']) . '% off'
+                                    : '₱' . number_format($voucherApplied['discount_value'], 2) . ' off'; ?>
+                            </div>
+                            <?php endif; ?>
                             <div class="summary-row">
                                 <span>Subtotal
                                     <i class="bi bi-question-circle ms-1 summary-question" data-bs-toggle="tooltip" data-bs-placement="top" title="Items total before delivery and fees."></i>
                                 </span>
                                 <span>₱<?php echo number_format($subtotal, 2); ?></span>
                             </div>
+                            <?php if ($voucherDiscount > 0): ?>
+                            <div class="summary-row text-success">
+                                <span>Voucher Discount</span>
+                                <span>-₱<?php echo number_format($voucherDiscount, 2); ?></span>
+                            </div>
+                            <?php endif; ?>
                             <div class="summary-row">
                                 <span>Delivery &amp; Handling</span>
                                 <span>Free</span>
@@ -484,7 +580,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <hr class="summary-divider">
                             <div class="summary-row summary-total">
                                 <span>Total</span>
-                                <span>₱<?php echo number_format($subtotal, 2); ?></span>
+                                <span>₱<?php echo number_format($totalAmount, 2); ?></span>
                             </div>
                             <div class="est-title mt-3">Estimated Delivery</div>
                             <?php foreach ($cartItems as $ci): ?>
@@ -512,7 +608,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="mobile-summary-bar d-lg-none">
         <div class="d-flex flex-column">
             <span class="text-muted small">Total</span>
-            <span class="mobile-summary-total">₱<?php echo number_format($subtotal, 2); ?></span>
+            <span class="mobile-summary-total">₱<?php echo number_format($totalAmount, 2); ?></span>
         </div>
         <button class="btn mobile-summary-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSummaryDrawer" aria-controls="mobileSummaryDrawer">
             View summary
@@ -525,16 +621,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="offcanvas-header pt-0 pb-2">
             <div>
                 <div class="text-uppercase fw-bold small text-muted">Order Total</div>
-                <div class="fs-4 fw-bold text-brand-black">₱<?php echo number_format($subtotal, 2); ?></div>
+                <div class="fs-4 fw-bold text-brand-black">₱<?php echo number_format($totalAmount, 2); ?></div>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
             <div class="summary-card">
+                <?php if ($voucherDiscount > 0): ?>
+                <div class="summary-voucher mb-3 text-success small">
+                    Voucher applied: <?php echo htmlspecialchars($voucherApplied['code']); ?> &middot;
+                    <?php echo $voucherApplied['discount_type'] === 'percent'
+                        ? htmlspecialchars($voucherApplied['discount_value']) . '% off'
+                        : '₱' . number_format($voucherApplied['discount_value'], 2) . ' off'; ?>
+                </div>
+                <?php endif; ?>
                 <div class="summary-row">
                     <span>Subtotal</span>
                     <span>₱<?php echo number_format($subtotal, 2); ?></span>
                 </div>
+                <?php if ($voucherDiscount > 0): ?>
+                <div class="summary-row text-success">
+                    <span>Voucher Discount</span>
+                    <span>-₱<?php echo number_format($voucherDiscount, 2); ?></span>
+                </div>
+                <?php endif; ?>
                 <div class="summary-row">
                     <span>Delivery &amp; Handling</span>
                     <span>Free</span>
@@ -542,7 +652,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <hr class="summary-divider">
                 <div class="summary-row summary-total">
                     <span>Total</span>
-                    <span>₱<?php echo number_format($subtotal, 2); ?></span>
+                    <span>₱<?php echo number_format($totalAmount, 2); ?></span>
                 </div>
                 <div class="est-title mt-3">Items</div>
                 <?php foreach ($cartItems as $ci): ?>
@@ -945,7 +1055,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const payPalWrap = document.getElementById('paypal-button-wrap');
                 const payPalContainer = document.getElementById('paypal-button-container');
                 const payPalRadio = document.getElementById('pay-paypal');
+                const voucherInput = document.querySelector('input[name="voucher_code"]');
                 let buttonsInstance = null;
+
+                const getVoucherCode = () => (voucherInput?.value || '').trim().toUpperCase();
+
+                const parseJsonResponse = async (response, label) => {
+                    const raw = await response.text();
+                    try {
+                        return JSON.parse(raw || '{}');
+                    } catch (err) {
+                        console.error('PayPal ' + label + ' response was not JSON:', raw);
+                        throw err;
+                    }
+                };
 
                 const showPayPal = () => {
                     if (payPalWrap) {
@@ -967,8 +1090,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     buttonsInstance = paypal.Buttons({
                         style: { shape: 'rect', layout: 'vertical' },
                         createOrder: async () => {
-                            const res = await fetch('/includes/orders/paypal-create.php', { method: 'POST' });
-                            const data = await res.json();
+                            const fd = new FormData();
+                            const voucherCode = getVoucherCode();
+                            if (voucherCode) {
+                                fd.append('voucher_code', voucherCode);
+                            }
+                            const res = await fetch('/includes/orders/paypal-create.php', { method: 'POST', body: fd });
+                            const data = await parseJsonResponse(res, 'create');
                             if (!data?.ok || !data.id) {
                                 throw new Error(data?.error || 'Failed to create PayPal order');
                             }
@@ -976,9 +1104,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         },
                         onApprove: async (data) => {
                             const fd = new FormData(form);
+                            const voucherCode = getVoucherCode();
+                            if (voucherCode) {
+                                fd.set('voucher_code', voucherCode);
+                            }
                             fd.append('order_id', data.orderID);
                             const res = await fetch('/includes/orders/paypal-capture.php', { method: 'POST', body: fd });
-                            const json = await res.json();
+                            const json = await parseJsonResponse(res, 'capture');
                             if (!json?.ok) {
                                 alert(json?.error || 'PayPal capture failed');
                                 if (buttonsInstance && typeof buttonsInstance.restart === 'function') {
