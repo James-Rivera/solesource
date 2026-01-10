@@ -23,6 +23,86 @@ All payload keys use kebab-case.
   ```
 4. Confirm you receive a `200 OK` and that your webhook endpoint logs the payload shown below.
 
+## Integration Guide (Collab Course Site)
+
+### Prerequisites
+- Server-side runtime capable of making outbound HTTPS requests (PHP, Node.js, Python, etc.).
+- Storefront domain with HTTPS (self-signed is fine during development, but trust the SoleSource cert or allowlist the tunnel certificate while testing).
+- Secure storage for the SoleSource `COURSE_API_KEY`; never embed it in client-side JavaScript.
+- In your LMS database, create a table to track voucher issuance and redemption, e.g.:
+  ```sql
+  CREATE TABLE course_vouchers (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      student_id VARCHAR(128) NOT NULL,
+      solesource_code VARCHAR(32) NOT NULL,
+      discount_type ENUM('percent','fixed') NOT NULL,
+      discount_value DECIMAL(10,2) NOT NULL,
+      expires_at DATETIME NOT NULL,
+      redeemed TINYINT(1) NOT NULL DEFAULT 0,
+      redeemed_order VARCHAR(64) NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+  ```
+
+### Recommended Flow
+1. **Course completion:** Your backend receives the completion event (from your LMS hook or job).
+2. **Issue voucher:** Backend posts to `/vouchers/generate.php` with the student ID, optional expiry, and discount settings. Parse the JSON response and persist the `code`, `discount-type`, etc., in `course_vouchers`.
+3. **Notify student:** Email/SMS the voucher code or display it on a success page.
+4. **Checkout assistance:** If you show a “Redeem at SoleSource” CTA, optionally call `/vouchers/preview` to confirm the code before displaying it.
+5. **Redemption:** When SoleSource completes an order, your webhook receives the payload containing `code`, `order-number`, and `discount-applied`. Update `course_vouchers.redeemed = 1` and store the order number for auditing.
+
+### Sample Server Call (PHP)
+```php
+$apiKey = getenv('SOLESOURCE_API_KEY');
+$payload = json_encode([
+    'student-id' => $studentId,
+    'discount-type' => 'percent',
+    'discount-value' => 12,
+]);
+$ch = curl_init('https://dev.art2cart.shop/api/vouchers/generate.php');
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer ' . $apiKey,
+        'Content-Type: application/json',
+    ],
+    CURLOPT_POSTFIELDS => $payload,
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+$data = json_decode($response, true);
+```
+
+### Sample Server Call (Node.js Fetch)
+```js
+import fetch from 'node-fetch';
+const resp = await fetch('https://dev.art2cart.shop/api/vouchers/preview.php', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.SOLESOURCE_API_KEY}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ 'voucher-code': code, 'order-subtotal': 4999 })
+});
+const data = await resp.json();
+```
+
+### Handling the Webhook
+- Expose an HTTPS endpoint (e.g., `/api/solesource-webhook`).
+- Validate the payload: ensure `code` exists and that `discount-applied` matches expectations.
+- Update your voucher table, then respond with `200 OK` and a plain body like `{"ok":true}`.
+- If you return non-200, SoleSource will log the failure for manual retries; implement your own retry mechanism if desired.
+
+### Error Handling Tips
+- `401` usually means the Bearer token is missing or incorrect; double-check environment variables.
+- `409` on `generate` indicates an existing active voucher; decide whether to reuse the existing code or override it by calling your support contact.
+- `409` on `redeem` often means the voucher was already used or expired; prompt the student to request a new code if appropriate.
+- Use exponential backoff for transient network issues and log every failed API call with full response payload for support.
+
+### Do Collaborators Need Cloudflare Tunneling?
+No. The SoleSource API is already exposed through our Cloudflare tunnel at `https://dev.art2cart.shop/api`. Collaborators only need to send HTTPS requests with their API key; no additional tunneling or VPN is required on their side.
+
 ## POST /vouchers/generate
 Creates a voucher for a student or triggers SMS issuance.
 
