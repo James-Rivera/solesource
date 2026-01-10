@@ -4,6 +4,10 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.account-nav.sticky-top {
+  z-index: 700;
+}
+
 .account-nav .nav-link {
   color: rgba(255, 255, 255, 0.7);
   font-weight: 600;
@@ -429,6 +433,36 @@
   color: var(--brand-orange);
 }
 
+/* Settings Mobile Pills */
+.settings-mobile-nav {
+  display: none;
+}
+
+.settings-mobile-nav .nav {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.settings-mobile-nav .nav-link {
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  color: #111;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  background: #fff;
+}
+
+.settings-mobile-nav .nav-link.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
 .btn-delete-account {
   background: #6c757d;
   color: #fff;
@@ -483,20 +517,32 @@
   letter-spacing: 0.5px;
 }
 
+.btn-profile-logout{
+  background: #e35926;
+  color: #fff;
+  text-transform: uppercase;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.btn-profile-logout:hover {
+  background: #cc4e21;
+}
+
 @media (max-width: 991px) {
   .profile-hero-icon {
     display: none;
   }
 
-  .settings-sidebar {
-    padding-right: 0;
-    margin-bottom: 2rem;
-  }
-  
   .order-history-row {
     flex-direction: column;
     align-items: flex-start !important;
     gap: 1rem;
+    border: 1px solid #ededed;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
   }
   
   .order-history-image {
@@ -514,5 +560,30 @@
   
   .order-history-price {
     margin-bottom: 0 !important;
+  }
+
+  .settings-sidebar {
+    display: none;
+  }
+
+  .settings-mobile-nav {
+    display: block;
+    position: sticky;
+    top: 56px;
+    background: #fff;
+    z-index: 650;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .settings-content-title {
+    font-size: 1.5rem;
+  }
+
+  .settings-section {
+    background: #fff;
+    border: 1px solid #ededed;
+    border-radius: 12px;
+    padding: 1.25rem;
   }
 }

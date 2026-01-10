@@ -1,0 +1,22 @@
+{
+  "brand": "ASICS",
+  "products": [
+    {"id":"AS-001","name":"Gel-Kayano 30 Men","category":"Running Shoes","gender":"Men","price":8995,"sizes":[7,8,9,10,11,12],"stock":24},
+    {"id":"AS-001W","name":"Gel-Kayano 30 Women","category":"Running Shoes","gender":"Women","price":8995,"sizes":[5,6,7,8,9,10],"stock":18},
+    {"id":"AS-002","name":"Gel-Nimbus 26 Men","category":"Running Shoes","gender":"Men","price":9495,"sizes":[7,8,9,10,11,12],"stock":20},
+    {"id":"AS-002W","name":"Gel-Nimbus 26 Women","category":"Running Shoes","gender":"Women","price":9495,"sizes":[5,6,7,8,9,10],"stock":16},
+    {"id":"AS-003","name":"Gel-Cumulus 25 Men","category":"Running Shoes","gender":"Men","price":7995,"sizes":[7,8,9,10,11,12],"stock":22},
+    {"id":"AS-003W","name":"Gel-Cumulus 25 Women","category":"Running Shoes","gender":"Women","price":7995,"sizes":[5,6,7,8,9,10],"stock":18},
+    {"id":"AS-004","name":"Novablast 4 Men","category":"Running Shoes","gender":"Men","price":8495,"sizes":[7,8,9,10,11,12],"stock":20},
+    {"id":"AS-004W","name":"Novablast 4 Women","category":"Running Shoes","gender":"Women","price":8495,"sizes":[5,6,7,8,9,10],"stock":16},
+    {"id":"AS-005","name":"GT-2000 12 Men","category":"Running Shoes","gender":"Men","price":7995,"sizes":[7,8,9,10,11,12],"stock":18},
+    {"id":"AS-005W","name":"GT-2000 12 Women","category":"Running Shoes","gender":"Women","price":7995,"sizes":[5,6,7,8,9,10],"stock":14},
+    {"id":"AS-006","name":"Gel-Lyte III","category":"Lifestyle / Casual","gender":"Unisex","price":5995,"sizes":[5,6,7,8,9,10,11,12],"stock":20},
+    {"id":"AS-007","name":"Gel-Lyte V","category":"Lifestyle / Casual","gender":"Unisex","price":6295,"sizes":[5,6,7,8,9,10,11,12],"stock":18},
+    {"id":"AS-008","name":"Japan S","category":"Lifestyle / Casual","gender":"Unisex","price":4495,"sizes":[5,6,7,8,9,10,11,12],"stock":26},
+    {"id":"AS-009","name":"Upcourt 5 Men","category":"Court / Indoor","gender":"Men","price":3995,"sizes":[7,8,9,10,11,12],"stock":28},
+    {"id":"AS-009W","name":"Upcourt 5 Women","category":"Court / Indoor","gender":"Women","price":3995,"sizes":[5,6,7,8,9,10],"stock":22},
+    {"id":"AS-010","name":"Sky Elite FF Men","category":"Court / Indoor","gender":"Men","price":7495,"sizes":[7,8,9,10,11,12],"stock":14},
+    {"id":"AS-010W","name":"Sky Elite FF Women","category":"Court / Indoor","gender":"Women","price":7495,"sizes":[5,6,7,8,9,10],"stock":12}
+  ]
+}

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = btn.closest('.col');
             const productId = Number(btn.dataset.productId || 0);
             try {
-                const res = await fetch('includes/wishlist-toggle.php', {
+                const res = await fetch('/includes/products/wishlist-toggle.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ product_id: productId })
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const refreshAddresses = async () => {
         try {
-            const res = await fetch('includes/address-list.php');
+            const res = await fetch('/includes/account/address-list.php');
             if (res.status === 401) {
                 window.location.href = 'login.php?redirect=profile';
                 return;
@@ -301,19 +301,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const submitAddress = async (payload) => {
         const isEdit = !!payload.id;
-        const url = isEdit ? 'includes/address-update.php' : 'includes/address-create.php';
+        const url = isEdit ? '/includes/account/address-update.php' : '/includes/account/address-create.php';
         try {
             addressSubmitBtn?.setAttribute('disabled', 'disabled');
             const res = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify(payload),
             });
-            const data = await res.json();
+
+            if (res.status === 401) {
+                window.location.href = 'login.php?redirect=profile';
+                return false;
+            }
+
+            const ct = (res.headers.get('content-type') || '').toLowerCase();
+            let data = null;
+
+            if (ct.includes('application/json')) {
+                try {
+                    data = await res.json();
+                } catch (parseErr) {
+                    const raw = await res.text().catch(() => '');
+                    console.error('Address API JSON parse error:', parseErr, raw);
+                    setError('Unable to save address. Please try again.');
+                    return false;
+                }
+            } else {
+                const raw = await res.text().catch(() => '');
+                console.error('Address API returned non-JSON:', raw);
+                setError('Unable to save address. Please try again.');
+                return false;
+            }
+
             if (!res.ok || !data?.ok) {
                 setError(data?.error || 'Unable to save address.');
                 return false;
             }
+
             await refreshAddresses();
             modal?.hide();
             document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
@@ -332,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!id) return;
         if (!confirm('Delete this address?')) return;
         try {
-            const res = await fetch('includes/address-delete.php', {
+            const res = await fetch('/includes/account/address-delete.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id }),
@@ -430,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteAccountBtn.setAttribute('disabled', 'disabled');
             deleteAccountBtn.textContent = 'Deleting...';
             try {
-                const res = await fetch('includes/delete_account.php', { method: 'POST' });
+                const res = await fetch('/includes/auth/delete_account.php', { method: 'POST' });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data?.ok) {
                     alert(data?.error || 'Unable to delete account.');

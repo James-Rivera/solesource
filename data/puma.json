@@ -1,0 +1,24 @@
+{
+  "brand": "Puma",
+  "products": [
+    {"id":"PM-001","name":"Suede Classic","category":"Lifestyle / Casual","gender":"Unisex","price":4495,"sizes":[5,6,7,8,9,10,11,12],"stock":30},
+    {"id":"PM-002","name":"RS-X","category":"Lifestyle / Casual","gender":"Unisex","price":5495,"sizes":[5,6,7,8,9,10,11,12],"stock":24},
+    {"id":"PM-003","name":"Future Rider","category":"Lifestyle / Casual","gender":"Unisex","price":4995,"sizes":[5,6,7,8,9,10,11,12],"stock":26},
+    {"id":"PM-004","name":"Cali Sport Women","category":"Lifestyle / Casual","gender":"Women","price":5295,"sizes":[5,6,7,8,9,10],"stock":22},
+    {"id":"PM-005","name":"Velocity Nitro Men","category":"Running Shoes","gender":"Men","price":6495,"sizes":[7,8,9,10,11,12],"stock":22},
+    {"id":"PM-005W","name":"Velocity Nitro Women","category":"Running Shoes","gender":"Women","price":6495,"sizes":[5,6,7,8,9,10],"stock":18},
+    {"id":"PM-006","name":"Deviate Nitro Men","category":"Running Shoes","gender":"Men","price":8995,"sizes":[7,8,9,10,11,12],"stock":16},
+    {"id":"PM-006W","name":"Deviate Nitro Women","category":"Running Shoes","gender":"Women","price":8995,"sizes":[5,6,7,8,9,10],"stock":14},
+    {"id":"PM-007","name":"Liberate Nitro Men","category":"Running Shoes","gender":"Men","price":7495,"sizes":[7,8,9,10,11,12],"stock":18},
+    {"id":"PM-007W","name":"Liberate Nitro Women","category":"Running Shoes","gender":"Women","price":7495,"sizes":[5,6,7,8,9,10],"stock":14},
+    {"id":"PM-008","name":"MB.01 Men","category":"Basketball Shoes","gender":"Men","price":9995,"sizes":[7,8,9,10,11,12],"stock":20},
+    {"id":"PM-008W","name":"MB.01 Women","category":"Basketball Shoes","gender":"Women","price":9995,"sizes":[5,6,7,8,9,10],"stock":16},
+    {"id":"PM-009","name":"TRC Blaze Court Men","category":"Basketball Shoes","gender":"Men","price":8495,"sizes":[7,8,9,10,11,12],"stock":18},
+    {"id":"PM-009W","name":"TRC Blaze Court Women","category":"Basketball Shoes","gender":"Women","price":8495,"sizes":[5,6,7,8,9,10],"stock":14},
+    {"id":"PM-010","name":"Future Z Men","category":"Football / Soccer","gender":"Men","price":8995,"sizes":[7,8,9,10,11,12],"stock":16},
+    {"id":"PM-010W","name":"Future Z Women","category":"Football / Soccer","gender":"Women","price":8995,"sizes":[5,6,7,8,9,10],"stock":12},
+    {"id":"PM-011","name":"Ultra Match Men","category":"Football / Soccer","gender":"Men","price":7495,"sizes":[7,8,9,10,11,12],"stock":18},
+    {"id":"PM-011W","name":"Ultra Match Women","category":"Football / Soccer","gender":"Women","price":7495,"sizes":[5,6,7,8,9,10],"stock":14},
+    {"id":"PM-012","name":"Leadcat Slides Unisex","category":"Slides / Sandals","gender":"Unisex","price":1795,"sizes":[5,6,7,8,9,10,11,12],"stock":45}
+  ]
+}

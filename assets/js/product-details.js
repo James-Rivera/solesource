@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function addToServerCart(payload) {
-    const res = await fetch('includes/cart-add.php', {
+    const res = await fetch('/includes/cart/cart-add.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
