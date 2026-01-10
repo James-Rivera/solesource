@@ -1,9 +1,11 @@
 <?php
 // send-philsms.php: Send SMS using PHILsms API
-$apiToken = '897|RclyFQhD0mYNyUDRvzc4LcaoN6eGKjxxGrvAXJe6598f040a'; // Replace with your actual token
+require_once __DIR__ . '/../includes/env.php';
+
+$apiToken = getenv('PHILSMS_TOKEN') ?: '897|RclyFQhD0mYNyUDRvzc4LcaoN6eGKjxxGrvAXJe6598f040a';
 $recipient = $argv[1] ?? '';
 $message = $argv[2] ?? '';
-$senderId = 'SoleSource'; // Up to 11 chars, customize as needed
+$senderId = getenv('PHILSMS_SENDER') ?: 'SoleSource'; // Up to 11 chars, customize as needed
 
 if (!$recipient || !$message) {
     fwrite(STDERR, "Usage: php send-philsms.php <recipient> <message>\n");

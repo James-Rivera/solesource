@@ -13,29 +13,41 @@ $gateway_user = getenv('SMS_GATEWAY_USER') ?: 'sms';
 $gateway_pass = getenv('SMS_GATEWAY_PASS') ?: '_GkVArG2';
 
 $error_message = '';
+$phone_suffix_value = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $phone_suffix_input = preg_replace('/\D+/', '', $_POST['phone_suffix'] ?? '');
+    $phone_suffix_value = $phone_suffix_input;
     $phone_raw = trim($_POST['phone'] ?? '');
-    // Accept E.164 format only (e.g., +639171234567)
-    $phone_digits = preg_replace('/\D+/', '', $phone_raw);
-    if (strpos($phone_raw, '+') === 0) {
-        $phone_e164 = $phone_raw;
-    } elseif (strpos($phone_digits, '09') === 0) {
-        $phone_e164 = '+63' . substr($phone_digits, 1);
-    } elseif (strpos($phone_digits, '63') === 0) {
-        $phone_e164 = '+' . $phone_digits;
+
+    // Build E.164 number (+63XXXXXXXXXX). Prefer the dedicated suffix field, fall back to legacy input.
+    $phone_e164 = '';
+    if ($phone_suffix_input !== '') {
+        $phone_e164 = '+63' . $phone_suffix_input;
     } else {
-        $phone_e164 = '';
+        $phone_digits = preg_replace('/\D+/', '', $phone_raw);
+        if (strpos($phone_raw, '+') === 0 && strpos($phone_digits, '63') === 0) {
+            $phone_e164 = '+' . $phone_digits;
+        } elseif (strpos($phone_digits, '09') === 0) {
+            $phone_e164 = '+63' . substr($phone_digits, 1);
+        } elseif (strpos($phone_digits, '63') === 0) {
+            $phone_e164 = '+' . $phone_digits;
+        }
+    }
+
+    if ($phone_e164 !== '' && $phone_suffix_value === '' && preg_match('/^\+63\d{10}$/', $phone_e164)) {
+        $phone_suffix_value = substr($phone_e164, 3);
     }
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
+    $phone_provided = ($phone_suffix_input !== '') || ($phone_raw !== '');
 
-    if ($full_name === '' || $email === '' || $phone_e164 === '' || $password === '' || $confirm_password === '') {
+    if ($full_name === '' || $email === '' || !$phone_provided || $password === '' || $confirm_password === '') {
         $error_message = 'All fields are required.';
-    } elseif (!preg_match('/^\+63\d{10}$/', $phone_e164)) {
-        $error_message = 'Please enter a valid phone number in E.164 format (e.g., +639171234567).';
+    } elseif ($phone_e164 === '' || !preg_match('/^\+63\d{10}$/', $phone_e164)) {
+        $error_message = 'Please enter a valid Philippine phone number (10 digits after +63).';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = 'Please enter a valid email address.';
     } elseif ($password !== $confirm_password) {
@@ -153,8 +165,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="email" name="email" class="form-control" placeholder="Email address" aria-label="Email address" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                         </div>
                         <div class="mb-3">
-                            <input type="tel" name="phone" class="form-control" placeholder="Phone number (e.g., +639171234567)" aria-label="Phone number" pattern="\+63\d{10}" title="Enter number in E.164 format, e.g., +639171234567" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>" required>
-                            <div class="form-text">Enter your phone number in E.164 format: <b>+639XXXXXXXXX</b></div>
+                            <div class="input-group">
+                                <span class="input-group-text">+63</span>
+                                <input type="tel" name="phone_suffix" class="form-control" placeholder="9XXXXXXXXXX" aria-label="Phone number" pattern="\d{10}" inputmode="numeric" minlength="10" maxlength="10" title="Enter the 10 digits after +63" value="<?php echo htmlspecialchars($phone_suffix_value); ?>" required>
+                            </div>
+                            <div class="form-text">Philippines only. Enter the 10 digits after +63 (e.g., 9171234567).</div>
                         </div>
                         <div class="mb-3">
                             <input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password">
