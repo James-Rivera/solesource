@@ -16,7 +16,7 @@ function build_receipt_email(array $data): array
     $envAppUrl = getenv('APP_URL') ?: ($_SERVER['APP_URL'] ?? '');
     $baseUrl = $envAppUrl ? rtrim($envAppUrl, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
     $assetBase = rtrim($baseUrl, '/') . '/';
-    $orderViewUrl = $baseUrl . '/view_order.php?id=' . urlencode($orderId);
+    $orderViewUrl = $baseUrl . '/view-order.php?id=' . urlencode($orderId);
     $accent = '#E9713F';
     $brandBlack = '#121212';
     $brandDarkGray = '#333333';

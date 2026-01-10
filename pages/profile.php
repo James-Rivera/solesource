@@ -316,7 +316,7 @@ $addrStmt->close();
                                         <!-- Price & Action -->
                                         <div class="order-history-right ms-auto text-end">
                                             <div class="order-history-price fw-bold text-brand-black mb-2">₱<?php echo number_format((float) ($order['total_amount'] ?? 0), 2); ?></div>
-                                            <a href="view_order.php?id=<?php echo urlencode($order['id']); ?>" class="order-history-link text-brand-black text-decoration-underline small d-inline-flex align-items-center gap-1">
+                                            <a href="view-order.php?id=<?php echo urlencode($order['id']); ?>" class="order-history-link text-brand-black text-decoration-underline small d-inline-flex align-items-center gap-1">
                                                 View Details
                                                 <i class="bi bi-chevron-right"></i>
                                             </a>
