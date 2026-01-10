@@ -14,7 +14,7 @@ function mailer_config(): array
         return $config;
     }
 
-    $path = __DIR__ . '/mail_config.php';
+    $path = __DIR__ . '/mail-config.php';
     if (!file_exists($path)) {
         throw new RuntimeException('Mail config missing. Ensure includes/mail_config.php exists and uses env vars.');
     }
