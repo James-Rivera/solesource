@@ -37,6 +37,18 @@ try {
         throw new RuntimeException('missing_from_or_text');
     }
 
+    // Ignore echoes coming from SMS forwarder when it re-injects outbound replies
+    $forwarderEchoMarkers = [
+        'Your SoleSource code is:',
+    ];
+    foreach ($forwarderEchoMarkers as $marker) {
+        if (stripos($text, $marker) === 0) {
+            echo json_encode(['ok' => true, 'message' => 'outbound_echo_ignored']);
+            http_response_code(200);
+            return;
+        }
+    }
+
     if (strcasecmp($text, 'BOOST') !== 0) {
         echo json_encode(['ok' => true, 'message' => 'ignored']);
         http_response_code(200);
