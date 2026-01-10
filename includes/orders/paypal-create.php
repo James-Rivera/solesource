@@ -2,6 +2,9 @@
 session_start();
 header('Content-Type: application/json');
 require_once __DIR__ . '/../connect.php';
+require_once __DIR__ . '/../vouchers/service.php';
+
+use Vouchers\ClientError;
 
 function build_cart_summary(mysqli $conn): array {
     $sessionCart = $_SESSION['cart'] ?? [];
@@ -113,6 +116,33 @@ if (empty($cartItems)) {
     exit;
 }
 
+$voucherCode = strtoupper(trim($_POST['voucher_code'] ?? ''));
+$voucherApplied = null;
+$voucherDiscount = 0.0;
+
+if ($voucherCode !== '') {
+    try {
+        $voucherApplied = Vouchers\previewVoucher($conn, $voucherCode);
+        $voucherDiscount = Vouchers\computeDiscount($subtotal, $voucherApplied);
+    } catch (ClientError $e) {
+        $status = $e->getMessage() === 'voucher_not_found' ? 404 : 409;
+        http_response_code($status);
+        echo json_encode(['ok' => false, 'error' => str_replace('_', '-', $e->getMessage())]);
+        exit;
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['ok' => false, 'error' => 'voucher_unavailable']);
+        exit;
+    }
+}
+
+$total = max(0.0, $subtotal - $voucherDiscount);
+if ($total <= 0) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'voucher_covers_total']);
+    exit;
+}
+
 $clientId = getenv('PAYPAL_CLIENT_ID');
 $secret = getenv('PAYPAL_CLIENT_SECRET');
 $baseUrl = getenv('PAYPAL_BASE_URL') ?: 'https://api-m.sandbox.paypal.com';
@@ -135,7 +165,7 @@ $payload = [
     'purchase_units' => [[
         'amount' => [
             'currency_code' => 'PHP',
-            'value' => number_format($subtotal, 2, '.', ''),
+            'value' => number_format($total, 2, '.', ''),
         ],
     ]],
     'application_context' => [
@@ -163,4 +193,4 @@ if (empty($order['id'])) {
     exit;
 }
 
-echo json_encode(['ok' => true, 'id' => $order['id']]);
+echo json_encode(['ok' => true, 'id' => $order['id'], 'amount' => $total, 'discount' => $voucherDiscount]);
