@@ -1,11 +1,11 @@
 <?php
-// SMS inbound webhook: create BOOST voucher and reply via SMS gateway
+// SMS inbound webhook: BOOST keyword -> 6-digit voucher + outbound reply via SMSGate
 require_once __DIR__ . '/../includes/env.php';
 require_once __DIR__ . '/../includes/connect.php';
 
 header('Content-Type: application/json');
 
-$logFile = __DIR__ . '/../logs/sms_debug.log';
+$logFile = __DIR__ . '/../logs/sms_log.txt';
 if (!is_dir(dirname($logFile))) {
     mkdir(dirname($logFile), 0775, true);
 }
@@ -13,41 +13,41 @@ if (!is_dir(dirname($logFile))) {
 function log_line(string $file, array $data): void
 {
     $line = '[' . date('c') . '] ' . json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    file_put_contents($file, $line . PHP_EOL, FILE_APPEND);
+    file_put_contents($file, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        http_response_code(405);
-        echo json_encode(['ok' => false, 'error' => 'Method not allowed']);
+        echo json_encode(['ok' => false, 'error' => 'method_not_allowed']);
+        http_response_code(200);
         return;
     }
 
     $raw = file_get_contents('php://input');
     $payload = json_decode($raw, true);
+    log_line($logFile, ['direction' => 'inbound', 'raw' => $payload]);
+
     if (!is_array($payload)) {
-        throw new RuntimeException('Invalid JSON payload');
+        throw new RuntimeException('invalid_json');
     }
 
     $from = trim((string)($payload['from'] ?? ''));
     $text = trim((string)($payload['text'] ?? ''));
     if ($from === '' || $text === '') {
-        throw new RuntimeException('Missing from/text');
+        throw new RuntimeException('missing_from_or_text');
     }
-
-    log_line($logFile, ['direction' => 'inbound', 'payload' => $payload]);
 
     if (strcasecmp($text, 'BOOST') !== 0) {
         echo json_encode(['ok' => true, 'message' => 'ignored']);
+        http_response_code(200);
         return;
     }
 
-    // Generate a voucher code and persist with 7-day expiry
+    // Generate 6-digit voucher and persist with 7-day expiry
     $expiry = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
     $voucherCode = '';
     $inserted = false;
 
-    // Ensure vouchers table exists
     $tableSql = "
         CREATE TABLE IF NOT EXISTS vouchers (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -61,11 +61,11 @@ try {
     ";
     $conn->query($tableSql);
 
-    for ($i = 0; $i < 3; $i++) {
-        $code = 'SOLE-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
+    for ($i = 0; $i < 5; $i++) {
+        $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $stmt = $conn->prepare('INSERT INTO vouchers (voucherCode, phone, expiry_date) VALUES (?, ?, ?)');
         if (!$stmt) {
-            throw new RuntimeException('Prepare failed: ' . $conn->error);
+            throw new RuntimeException('prepare_failed');
         }
         $stmt->bind_param('sss', $code, $from, $expiry);
         $ok = $stmt->execute();
@@ -77,58 +77,60 @@ try {
         }
         $errno = $conn->errno;
         $stmt->close();
-        if ($errno !== 1062) { // not duplicate
-            throw new RuntimeException('Insert failed: ' . $conn->error);
+        if ($errno !== 1062) {
+            throw new RuntimeException('insert_failed');
         }
     }
 
     if (!$inserted) {
-        throw new RuntimeException('Could not generate unique voucher');
+        throw new RuntimeException('could_not_generate_unique_voucher');
     }
 
-    // Outbound SMS via gateway using env configuration
-    $outUrl = rtrim((string)getenv('SMS_GATEWAY_URL'), '/');
-    $outUser = (string)getenv('SMS_GATEWAY_USER');
-    $outPass = (string)getenv('SMS_GATEWAY_PASS');
-    if ($outUrl === '' || $outUser === '' || $outPass === '') {
-        throw new RuntimeException('SMS gateway env vars missing');
-    }
+    $outUrl = rtrim((string)getenv('SMS_GATEWAY_URL') ?: 'http://192.168.0.251:8080', '/');
+    $outUser = (string)(getenv('SMS_GATEWAY_USER') ?: 'sms');
+    $outPass = (string)(getenv('SMS_GATEWAY_PASS') ?: '88888888');
+    $target = $outUrl . '/messages';
 
     $outPayload = [
         'phoneNumbers' => [$from],
         'message' => "Your SoleSource code is: {$voucherCode}",
     ];
 
-    $ch = curl_init($outUrl . '/messages');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
-        CURLOPT_USERPWD => "{$outUser}:{$outPass}",
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-        CURLOPT_POSTFIELDS => json_encode($outPayload),
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 10,
+    $headers = [
+        'Content-Type: application/json',
+        'Authorization: Basic ' . base64_encode($outUser . ':' . $outPass),
+    ];
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => implode("\r\n", $headers),
+            'content' => json_encode($outPayload),
+            'timeout' => 10,
+        ],
     ]);
-    $outResponse = curl_exec($ch);
-    $outErr = curl_error($ch);
-    $outStatus = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+
+    $outResponse = @file_get_contents($target, false, $context);
+    $httpCode = 0;
+    if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m)) {
+        $httpCode = (int)$m[1];
+    }
 
     log_line($logFile, [
         'direction' => 'outbound',
         'request' => $outPayload,
-        'status' => $outStatus,
+        'status' => $httpCode,
         'response' => $outResponse,
-        'error' => $outErr,
     ]);
 
-    if ($outErr || $outStatus >= 400) {
-        throw new RuntimeException('Outbound SMS failed: ' . ($outErr ?: 'HTTP ' . $outStatus));
+    if ($outResponse === false || $httpCode >= 400) {
+        throw new RuntimeException('outbound_failed');
     }
 
     echo json_encode(['ok' => true, 'voucher' => $voucherCode, 'expires' => $expiry]);
+    http_response_code(200);
 } catch (Throwable $e) {
     log_line($logFile, ['direction' => 'error', 'error' => $e->getMessage()]);
-    http_response_code(400);
     echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+    http_response_code(200);
 }

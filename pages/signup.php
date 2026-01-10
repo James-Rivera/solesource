@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insert->bind_param('sssss', $full_name, $email, $phone_digits, $hashed, $role);
             if ($insert->execute()) {
                 // Send welcome SMS
-                $message = "Welcome to SoleSource, $full_name! Your account has been created successfully. Thank you for joining us!";
+                $message = "Welcome to SoleSource, $full_name! Your account has been created successfully. Thank you for joining us! Reply BOOST to receive your coupon code.";
                 $url = rtrim($gateway_url, '/') . '/messages';
                 $payload = [
                     'phoneNumbers' => [$phone_digits],
