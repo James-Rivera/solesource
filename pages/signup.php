@@ -2,10 +2,15 @@
 session_start();
 require_once __DIR__ . '/../includes/connect.php';
 
-// SMS gateway settings
-$gateway_url = getenv('SMS_GATEWAY_URL') ?: 'http://192.168.1.5:8080';  //replace with your gateway URL
-$gateway_user = getenv('SMS_GATEWAY_USER') ?: 'sms'; //replace with your gateway username
-$gateway_pass = getenv('SMS_GATEWAY_PASS') ?: '_GkVArG2'; //replace with your gateway password
+
+
+// SMS sending config
+$sms_provider = getenv('SMS_PROVIDER') ?: 'philsms'; // 'philsms' or 'local'
+$philsms_token = getenv('PHILSMS_TOKEN') ?: '897|RclyFQhD0mYNyUDRvzc4LcaoN6eGKjxxGrvAXJe6598f040a';
+$philsms_sender = getenv('PHILSMS_SENDER') ?: 'SoleSource';
+$gateway_url = getenv('SMS_GATEWAY_URL') ?: 'http://192.168.1.5:8080';
+$gateway_user = getenv('SMS_GATEWAY_USER') ?: 'sms';
+$gateway_pass = getenv('SMS_GATEWAY_PASS') ?: '_GkVArG2';
 
 $error_message = '';
 
@@ -13,14 +18,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone_raw = trim($_POST['phone'] ?? '');
+    // Accept E.164 format only (e.g., +639171234567)
     $phone_digits = preg_replace('/\D+/', '', $phone_raw);
+    if (strpos($phone_raw, '+') === 0) {
+        $phone_e164 = $phone_raw;
+    } elseif (strpos($phone_digits, '09') === 0) {
+        $phone_e164 = '+63' . substr($phone_digits, 1);
+    } elseif (strpos($phone_digits, '63') === 0) {
+        $phone_e164 = '+' . $phone_digits;
+    } else {
+        $phone_e164 = '';
+    }
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if ($full_name === '' || $email === '' || $phone_digits === '' || $password === '' || $confirm_password === '') {
+    if ($full_name === '' || $email === '' || $phone_e164 === '' || $password === '' || $confirm_password === '') {
         $error_message = 'All fields are required.';
-    } elseif (strlen($phone_digits) < 10) {
-        $error_message = 'Please enter a valid phone number.';
+    } elseif (!preg_match('/^\+63\d{10}$/', $phone_e164)) {
+        $error_message = 'Please enter a valid phone number in E.164 format (e.g., +639171234567).';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = 'Please enter a valid email address.';
     } elseif ($password !== $confirm_password) {
@@ -38,29 +53,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
             $role = 'customer';
             $insert = $conn->prepare("INSERT INTO users (full_name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)");
-            $insert->bind_param('sssss', $full_name, $email, $phone_digits, $hashed, $role);
+            $insert->bind_param('sssss', $full_name, $email, $phone_e164, $hashed, $role);
             if ($insert->execute()) {
-                // Send welcome SMS
+                // Send welcome SMS (try primary, fallback to secondary)
                 $message = "Welcome to SoleSource, $full_name! Your account has been created successfully. Thank you for joining us! Reply BOOST to receive your coupon code.";
-                $url = rtrim($gateway_url, '/') . '/messages';
-                $payload = [
-                    'phoneNumbers' => [$phone_digits],
-                    'message'      => $message,
-                ];
-                $options = [
-                    'http' => [
-                        'method'  => 'POST',
-                        'header'  => [
-                            'Content-Type: application/json',
-                            'Authorization: Basic ' . base64_encode("$gateway_user:$gateway_pass"),
+                $sent = false;
+                $error = '';
+                if ($sms_provider === 'philsms') {
+                    $philsms_payload = [
+                        'recipient' => ltrim($phone_e164, '+'),
+                        'sender_id' => $philsms_sender,
+                        'type' => 'plain',
+                        'message' => $message
+                    ];
+                    $ch = curl_init('https://dashboard.philsms.com/api/v3/sms/send');
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        'Authorization: Bearer ' . $philsms_token,
+                        'Content-Type: application/json',
+                        'Accept: application/json'
+                    ]);
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($philsms_payload));
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    $resp = curl_exec($ch);
+                    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch);
+                    $sent = $resp && $http < 400 && strpos($resp, 'success') !== false;
+                    $error = $resp;
+                }
+                if (!$sent) {
+                    // fallback to local gateway
+                    $payload = [
+                        'phoneNumbers' => [$phone_e164],
+                        'message'      => $message,
+                    ];
+                    $options = [
+                        'http' => [
+                            'method'  => 'POST',
+                            'header'  => [
+                                'Content-Type: application/json',
+                                'Authorization: Basic ' . base64_encode("$gateway_user:$gateway_pass"),
+                            ],
+                            'content' => json_encode($payload),
+                            'timeout' => 10,
                         ],
-                        'content' => json_encode($payload),
-                        'timeout' => 10,
-                    ],
-                ];
-                $context = stream_context_create($options);
-                @file_get_contents($url, false, $context);
-                
+                    ];
+                    $context = stream_context_create($options);
+                    @file_get_contents(rtrim($gateway_url, '/') . '/messages', false, $context);
+                }
                 header('Location: login.php');
                 exit;
             } else {
@@ -113,7 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="email" name="email" class="form-control" placeholder="Email address" aria-label="Email address" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                         </div>
                         <div class="mb-3">
-                            <input type="tel" name="phone" class="form-control" placeholder="Phone number" aria-label="Phone number" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>">
+                            <input type="tel" name="phone" class="form-control" placeholder="Phone number (e.g., +639171234567)" aria-label="Phone number" pattern="\+63\d{10}" title="Enter number in E.164 format, e.g., +639171234567" value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>" required>
+                            <div class="form-text">Enter your phone number in E.164 format: <b>+639XXXXXXXXX</b></div>
                         </div>
                         <div class="mb-3">
                             <input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password">

@@ -20,5 +20,9 @@
             <i class="bi bi-gear-fill nav-icon"></i>
             <span>Settings</span>
         </a>
+        <a href="sms-log.php" class="admin-nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'sms-log.php' ? 'active' : ''; ?>">
+            <i class="bi bi-chat-dots-fill nav-icon"></i>
+            <span>SMS Log</span>
+        </a>
     </nav>
 </aside>

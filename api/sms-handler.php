@@ -86,43 +86,74 @@ try {
         throw new RuntimeException('could_not_generate_unique_voucher');
     }
 
-    $outUrl = rtrim((string)getenv('SMS_GATEWAY_URL') ?: 'http://192.168.0.251:8080', '/');
-    $outUser = (string)(getenv('SMS_GATEWAY_USER') ?: 'sms');
-    $outPass = (string)(getenv('SMS_GATEWAY_PASS') ?: '88888888');
-    $target = $outUrl . '/messages';
 
-    $outPayload = [
-        'phoneNumbers' => [$from],
-        'message' => "Your SoleSource code is: {$voucherCode}",
-    ];
+    // SMS sending config
+    $sms_provider = getenv('SMS_PROVIDER') ?: 'philsms';
+    $philsms_token = getenv('PHILSMS_TOKEN') ?: '897|RclyFQhD0mYNyUDRvzc4LcaoN6eGKjxxGrvAXJe6598f040a';
+    $philsms_sender = getenv('PHILSMS_SENDER') ?: 'SoleSource';
+    $gateway_url = getenv('SMS_GATEWAY_URL') ?: 'http://192.168.0.251:8080';
+    $gateway_user = getenv('SMS_GATEWAY_USER') ?: 'sms';
+    $gateway_pass = getenv('SMS_GATEWAY_PASS') ?: '88888888';
 
-    $headers = [
-        'Content-Type: application/json',
-        'Authorization: Basic ' . base64_encode($outUser . ':' . $outPass),
-    ];
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'POST',
-            'header' => implode("\r\n", $headers),
-            'content' => json_encode($outPayload),
-            'timeout' => 10,
-        ],
-    ]);
-
-    $outResponse = @file_get_contents($target, false, $context);
-    $httpCode = 0;
-    if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m)) {
-        $httpCode = (int)$m[1];
+    // Format phone for PHILsms (639XXXXXXXXX)
+    $philsms_recipient = ltrim($from, '+');
+    if (strpos($philsms_recipient, '09') === 0) {
+        $philsms_recipient = '63' . substr($philsms_recipient, 1);
     }
-
+    $sent = false;
+    $error = '';
+    if ($sms_provider === 'philsms') {
+        $philsms_payload = [
+            'recipient' => $philsms_recipient,
+            'sender_id' => $philsms_sender,
+            'type' => 'plain',
+            'message' => "Your SoleSource code is: {$voucherCode}"
+        ];
+        $ch = curl_init('https://dashboard.philsms.com/api/v3/sms/send');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $philsms_token,
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($philsms_payload));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $outResponse = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $sent = $outResponse && $httpCode < 400 && strpos($outResponse, 'success') !== false;
+        $error = $outResponse;
+    }
+    if (!$sent) {
+        // fallback to local gateway
+        $outPayload = [
+            'phoneNumbers' => [$from],
+            'message' => "Your SoleSource code is: {$voucherCode}",
+        ];
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Basic ' . base64_encode($gateway_user . ':' . $gateway_pass),
+        ];
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => implode("\r\n", $headers),
+                'content' => json_encode($outPayload),
+                'timeout' => 10,
+            ],
+        ]);
+        $outResponse = @file_get_contents(rtrim($gateway_url, '/') . '/messages', false, $context);
+        $httpCode = 0;
+        if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m)) {
+            $httpCode = (int)$m[1];
+        }
+    }
     log_line($logFile, [
         'direction' => 'outbound',
-        'request' => $outPayload,
+        'request' => $sms_provider === 'philsms' ? ($philsms_payload ?? []) : ($outPayload ?? []),
         'status' => $httpCode,
         'response' => $outResponse,
     ]);
-
     if ($outResponse === false || $httpCode >= 400) {
         throw new RuntimeException('outbound_failed');
     }
