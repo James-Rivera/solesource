@@ -324,4 +324,30 @@
   }
 
   .mobile-drawer-links { display: none; }
+  
+  /* Mobile Admin Link Styling */
+  .mobile-nav-group .mobile-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    color: var(--brand-black);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+  }
+  
+  .mobile-nav-group .mobile-nav-link:hover {
+    color: var(--brand-orange);
+  }
+  
+  .mobile-nav-group .mobile-nav-link i {
+    font-size: 1.1rem;
+  }
+  
+  /* Ensure admin section is visible */
+  .mobile-drawer .mobile-nav-group {
+    display: block;
+    margin-bottom: 1.5rem;
+  }
 }

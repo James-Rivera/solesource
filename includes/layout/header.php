@@ -156,6 +156,16 @@ if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 				<a class="mobile-nav-link" href="shop.php">All Products</a>
 			</div>
 
+			<?php if (!empty($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+			<div class="mobile-nav-group">
+				<div class="mobile-nav-heading">Admin</div>
+				<a class="mobile-nav-link" href="admin/index.php">
+					<i class="bi bi-speedometer2 me-2"></i>
+					Admin Panel
+				</a>
+			</div>
+			<?php endif; ?>
+
 			<?php if (!empty($navBrands)): ?>
 			<div class="mobile-nav-group">
 				<div class="mobile-nav-heading">Top Brands</div>
