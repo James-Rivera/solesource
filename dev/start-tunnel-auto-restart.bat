@@ -16,6 +16,15 @@ echo Starting %NAME% with config %CONFIG%.
 echo Press Ctrl+C to stop auto-restart.
 echo.
 
+:: Wait for internet connectivity before starting the loop
+:waitnet
+    ping -n 1 8.8.8.8 >nul
+    if errorlevel 1 (
+        echo Waiting for internet...
+        timeout /t 3 /nobreak >nul
+        goto :waitnet
+    )
+
 :loop
     echo [%date% %time%] Launching %NAME%...
     cloudflared tunnel --config "%CONFIG%" run

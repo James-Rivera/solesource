@@ -67,3 +67,4 @@
 [2026-01-11T02:23:07+01:00] {"direction":"inbound","raw":{"from":"+639457996892","text":"BOOST","sentStamp":1768122165000,"receivedStamp":1768093367104,"sim":"sim1"}}
 [2026-01-11T02:23:17+01:00] {"direction":"outbound","provider":"smsgate","request":{"phoneNumbers":["+639457996892"],"message":"Your SoleSource code is SOLE-1996. Enjoy 5% off authentic pairs—keep this message safe."},"response":false,"http_response_header":null}
 [2026-01-11T02:23:17+01:00] {"direction":"outbound","message":"voucher_sent","code":"SOLE-1996","expires":"2026-01-18 02:23:07"}
+[2026-01-11T07:14:25+01:00] {"direction":"inbound","raw":{"from":"GCash","text":"You have successfully withdrawn P916.00 from your GCash wallet with applicable fees on 01-11-26 02:14:15 PM Your new balance is P90.87. Ref. No 5036682747890","sentStamp":1768140857000,"receivedStamp":1768112061288,"sim":"sim1"}}
