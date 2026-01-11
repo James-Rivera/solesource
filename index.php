@@ -81,7 +81,7 @@ $title = 'SoleSource | Premium Sneakers';
 
 
     <!-- Curator Hero Carousel -->
-    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-pause="hover">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-pause="false">
         <div class="carousel-inner">
             <!-- Video Slide: Nike -->
             <div class="carousel-item active" data-bs-interval="20000">
