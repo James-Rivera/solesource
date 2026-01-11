@@ -81,10 +81,12 @@ $selectedSizeLabel = '';
 $selectedSystem = 'US';
 $selectedGender = $primaryGender;
 
-$pickSize = static function(array $sizes, string $preferredGender) {
+$pickSize = static function(array $sizes, string $preferredGender) use ($normalizeGender) {
     foreach ($sizes as $opt) {
         if ((int) ($opt['is_active'] ?? 0) !== 1) { continue; }
-        if (($opt['gender'] ?? 'Men') !== $preferredGender) { continue; }
+        $sizeGender = $normalizeGender($opt['gender'] ?? '');
+        // Match if size gender equals preferred, or size is 'Both'
+        if ($sizeGender !== $preferredGender && $sizeGender !== 'Both') { continue; }
         if ((int) ($opt['stock_quantity'] ?? 0) <= 0) { continue; }
         return $opt;
     }
@@ -126,11 +128,17 @@ $availableGenders = array_values(array_unique(array_filter(array_merge(
 // Prepare size lists for initial render; JS will toggle visibility client-side
 $visibleSizeOptions = array_values(array_filter(
     $sizeOptions,
-    fn($opt) => ($opt['gender'] ?? 'Men') === $selectedGender || ($opt['gender'] ?? '') === 'Both'
+    function($opt) use ($normalizeGender, $selectedGender) {
+        $sizeGender = $normalizeGender($opt['gender'] ?? '');
+        return $sizeGender === $selectedGender || $sizeGender === 'Both';
+    }
 ));
 $hiddenSizeOptions = array_values(array_filter(
     $sizeOptions,
-    fn($opt) => ($opt['gender'] ?? 'Men') !== $selectedGender && ($opt['gender'] ?? '') !== 'Both'
+    function($opt) use ($normalizeGender, $selectedGender) {
+        $sizeGender = $normalizeGender($opt['gender'] ?? '');
+        return $sizeGender !== $selectedGender && $sizeGender !== 'Both';
+    }
 ));
 $renderSizeOptions = array_merge($visibleSizeOptions, $hiddenSizeOptions);
 
@@ -236,7 +244,8 @@ $title = 'SoleSource | ' . ($product['name'] ?? 'Product');
                         <?php foreach ($renderSizeOptions as $opt): 
                             $outOfStock = (int) ($opt['stock_quantity'] ?? 0) <= 0;
                             $isSelected = $selectedSizeId === $opt['id'] && $selectedSizeLabel === $opt['size_label'];
-                            $isVisible = ($opt['gender'] ?? 'Men') === $selectedGender || ($opt['gender'] ?? '') === 'Both';
+                            $optGender = $normalizeGender($opt['gender'] ?? '');
+                            $isVisible = $optGender === $selectedGender || $optGender === 'Both';
                         ?>
                             <div class="size-tile d-flex flex-column align-items-start gap-1" style="<?php echo $isVisible ? '' : 'display:none;'; ?>">
                                 <button
