@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </button>
                         </div>
                         <div class="mb-4 text-start">
-                            <a href="#" class="forgot-link">forgot password?</a>
+                            <a href="forgot-password.php" class="forgot-link">forgot password?</a>
                         </div>
                         <button class="btn btn-login-primary w-100" type="submit">LOG IN</button>
                         <div class="small text-muted mb-3 lh-sm">By logging in, you agree to the Terms of Service and Privacy Policy.</div>

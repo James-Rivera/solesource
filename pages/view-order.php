@@ -80,6 +80,11 @@ if (!empty($order['shipping_address'])) {
 }
 
 $totalAmount = (float) ($order['total_amount'] ?? 0);
+$subtotalAmount = (float) ($order['subtotal_amount'] ?? $totalAmount);
+$voucherCode = trim((string) ($order['voucher_code'] ?? ''));
+$voucherDiscount = (float) ($order['voucher_discount'] ?? 0);
+$voucherType = $order['voucher_discount_type'] ?? '';
+$hasVoucher = $voucherCode !== '' && $voucherDiscount > 0;
 $primaryItem = $orderItems[0] ?? null;
 $primaryImage = $primaryItem['image'] ?? 'assets/img/products/new/jordan-11-legend-blue.png';
 $primaryName = $primaryItem['name'] ?? '';
@@ -143,6 +148,42 @@ $primaryPrice = $primaryItem ? (float) $primaryItem['price_at_purchase'] : $tota
                                     <div class="text-muted">No items found for this order.</div>
                                 <?php endif; ?>
                             </div>
+
+                            <hr class="section-divider my-4">
+
+                            <?php if ($hasVoucher): ?>
+                                <div class="voucher-banner" role="status">
+                                    <div class="voucher-chip">Coupon Applied</div>
+                                    <div class="voucher-copy">
+                                        Voucher <strong><?php echo htmlspecialchars($voucherCode); ?></strong> saved you ₱<?php echo number_format($voucherDiscount, 2); ?> on this order.
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="mb-4">
+                                <div class="order-summary-title mb-3 text-uppercase">Cost Breakdown</div>
+                                <div class="cost-breakdown-card">
+                                    <div class="cost-row">
+                                        <span>Subtotal</span>
+                                        <span>₱<?php echo number_format($subtotalAmount, 2); ?></span>
+                                    </div>
+                                    <?php if ($voucherDiscount > 0): ?>
+                                        <div class="cost-row savings">
+                                            <span>Voucher <?php echo $voucherCode ? '(' . htmlspecialchars($voucherCode) . ')' : ''; ?></span>
+                                            <span>-₱<?php echo number_format($voucherDiscount, 2); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="cost-row total">
+                                        <span>Total Paid</span>
+                                        <span>₱<?php echo number_format($totalAmount, 2); ?></span>
+                                    </div>
+                                    <p class="cost-note">
+                                        Line-item prices show before discounts. Savings are reflected in the totals above.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <hr class="section-divider my-4">
 
                             <div class="mb-4">
                                 <div class="order-summary-title mb-3 text-uppercase">Complete Order Details</div>

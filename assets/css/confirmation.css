@@ -156,6 +156,77 @@ summary-label {
   border-top: 1px solid #eee;
 }
 
+.voucher-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(233, 113, 63, 0.15), rgba(233, 113, 63, 0.05));
+  border: 1px solid rgba(233, 113, 63, 0.2);
+  color: #7a3e1f;
+  font-size: 0.9rem;
+  letter-spacing: 0.35px;
+  text-transform: uppercase;
+}
+
+.voucher-chip {
+  background: var(--brand-orange, #e9713f);
+  color: #fff;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.4px;
+}
+
+.voucher-copy {
+  font-weight: 600;
+  color: #402210;
+}
+
+.cost-breakdown-card {
+  border: 1px solid #eee;
+  border-radius: 18px;
+  padding: 1.75rem;
+  background: #fff;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.cost-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 0;
+  font-weight: 600;
+  color: #121212;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.cost-row + .cost-row {
+  border-top: 1px solid #f1f1f1;
+}
+
+.cost-row.savings {
+  color: #1f7a3e;
+}
+
+.cost-row.total {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #000;
+}
+
+.cost-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+  color: #6b6b6b;
+  letter-spacing: 0.2px;
+  text-transform: none;
+}
+
 @media (max-width: 768px) {
   .hero-subcontainer {
     padding-left: 0;

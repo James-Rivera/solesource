@@ -7,6 +7,8 @@ $routes = [
     'confirmation' => __DIR__ . '/pages/confirmation.php',
     'login' => __DIR__ . '/pages/login.php',
     'logout' => __DIR__ . '/pages/logout.php',
+    'forgot-password' => __DIR__ . '/pages/forgot-password.php',
+    'reset-password' => __DIR__ . '/pages/reset-password.php',
     'product' => __DIR__ . '/pages/product-details.php',
     //fallback
     'product-details' => __DIR__ . '/pages/product-details.php',
