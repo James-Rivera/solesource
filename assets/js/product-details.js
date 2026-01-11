@@ -30,18 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function currentGender() {
     const activeToggle = document.querySelector('.btn-gender.active');
-    const fromToggle = normalizeGender(activeToggle?.dataset.gender || '');
+    if (activeToggle) {
+      const v = activeToggle.dataset.gender || hiddenGender?.value || '';
+      const norm = normalizeGender(v);
+      return norm === 'Both' ? 'Men' : norm;
+    }
     const fromHidden = normalizeGender(hiddenGender?.value || '');
-    const resolved = fromToggle || fromHidden || 'Men';
-    return resolved === 'Both' ? 'Men' : resolved;
+    return fromHidden === 'Both' ? 'Men' : (fromHidden || 'Men');
   }
 
   function genderForBtn(btn) {
-    const btnGender = normalizeGender(btn?.dataset?.sizeGender || '');
-    if (btnGender === 'Both') {
-      return currentGender();
-    }
-    return btnGender || currentGender();
+    const raw = btn?.dataset?.sizeGender;
+    if (!raw) return currentGender();
+    const btnGender = normalizeGender(raw);
+    if (btnGender === 'Both') return currentGender();
+    return btnGender;
   }
 
   function toEuLabel(usLabel, genderHint) {
@@ -72,7 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const gen = currentGender();
     let firstSelectable = null;
     sizeBtns.forEach(btn => {
-      const sizeGender = normalizeGender(btn.dataset.sizeGender || '');
+      const sizeGenderRaw = btn.dataset.sizeGender || '';
+      const sizeGender = normalizeGender(sizeGenderRaw);
       const matchGender = sizeGender === gen || sizeGender === 'Both';
       const matchSystem = sys === 'EU' ? true : (!sys || btn.dataset.sizeSystem === sys);
       const match = matchGender && matchSystem;

@@ -51,7 +51,16 @@ $recommended = array_slice($recommended, 0, 4);
 
 // Load available sizes for this product (US as source of truth; EU derived client-side)
 $sizeOptions = [];
-$sizeStmt = $conn->prepare("SELECT id, size_label, size_system, gender, stock_quantity, is_active FROM product_sizes WHERE product_id = ? AND size_system = 'US' AND is_active = 1 ORDER BY stock_quantity > 0 DESC, CAST(size_label AS DECIMAL(10,2)) ASC");
+$sizeStmt = $conn->prepare("
+    SELECT ps.id, ps.size_label, ps.size_system, ps.gender, ps.stock_quantity, ps.is_active 
+    FROM product_sizes ps
+    JOIN products p ON ps.product_id = p.id
+    WHERE ps.product_id = ? 
+      AND ps.size_system = 'US' 
+      AND ps.is_active = 1
+      AND (ps.gender = p.gender OR ps.gender = p.secondary_gender)
+    ORDER BY ps.stock_quantity > 0 DESC, CAST(ps.size_label AS DECIMAL(10,2)) ASC
+");
 $sizeStmt->bind_param('i', $requested_id);
 $sizeStmt->execute();
 $sizeRes = $sizeStmt->get_result();
