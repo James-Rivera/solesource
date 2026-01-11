@@ -234,6 +234,8 @@ function markRedeemed(mysqli $conn, string $code, string $studentId, string $ord
 
 function dispatchSmsVoucher(string $phone, string $code): void
 {
+    $logFile = $GLOBALS['logFile'] ?? null;
+    
     if ($phone === '') {
         return;
     }
@@ -266,8 +268,18 @@ function dispatchSmsVoucher(string $phone, string $code): void
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 10,
         ]);
-        curl_exec($ch);
+        $response = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+        if ($logFile) {
+            file_put_contents($logFile, '[' . date('c') . '] ' . json_encode([
+                'direction' => 'outbound',
+                'provider' => 'philsms',
+                'request' => $payload,
+                'status' => $status,
+                'response' => $response,
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND | LOCK_EX);
+        }
         return;
     }
 
@@ -288,7 +300,16 @@ function dispatchSmsVoucher(string $phone, string $code): void
         ],
     ]);
     $fallbackUrl = getenv('SMS_GATEWAY_URL') ?: 'http://127.0.0.1:8080';
-    @file_get_contents(rtrim($fallbackUrl, '/') . '/messages', false, $context);
+    $response = @file_get_contents(rtrim($fallbackUrl, '/') . '/messages', false, $context);
+    if ($logFile) {
+        file_put_contents($logFile, '[' . date('c') . '] ' . json_encode([
+            'direction' => 'outbound',
+            'provider' => 'smsgate',
+            'request' => $payload,
+            'response' => $response ?: false,
+            'http_response_header' => isset($http_response_header) ? $http_response_header : null,
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
 }
 
 function notifyCollaborator(array $payload): void

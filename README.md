@@ -16,6 +16,8 @@ It delivers a complete storefront experience with user accounts, checkout, admin
 - Project Structure
 - Integrations & Data
 - Vouchers & Discounts
+- Voucher API Quick Start
+- Recent Updates
 - Local Development
 - Environment Variables
 - Database Setup
@@ -42,9 +44,12 @@ It supports both customer-facing shopping flows and administrative operations, m
 - Product detail pages with size selection and recommendations
 - Shopping cart and checkout flow with delivery and payment selection
 - User accounts with profile, wishlist, saved addresses, and order history
-- Voucher codes issued via API/SMS that checkout, receipts, PayPal, and admin views now honor end-to-end
+- Voucher codes issued via REST API or SMS that checkout, receipts, PayPal, and admin views honor end-to-end
+- RESTful Voucher API with Bearer token authentication for collaborator integration
+- Voucher preview, generate, and redemption endpoints with automated webhook notifications
 - AI assistant entrypoint for contextual shopping help
 - Admin dashboard for managing products, users, orders, and settings
+- Support for percent and fixed-amount discount types on vouchers
 
 ---
 
@@ -88,30 +93,89 @@ It supports both customer-facing shopping flows and administrative operations, m
 
 ## Integrations & Data
 - **Payments:** PayPal (sandbox or live via environment variables)
-- **Email:** SMTP via PHPMailer
+- **Email:** SMTP via PHPMailer with automated order, receipt, and webhook notifications
+- **Vouchers:** RESTful API endpoints with Bearer token authentication for course/LMS integration
 - **AI Assistant:** Configurable provider keys and endpoint
-- **Optional:** SMS gateway integration
+- **Optional:** SMS gateway integration with Philips SMS service
 
 ---
 
 ## Vouchers & Discounts
-- Order records persist `subtotal_amount`, `voucher_code`, `voucher_discount`, and `voucher_discount_type`. Run the latest migration (`sql/migrations/2026-01-17-orders-add-voucher-columns.sql`) after pulling new code to add these columns.
-- Checkout, receipts, PayPal capture, and admin/customer order views automatically display voucher usage once the migration is applied.
-- Public APIs plus SMS intake are documented in [docs/voucher-api.md](docs/voucher-api.md); release notes live in [docs/voucher-change-notes.md](docs/voucher-change-notes.md).
-- Each collaborator gets an API key. All voucher endpoints expect Bearer auth and kebab-case JSON payloads.
 
-### Quick voucher issuance (PowerShell)
+### Overview
+- Order records persist `subtotal_amount`, `voucher_code`, `voucher_discount`, and `voucher_discount_type`
+- Support for both percent-based and fixed-amount discount types
+- Checkout, receipts, PayPal capture, and admin/customer order views automatically display voucher usage
+- Collaborator webhook notifications on successful redemption
+
+### Database Setup
+- Run the latest migration after pulling new code to add voucher columns:
+  ```sql
+  ALTER TABLE orders ADD COLUMN voucher_discount_type ENUM('percent', 'fixed') DEFAULT NULL;
+  ALTER TABLE orders ADD COLUMN voucher_discount DECIMAL(10,2) DEFAULT NULL;
+  ALTER TABLE orders ADD COLUMN subtotal_amount DECIMAL(10,2) DEFAULT NULL;
+  ```
+- The voucher service table stores code metadata, discount rules, and redemption tracking
+
+### REST API Integration
+- Public voucher APIs with Bearer token authentication documented in [docs/voucher-api.md](docs/voucher-api.md)
+- Release notes and implementation details in [docs/voucher-change-notes.md](docs/voucher-change-notes.md)
+- Three endpoints:
+  - `POST /api/vouchers/generate.php` – Issue a new voucher to a student/user
+  - `POST /api/vouchers/preview.php` – Validate and preview discount details
+  - `POST /api/vouchers/redeem.php` – Mark a code as redeemed and notify collaborator
+- Each collaborator receives an API key for secure Bearer token authentication
+- Webhooks sent to collaborator endpoints on redemption with full payload details
+
+---
+
+## Voucher API Quick Start
+
+### Example: Generate Voucher (PowerShell)
 ```powershell
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 $headers = @{ Authorization = 'Bearer <API_KEY>'; 'Content-Type' = 'application/json' }
 $body = @{ 'student-id' = 'sandbox-checkout'; 'discount-type' = 'percent'; 'discount-value' = 12 } | ConvertTo-Json
 Invoke-RestMethod -Uri 'https://dev.art2cart.shop/api/vouchers/generate.php' -Headers $headers -Method Post -Body $body
 ```
-> If you are hitting the development endpoint behind a self-signed cert, temporarily trust the certificate (recommended) or set `ServerCertificateValidationCallback` in your shell session while testing.
+
+### Example: Redeem Voucher (cURL)
+```bash
+curl -X POST https://dev.art2cart.shop/api/vouchers/redeem.php \
+  -H "Authorization: Bearer <API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"voucher-code":"REWARD-1A2B","student-id":"course-42","order-number":"ORDER-9001"}'
+```
+
+For complete integration guide, examples in Node.js, and webhook handling, see [docs/voucher-api.md](docs/voucher-api.md).
+
+---
+
+## Recent Updates (January 2026)
+
+### Voucher System Enhancements
+- RESTful API for voucher management with Bearer token authentication
+- Voucher service with `previewVoucher()`, `generateVoucher()`, and `markRedeemed()` functions
+- Support for percent and fixed-amount discount types
+- Automatic webhook notifications to collaborators on redemption
+- Improved checkout flow with real-time voucher preview and discount calculation
+
+### Frontend & Backend Fixes
+- Fixed email notification logic for order status updates
+- Enhanced receipt and confirmation emails with proper voucher details
+- Improved order views (customer and admin) with voucher information
+- Fixed CSS styling for confirmation pages
+- Enhanced profile and order history pages
+
+### API Authentication
+- New `includes/api/auth.php` module for Bearer token validation
+- Secure header-based authentication for all voucher endpoints
+- Collaborator webhook payload validation
 
 ---
 
 ## Local Development
+
 ### Prerequisites
 - PHP 8+
 - MySQL 5.7+ or 8

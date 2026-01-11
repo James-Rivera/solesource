@@ -29,6 +29,10 @@ try {
 
     $raw = file_get_contents('php://input');
     $payload = json_decode($raw, true);
+    
+    // Make log function available to voucher service
+    $GLOBALS['logFile'] = $logFile;
+    
     log_line($logFile, ['direction' => 'inbound', 'raw' => $payload]);
 
     if (!is_array($payload)) {
