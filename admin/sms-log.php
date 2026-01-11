@@ -19,7 +19,7 @@ $lines = file_exists($logFile) ? array_reverse(file($logFile, FILE_IGNORE_NEW_LI
     </nav>
     <h1 class="mb-4">SMS Log</h1>
     <div class="table-responsive">
-    <table class="table table-dark table-striped table-bordered align-middle">
+    <table class="table table-dark table-striped table-bordered align-middle responsive-admin">
         <thead>
             <tr>
                 <th>Date/Time</th>
@@ -53,11 +53,11 @@ $lines = file_exists($logFile) ? array_reverse(file($logFile, FILE_IGNORE_NEW_LI
                 $msg = 'ERROR: ' . ($data['error'] ?? '');
             }
             echo '<tr>';
-            echo '<td>' . htmlspecialchars($dt) . '</td>';
-            echo '<td>' . htmlspecialchars($dir) . '</td>';
-            echo '<td>' . htmlspecialchars($phone) . '</td>';
-            echo '<td>' . htmlspecialchars($msg) . '</td>';
-            echo '<td>' . $details . '</td>';
+            echo '<td data-label="Date/Time">' . htmlspecialchars($dt) . '</td>';
+            echo '<td data-label="Direction">' . htmlspecialchars($dir) . '</td>';
+            echo '<td data-label="Phone">' . htmlspecialchars($phone) . '</td>';
+            echo '<td data-label="Message / Status">' . htmlspecialchars($msg) . '</td>';
+            echo '<td data-label="Details">' . $details . '</td>';
             echo '</tr>';
         }
         ?>

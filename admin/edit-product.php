@@ -442,7 +442,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="POST" class="table-responsive mb-3">
                     <?php if ($showMen): ?>
                     <h6 class="fw-bold">Men's Inventory (US)</h6>
-                    <table class="table align-middle mb-3">
+                    <table class="table align-middle mb-3 responsive-admin">
                         <thead>
                             <tr>
                                 <th>Label</th><th>System</th><th>Gender</th><th>Stock</th><th>Active</th><th>Delete</th>
@@ -454,25 +454,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <?php else: ?>
                                 <?php foreach ($menSizes as $ps): ?>
                                     <tr>
-                                        <td>
+                                        <td data-label="Label">
                                             <input type="hidden" name="size_id[]" value="<?php echo (int) $ps['id']; ?>">
                                             <input type="text" name="size_label[]" class="form-control" value="<?php echo htmlspecialchars($ps['size_label']); ?>" required>
                                         </td>
-                                        <td>
+                                        <td data-label="System">
                                             <input type="hidden" name="size_system[]" value="US">
                                             <span class="text-muted small">US</span>
                                         </td>
-                                        <td>
+                                        <td data-label="Gender">
                                             <input type="hidden" name="size_gender[]" value="Men">
                                             <span class="badge bg-light text-dark">Men</span>
                                         </td>
-                                        <td style="max-width: 120px;">
+                                        <td data-label="Stock" style="max-width: 120px;">
                                             <input type="number" name="size_stock[]" class="form-control" value="<?php echo (int) ($ps['stock_quantity'] ?? 0); ?>" min="0">
                                         </td>
-                                        <td class="text-center">
+                                        <td data-label="Active" class="text-center">
                                             <input class="form-check-input" type="checkbox" name="size_active[]" value="<?php echo (int) $ps['id']; ?>" <?php echo !empty($ps['is_active']) ? 'checked' : ''; ?>>
                                         </td>
-                                        <td class="text-center">
+                                        <td data-label="Delete" class="text-center">
                                             <input type="hidden" name="delete_size_id" value="<?php echo (int) $ps['id']; ?>">
                                             <button type="submit" name="action" value="delete_size" class="btn btn-link text-danger p-0" aria-label="Delete size" onclick="return confirm('Delete this size?');" formaction="edit-product.php?id=<?php echo urlencode($productId); ?>" formmethod="POST" formnovalidate>
                                                 Delete
@@ -487,7 +487,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <?php if ($showWomen): ?>
                     <h6 class="fw-bold">Women's Inventory (US)</h6>
-                    <table class="table align-middle mb-3">
+                    <table class="table align-middle mb-3 responsive-admin">
                         <thead>
                             <tr>
                                 <th>Label</th><th>System</th><th>Gender</th><th>Stock</th><th>Active</th><th>Delete</th>
@@ -499,25 +499,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <?php else: ?>
                                 <?php foreach ($womenSizes as $ps): ?>
                                     <tr>
-                                        <td>
+                                        <td data-label="Label">
                                             <input type="hidden" name="size_id[]" value="<?php echo (int) $ps['id']; ?>">
                                             <input type="text" name="size_label[]" class="form-control" value="<?php echo htmlspecialchars($ps['size_label']); ?>" required>
                                         </td>
-                                        <td>
+                                        <td data-label="System">
                                             <input type="hidden" name="size_system[]" value="US">
                                             <span class="text-muted small">US</span>
                                         </td>
-                                        <td>
+                                        <td data-label="Gender">
                                             <input type="hidden" name="size_gender[]" value="Women">
                                             <span class="badge bg-light text-dark">Women</span>
                                         </td>
-                                        <td style="max-width: 120px;">
+                                        <td data-label="Stock" style="max-width: 120px;">
                                             <input type="number" name="size_stock[]" class="form-control" value="<?php echo (int) ($ps['stock_quantity'] ?? 0); ?>" min="0">
                                         </td>
-                                        <td class="text-center">
+                                        <td data-label="Active" class="text-center">
                                             <input class="form-check-input" type="checkbox" name="size_active[]" value="<?php echo (int) $ps['id']; ?>" <?php echo !empty($ps['is_active']) ? 'checked' : ''; ?>>
                                         </td>
-                                        <td class="text-center">
+                                        <td data-label="Delete" class="text-center">
                                             <input type="hidden" name="delete_size_id" value="<?php echo (int) $ps['id']; ?>">
                                             <button type="submit" name="action" value="delete_size" class="btn btn-link text-danger p-0" aria-label="Delete size" onclick="return confirm('Delete this size?');" formaction="edit-product.php?id=<?php echo urlencode($productId); ?>" formmethod="POST" formnovalidate>
                                                 Delete

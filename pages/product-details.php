@@ -151,6 +151,23 @@ $hiddenSizeOptions = array_values(array_filter(
 ));
 $renderSizeOptions = array_merge($visibleSizeOptions, $hiddenSizeOptions);
 
+// Sort render list numerically by `size_label` (lowest -> highest).
+// Extract numeric portion to handle labels like "10", "10.5", or "10 (Wide)".
+usort($renderSizeOptions, static function($a, $b) {
+    $aLabel = (string)($a['size_label'] ?? '');
+    $bLabel = (string)($b['size_label'] ?? '');
+    $aVal = preg_replace('/[^0-9.]+/', '', $aLabel);
+    $bVal = preg_replace('/[^0-9.]+/', '', $bLabel);
+    $aNum = $aVal === '' ? null : (float)$aVal;
+    $bNum = $bVal === '' ? null : (float)$bVal;
+    if ($aNum === null && $bNum === null) {
+        return strnatcasecmp($aLabel, $bLabel);
+    }
+    if ($aNum === null) return 1;
+    if ($bNum === null) return -1;
+    return $aNum <=> $bNum;
+});
+
 $breadcrumb_active = $product['name'];
 $title = 'SoleSource | ' . ($product['name'] ?? 'Product');
 ?>
