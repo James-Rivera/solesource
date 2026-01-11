@@ -232,6 +232,36 @@
               el.dispatchEvent(new Event('input', { bubbles: true }));
             }
           });
+
+          // handle add_to_cart actions (safe client-side call)
+          for (const action of data.actions) {
+            if (!action || action.type !== 'add_to_cart') continue;
+            const pid = Number(action.product_id || 0);
+            const qty = Number(action.qty || 1);
+            const sizeId = action.size_id || null;
+            const size = action.size || '';
+            if (!pid || qty <= 0) continue;
+            // call cart-add endpoint
+            fetch('/includes/cart/cart-add.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({ id: String(pid), size: size, size_id: sizeId, qty: qty })
+            }).then(r => r.json()).then(j => {
+              if (j && j.ok) {
+                appendMessage(`Added ${qty}x product ${pid} to your cart.`, 'bot');
+                // optional: refresh cart UI if available
+                if (window.cartDrawer && typeof window.cartDrawer.refreshCart === 'function') {
+                  window.cartDrawer.refreshCart();
+                }
+              } else {
+                appendMessage('Could not add item to cart. Please try again.', 'bot');
+                showRetry();
+              }
+            }).catch(() => {
+              appendMessage('Network error while adding to cart. Please try again.', 'bot');
+              showRetry();
+            });
+          }
         }
       } else {
         appendMessage('No response received. Please try again.', 'bot');

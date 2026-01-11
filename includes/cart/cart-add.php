@@ -2,14 +2,14 @@
 session_start();
 
 $input = json_decode(file_get_contents('php://input'), true);
-if (!$input || !isset($input['id']) || !isset($input['size'])) {
+if (!$input || !isset($input['id'])) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'Invalid payload']);
     exit;
 }
 
 $id = (string)$input['id'];
-$size = (string)$input['size'];
+$size = (string)($input['size'] ?? ''); // size is optional now
 $sizeIdRaw = $input['size_id'] ?? '';
 $sizeId = $sizeIdRaw === '' ? null : (int)$sizeIdRaw;
 $key = $id . ':' . ($sizeId !== null ? $sizeId : $size);
