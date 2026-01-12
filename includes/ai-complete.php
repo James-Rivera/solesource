@@ -214,6 +214,8 @@ if (!$result['ok']) {
 $applied = [];
 $applyRequested = (!empty($input['apply_actions']) && $input['apply_actions']);
 $allowWrite = getenv('ALLOW_AI_DB_WRITE') === '1';
+// Allow cart-only writes if configured separately
+$allowCartWrite = (getenv('ALLOW_AI_CART_WRITE') === '1') || $allowWrite;
 if (!empty($result['data']['actions']) && is_array($result['data']['actions'])) {
     // audit log AI suggested actions (append-only)
     try {
@@ -297,6 +299,54 @@ if (!empty($result['data']['actions']) && is_array($result['data']['actions'])) 
                 }
             } else {
                 $applied[] = ['type' => 'update_inventory', 'product_id' => $pid, 'status' => $allowWrite ? 'preview' : 'write_disabled', 'new_qty' => $newQty];
+            }
+        } elseif ($type === 'add_to_cart') {
+            $pid = isset($act['product_id']) ? (int)$act['product_id'] : 0;
+            $qty = isset($act['qty']) ? max(1, (int)$act['qty']) : 1;
+            $sizeId = isset($act['size_id']) && $act['size_id'] !== '' ? (int)$act['size_id'] : null;
+            $size = isset($act['size']) ? (string)$act['size'] : '';
+
+            if ($pid <= 0) {
+                $applied[] = ['type' => 'add_to_cart', 'product_id' => $pid, 'status' => 'invalid_product_id'];
+                continue;
+            }
+
+            // If apply requested and cart-writes (or full writes) allowed, call the trusted endpoint
+            $actionSecret = getenv('AI_ACTIONS_SECRET') ?: '';
+            if ($applyRequested && $allowCartWrite && $actionSecret !== '') {
+                $endpoint = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://localhost/solesource/includes/ai-actions/apply-cart-add.php';
+                $payload = json_encode(['actions' => [
+                    [
+                        'type' => 'add_to_cart',
+                        'product_id' => $pid,
+                        'qty' => $qty,
+                        'size_id' => $sizeId,
+                        'size' => $size,
+                    ]
+                ]]);
+
+                $ch = curl_init($endpoint);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    'Content-Type: application/json',
+                    'X-AI-ACTIONS-SECRET: ' . $actionSecret,
+                ]);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+                $resp = curl_exec($ch);
+                $err = curl_error($ch);
+                $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($resp !== false) {
+                    $decoded = @json_decode($resp, true);
+                    $applied[] = ['type' => 'add_to_cart', 'product_id' => $pid, 'status' => ($decoded['ok'] ? 'applied' : 'failed'), 'response' => $decoded ?? $resp, 'http_code' => $http];
+                } else {
+                    $applied[] = ['type' => 'add_to_cart', 'product_id' => $pid, 'status' => 'curl_error', 'error' => $err];
+                }
+            } else {
+                $applied[] = ['type' => 'add_to_cart', 'product_id' => $pid, 'status' => $allowCartWrite ? 'preview' : 'write_disabled'];
             }
         } else {
             // other whitelisted action types can be added here (e.g., setValue is UI-only)

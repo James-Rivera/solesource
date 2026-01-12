@@ -68,3 +68,12 @@
 [2026-01-11T02:23:17+01:00] {"direction":"outbound","provider":"smsgate","request":{"phoneNumbers":["+639457996892"],"message":"Your SoleSource code is SOLE-1996. Enjoy 5% off authentic pairs—keep this message safe."},"response":false,"http_response_header":null}
 [2026-01-11T02:23:17+01:00] {"direction":"outbound","message":"voucher_sent","code":"SOLE-1996","expires":"2026-01-18 02:23:07"}
 [2026-01-11T07:14:25+01:00] {"direction":"inbound","raw":{"from":"GCash","text":"You have successfully withdrawn P916.00 from your GCash wallet with applicable fees on 01-11-26 02:14:15 PM Your new balance is P90.87. Ref. No 5036682747890","sentStamp":1768140857000,"receivedStamp":1768112061288,"sim":"sim1"}}
+[2026-01-12T05:13:07+01:00] {"direction":"inbound","raw":{"from":"+639457996892","text":"test","sentStamp":1768219979000,"receivedStamp":1768191184914,"sim":"sim1"}}
+[2026-01-12T05:16:18+01:00] {"direction":"inbound","raw":{"from":"+639457996892","text":"oy itlog mo","sentStamp":1768220173000,"receivedStamp":1768191376617,"sim":"sim1"}}
+[2026-01-12T05:18:36+01:00] {"direction":"inbound","raw":{"from":"+639457996892","text":"BOUND","sentStamp":1768220311000,"receivedStamp":1768191514535,"sim":"sim1"}}
+[2026-01-12T05:18:39+01:00] {"direction":"inbound","raw":{"from":"+639457996892","text":"BOOST","sentStamp":1768220315000,"receivedStamp":1768191517466,"sim":"sim1"}}
+[2026-01-12T05:18:49+01:00] {"direction":"outbound","provider":"smsgate","request":{"phoneNumbers":["+639457996892"],"message":"Your SoleSource code is SOLE-2219. Enjoy 5% off authentic pairs—keep this message safe."},"response":false,"http_response_header":null}
+[2026-01-12T05:18:49+01:00] {"direction":"outbound","message":"voucher_sent","code":"SOLE-2219","expires":"2026-01-19 05:18:39"}
+[2026-01-12T05:23:20+01:00] {"direction":"inbound","raw":{"from":"+639457996892","text":"BOOST","sentStamp":1768220315000,"receivedStamp":1768191517466,"sim":"sim1"}}
+[2026-01-12T05:23:31+01:00] {"direction":"outbound","provider":"smsgate","request":{"phoneNumbers":["+639457996892"],"message":"Your SoleSource code is SOLE-6835. Enjoy 5% off authentic pairs—keep this message safe."},"response":false,"http_response_header":null}
+[2026-01-12T05:23:31+01:00] {"direction":"outbound","message":"voucher_sent","code":"SOLE-6835","expires":"2026-01-19 05:23:20"}
