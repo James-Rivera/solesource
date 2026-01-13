@@ -100,6 +100,44 @@ It supports both customer-facing shopping flows and administrative operations, m
 
 ---
 
+## AI Assistant
+
+What it does
+- On-site shopping assistant that answers questions about products, inventory, orders, shipping, and returns.
+- Suggests structured UI actions (for example: `add_to_cart`) which are returned as JSON and audited.
+- By default the assistant is view-only: it can read inventory and order status but it will not perform destructive database writes.
+
+How it works (key files)
+- Server context & endpoint: `includes/ai-complete.php` — assembles context (session, inventory matches), calls the model client, parses JSON actions and audits them.
+- Model client: `includes/ai-client.php` — provider keys, prompts, retries, and strict JSON parsing.
+- Trusted apply endpoint: `includes/ai-actions/apply-cart-add.php` — authenticated server-only endpoint that applies low-risk actions (session cart adds) and writes audit entries.
+- Frontend chat: `assets/js/ai-chat.js` — user chat widget that posts messages to `includes/ai-complete.php` and renders replies.
+
+Security & safety
+- Default behavior: AI suggestions are logged but not applied unless explicitly enabled via environment flags.
+- Environment guards (in `.env`):
+  - `ALLOW_AI_DB_WRITE=0` — keep destructive DB writes disabled by default.
+  - `ALLOW_AI_CART_WRITE=1` — optional whitelist to allow AI to add items to the user's session cart server-side.
+  - `AI_ACTIONS_SECRET` — internal secret required for the trusted apply endpoint.
+- The trusted endpoint validates product existence and stock but does not perform product-table UPDATEs unless `ALLOW_AI_DB_WRITE` is explicitly enabled.
+
+How to enable (minimum)
+1. Add provider credentials and choose write policy in `.env`:
+   - `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL` (as needed)
+   - `ALLOW_AI_CART_WRITE=1` to allow cart adds (session-only)
+   - `ALLOW_AI_DB_WRITE=0` to keep full DB writes disabled
+2. Restart your web server / PHP-FPM so `.env` changes take effect.
+3. Test via the chat UI or call `includes/ai-complete.php` directly.
+
+Testing & audit
+- Test cart apply flow by calling `includes/ai-complete.php` with `apply_actions=true` — when allowed the server will call the trusted apply endpoint and return `applied` or `preview` statuses.
+- All AI-suggested and applied actions are appended to `logs/ai_actions.log` for review.
+
+Recommended defaults
+- Keep `ALLOW_AI_DB_WRITE=0` in production.
+- Allow session-only cart writes (`ALLOW_AI_CART_WRITE=1`) if you want AI to help customers build carts, but review `logs/ai_actions.log` regularly.
+
+
 ## Vouchers & Discounts
 
 ### Overview

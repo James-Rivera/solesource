@@ -14,6 +14,25 @@ All payload keys use kebab-case.
       -H "Content-Type: application/json" \
       -d '{"student-id":"course-42"}'
   ```
+  - Windows PowerShell (use `Invoke-RestMethod` to avoid quoting issues):
+
+    ```powershell
+    $headers = @{ Authorization = 'Bearer YOUR_KEY'; 'Content-Type' = 'application/json' }
+    $body = '{"student-id":"course-42"}'
+    Invoke-RestMethod -Uri 'https://dev.art2cart.shop/api/vouchers/generate.php' -Method Post -Headers $headers -Body $body
+    ```
+  - Node (example using `node-fetch` or native fetch in modern Node):
+
+    ```js
+    import fetch from 'node-fetch';
+    const resp = await fetch('https://dev.art2cart.shop/api/vouchers/generate.php', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.SOLESOURCE_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 'student-id': 'course-42' })
+    });
+    const data = await resp.json();
+    console.log(data);
+    ```
 3. Redeem during checkout:
   ```bash
   curl -X POST https://dev.art2cart.shop/api/vouchers/redeem.php \
@@ -94,11 +113,72 @@ const data = await resp.json();
 - Update your voucher table, then respond with `200 OK` and a plain body like `{"ok":true}`.
 - If you return non-200, SoleSource will log the failure for manual retries; implement your own retry mechanism if desired.
 
+### Example Webhook Listener (PHP)
+Save this as your collaborator endpoint (e.g. `/api/solesource-webhook.php`) and set `COLLAB_WEBHOOK_URL` to the route:
+
+```php
+// simplesolesource-webhook.php
+http_response_code(400);
+$raw = file_get_contents('php://input');
+$data = json_decode($raw, true);
+// Basic validation
+if (!is_array($data) || empty($data['code']) || empty($data['order-number'])) {
+    echo json_encode(['ok' => false, 'error' => 'invalid-payload']);
+    exit;
+}
+
+// Optional: verify a shared secret in headers (recommended)
+$auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+if (strpos($auth, 'Bearer ') !== 0 || trim(substr($auth, 7)) !== getenv('SOLESOURCE_SHARED_SECRET')) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'error' => 'unauthorized']);
+    exit;
+}
+
+// TODO: lookup voucher by code and mark redeemed in your DB
+// Example pseudo-code:
+// $db->update('course_vouchers', ['redeemed' => 1, 'redeemed_order' => $data['order-number']], ['solesource_code' => $data['code']]);
+
+// Acknowledge
+http_response_code(200);
+echo json_encode(['ok' => true]);
+```
+
+### Example Webhook Listener (Node + Express)
+
+```js
+// express app
+app.post('/api/solesource-webhook', express.json(), (req, res) => {
+  const data = req.body;
+  if (!data || !data.code || !data['order-number']) return res.status(400).json({ ok: false, error: 'invalid-payload' });
+  const auth = req.get('authorization') || '';
+  if (!auth.startsWith('Bearer ') || auth.slice(7) !== process.env.SOLESOURCE_SHARED_SECRET) return res.status(401).json({ ok: false, error: 'unauthorized' });
+  // Mark redeemed in DB here
+  res.json({ ok: true });
+});
+```
+
 ### Error Handling Tips
 - `401` usually means the Bearer token is missing or incorrect; double-check environment variables.
 - `409` on `generate` indicates an existing active voucher; decide whether to reuse the existing code or override it by calling your support contact.
 - `409` on `redeem` often means the voucher was already used or expired; prompt the student to request a new code if appropriate.
 - Use exponential backoff for transient network issues and log every failed API call with full response payload for support.
+
+## Common Mistakes & Troubleshooting
+- Missing or mis-set `Authorization` header: ensure the header is `Authorization: Bearer <KEY>` and not sent as a query param.
+- Quoting issues on Windows: use PowerShell `Invoke-RestMethod` or Git Bash for `curl` commands to avoid nested-quote failures.
+- Using client-side JavaScript for secret keys: never embed the `COURSE_API_KEY` in browser JS.
+- Not acknowledging webhooks: if your webhook returns non-200, SoleSource will mark the delivery as failed — check logs and re-run locally.
+- Timezone/expiry confusion: store and compare expiry timestamps in UTC to avoid off-by-one-day problems.
+
+## Quick Checklist for Collaborators (copy/paste)
+- [ ] Store `COURSE_API_KEY` securely (env var / secrets manager).
+- [ ] Implement server-to-server call to `/api/vouchers/generate.php` on course completion.
+- [ ] Provide UI or email with the voucher code to students.
+- [ ] Implement webhook endpoint and verify `200 OK` on receipt.
+- [ ] Update your `course_vouchers` table when webhook arrives.
+
+If you'd like, I can also generate a tiny example repo (PHP and Node) that demonstrates generate/preview/redeem and the webhook listener.
 
 ### Do Collaborators Need Cloudflare Tunneling?
 No. The SoleSource API is already exposed through our Cloudflare tunnel at `https://dev.art2cart.shop/api`. Collaborators only need to send HTTPS requests with their API key; no additional tunneling or VPN is required on their side.
