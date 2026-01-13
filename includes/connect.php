@@ -1,19 +1,21 @@
 <?php
-  $dbhost = "localhost";
-	$dbuser = "root";
-	$dbpass = "";
-	$db = "solesource_db"; //database name
+require_once __DIR__ . '/env.php';
 
-	$conn = new mysqli($dbhost, $dbuser, $dbpass,$db) or die("Connect failed: %s\n". $conn -> error);
+$dbhost = getenv('DB_HOST') ?: 'localhost';
+$dbuser = getenv('DB_USER') ?: 'root';
+$dbpass = getenv('DB_PASS') ?: '';
+$db = getenv('DB_NAME') ?: 'solesource_db';
 
-	if(!$conn)
-	{
-		die("Connection Failed. ". mysqli_connect_error());
-		echo "can't connect to database";
-	}
+$conn = new mysqli($dbhost, $dbuser, $dbpass, $db) or die("Connect failed: %s\n" . $conn->error);
 
-  function executeQuery($query){
+if (!$conn) {
+    die("Connection Failed. " . mysqli_connect_error());
+    echo "can't connect to database";
+}
+
+function executeQuery($query)
+{
     $conn = $GLOBALS['conn'];
     return mysqli_query($conn, $query);
-  }
+}
 ?>

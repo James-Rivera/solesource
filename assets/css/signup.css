@@ -1,4 +1,6 @@
 /* Signup page specific styles */
+/* Auth-card, auth-title, buttons moved to bootstrap-overrides.css */
+
 .signup-page {
     background: #f8f9fa;
     color: #111;
@@ -26,78 +28,19 @@
     padding: 3rem 0 4rem;
 }
 
-.auth-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-bottom: 50px;
-}
-
 .signup-wrapper {
     max-width: 600px;
     margin: 0 auto;
 }
 
-.signup-card {
-    background: #fff;
-    border: 1px solid #e6e6e6;
-    border-radius: 4px;
-    padding: 3rem 3.5rem;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
-}
-
-.signup-title {
-    font-weight: 900;
-    text-transform: uppercase;
+/* Help section - unique to signup page layout */
+.need-help {
+    border-top: 1px solid #ddd;
+    padding: 90px 0 80px;
     color: #111;
-    font-size: 2rem;
-    letter-spacing: 0.3px;
-    margin-bottom: 24px;
+    background: #f8f9fa;
 }
 
-.signup-card .form-control {
-    border-radius: 4px;
-    min-height: 55px;
-    font-size: 1rem;
-    padding: 14px 14px;
-}
-
-.newsletter-label {
-    font-size: 0.95rem;
-    color: #333;
-}
-
-.btn-signup-primary {
-    background: #E35926;
-    color: #fff;
-    border: none;
-    text-transform: uppercase;
-    letter-spacing: 0.35px;
-    min-height: 55px;
-    font-weight: 800;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-signup-primary:hover {
-    background: #cc4e21;
-    color: #fff;
-}
-
-.btn-signup-secondary {
-    background: #fff;
-    border: 1px solid #111;
-    color: #111;
-    text-transform: uppercase;
-    letter-spacing: 0.35px;
-    min-height: 55px;
-    font-weight: 800;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
     justify-content: center;
 }
 

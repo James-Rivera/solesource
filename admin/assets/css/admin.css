@@ -37,7 +37,7 @@ body {
     justify-content: space-between;
     padding: 0 1.5rem;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-    z-index: 1200;
+    z-index: 1400;
 }
 
 .topbar-left {
@@ -1015,13 +1015,16 @@ body {
         height: auto;
         position: relative;
         padding: 1rem 0;
-        top: 0;
+        /* ensure sidebar appears below the fixed topbar */
+        margin-top: var(--admin-header-height);
     }
     
     .admin-content {
         margin-left: 0;
         padding: 1.5rem;
         margin-top: calc(var(--admin-header-height) + 1rem);
+        width: 100%;
+        box-sizing: border-box;
     }
 
     /* Stack Tables for Mobile */
@@ -1066,12 +1069,510 @@ body {
     }
 
     .admin-container.sidebar-collapsed .admin-sidebar {
-        transform: translateY(-100%);
+        /* remove sidebar from the document flow so content can expand */
+        transform: translateY(-110%);
+        position: absolute;
+        left: 0;
+        top: var(--admin-header-height);
+        visibility: hidden;
+        opacity: 0;
+        height: 0;
+        width: 0;
+        padding: 0;
+        margin: 0;
+        border: 0;
+        pointer-events: none;
+        transition: transform 0.25s ease, opacity 0.25s ease, height 0.25s ease;
     }
 
     .sidebar-toggle {
         position: sticky;
         top: 1rem;
         z-index: 1100;
+    }
+
+    /* Hide the sidebar toggle button on small screens — we use the offcanvas instead */
+    .icon-button.ghost[data-toggle-sidebar],
+    .icon-button.ghost[aria-label="Toggle sidebar"] {
+        display: none !important;
+    }
+    
+    /* Order Details Page Specific */
+    .orders-table-container .product-table-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1.5rem;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        background: #fafafa;
+    }
+    
+    .orders-table-container .product-table-row > div {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .orders-table-container .product-table-row > div:before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        color: #666;
+        margin-bottom: 0.35rem;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Full-width action buttons */
+    .admin-action-btn,
+    .action-stack button {
+        width: 100%;
+        text-align: center;
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+    }
+    
+    /* Stack columns on mobile */
+    .row.g-4 {
+        flex-direction: column;
+    }
+    
+    .row.g-4 > [class*="col-"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Status form improvements */
+    .action-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .action-stack .form-control,
+    .action-stack .form-select {
+        font-size: 1rem;
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Mobile card layout for order items */
+    .orders-table-container .product-table-row {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .orders-table-container .product-table-row:not(.product-table-header) {
+        background: #fff;
+    }
+    
+    /* Ensure images don't overflow */
+    .orders-table-container .product-table-row img {
+        max-width: 80px;
+        max-height: 80px;
+    }
+    
+    /* Improve readability of product info */
+    .orders-table-container .product-table-row .d-flex.align-items-start {
+        flex-direction: row;
+        gap: 0.75rem;
+    }
+    
+    /* Header spacing */
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .admin-header .admin-action-btn {
+        width: 100%;
+    }
+}
+
+/* Fix for product cell text stacking */
+.product-table-row .product-info-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.product-table-row .product-info-stack > * {
+    line-height: 1.4;
+    margin: 0;
+    word-break: break-word;
+}
+
+@media (max-width: 768px) {
+    .orders-table-container .product-info-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    /* Ensure pseudo-labels stay separate from metadata */
+    .orders-table-container .product-table-row > div:before {
+        display: block;
+    }
+}
+
+/* Desktop product cell layout: keep image + stacked text together */
+.orders-table-container .product-table-row {
+    grid-template-columns: 1.4fr 0.45fr 0.6fr 0.6fr; /* Product | Qty | Price | Total */
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+}
+
+.orders-table-container .product-table-row > div[data-label="Product"] {
+    display: block;
+    min-width: 220px;
+    min-height: 0;
+    height: auto;
+}
+
+/* Ensure labels don't collide with metadata (global safety) */
+.orders-table-container .product-table-row > div:before {
+    display: block;
+}
+
+/* Force table cell behavior so rows expand when content wraps */
+.orders-table-container .product-table-row > div {
+    display: block;
+    min-height: 0;
+    height: auto;
+}
+
+/* Grid container to prevent bleed on desktop */
+.product-cell-wrapper {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 15px;
+    align-items: center;
+}
+
+.product-cell-wrapper .product-info-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .orders-table-container .product-info-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+
+    .orders-table-container .product-table-row > div:before {
+        display: block;
+        width: 100%;
+    }
+}
+
+/* =========================================
+   GLOBAL MOBILE FIXES FOR ADMIN (copy this block
+   into your global style.css if desired)
+   Target: max-width: 768px
+   - Sticky bottom navigation that stays visible
+   - Responsive tables that scroll horizontally
+   - Ensures collapsed state doesn't hide mobile nav
+   ========================================= */
+@media (max-width: 768px) {
+    /* Make admin sidebar a compact sticky bottom nav on mobile */
+    .admin-sidebar {
+        position: fixed !important;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        width: 100% !important;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        padding: 0 0.5rem;
+        border-top: 1px solid var(--admin-border);
+        background: var(--admin-surface);
+        z-index: 1300;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Layout nav links horizontally and center icons/text */
+    .admin-sidebar .admin-nav {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        gap: 0.25rem;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .admin-sidebar .admin-nav-link {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.78rem;
+        border-radius: 8px;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.15rem;
+        white-space: nowrap;
+    }
+
+    .admin-sidebar .nav-icon { font-size: 1.15rem; display: block; }
+
+    /* Avoid main content being hidden under the bottom nav */
+    .admin-content {
+        padding-bottom: calc(56px + 1rem) !important;
+    }
+
+    /* Ensure collapsed class does not hide the mobile nav */
+    .admin-container.sidebar-collapsed .admin-sidebar {
+        transform: none !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: 56px !important;
+        width: 100% !important;
+        pointer-events: auto !important;
+    }
+
+    /* Responsive tables: horizontal scrolling wrappers */
+    .table-container,
+    .orders-table-container,
+    .products-table-container,
+    .users-table-container,
+    table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Prevent tables from collapsing; allow horizontal scroll */
+    .table-container table,
+    .orders-table-container table,
+    .products-table-container table {
+        min-width: 700px;
+        width: 100%;
+    }
+
+    /* Small visual improvements for bottom nav */
+    .admin-sidebar .admin-nav-link.active { padding-bottom: 0.25rem; }
+}
+
+/* =========================================
+   MOBILE UI ENHANCEMENTS (global admin)
+   Targets common admin components: cards, headers, forms, tables
+   Improves spacing, tap targets and readability on small screens
+   ========================================= */
+@media (max-width: 768px) {
+    /* Layout and spacing */
+    .admin-content { padding: 0.9rem 0.9rem 1.25rem !important; }
+    .admin-header { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+    .admin-page-title { font-size: 1.25rem; }
+    .admin-page-subtitle { font-size: 0.9rem; }
+
+    /* Stats grid -> single column for better vertical flow */
+    .stats-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+    .stat-card { padding: 1rem !important; border-radius: 8px; }
+    .stat-value { font-size: 1.6rem !important; }
+
+    /* Action buttons full-width and prominent on mobile */
+    .btn-top, .admin-action-btn, .action-stack button, .stat-card.quick-action-card {
+        width: 100% !important;
+        display: block !important;
+        padding: 0.75rem 0.9rem !important;
+        font-size: 1rem !important;
+    }
+
+    /* Forms & controls: use full width, larger hit targets */
+    .form-control, textarea, .form-select, .input-group > * {
+        width: 100% !important;
+        font-size: 1rem !important;
+        padding: 0.6rem 0.75rem !important;
+    }
+
+    /* Tables: ensure readable rows and spacing */
+    .orders-list .order-row, .order-row, .product-table-row, .user-table-row {
+        padding: 0.9rem !important;
+        gap: 0.6rem !important;
+    }
+
+    /* Product images scale down on mobile for balanced layout */
+    .product-image-cell img, .product-cell-wrapper img {
+        max-height: 140px !important;
+        width: auto !important;
+        object-fit: contain !important;
+    }
+
+    /* Offcanvas: increase tap target size and clarity */
+    .offcanvas.admin-topbar-drawer .offcanvas-link {
+        padding: 0.75rem 0.85rem !important;
+        font-size: 0.95rem !important;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .offcanvas.admin-topbar-drawer .btn { padding: 0.75rem 1rem !important; }
+
+    /* Reduce density of list items and ensure visible dividers */
+    .admin-nav-link, .offcanvas-link { min-height: 44px; }
+
+    /* Make quick action cards readable */
+    .quick-action-card { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    /* Small footer area so content doesn't touch edges */
+    .admin-content > section, .admin-content > div { margin-bottom: 1rem; }
+
+    /* Ensure modals/offcanvas remain accessible above everything */
+    .offcanvas, .modal { z-index: 1800; }
+
+    /* Keep header controls visible: reduce topbar padding slightly */
+    .admin-topbar { padding: 0 0.9rem; height: 60px; }
+
+    /* Reduce topbar brand and icon sizes for a balanced header */
+    .topbar-brand img { height: 22px; }
+    .topbar-left .icon-button i, .topbar-actions i, .admin-sidebar .nav-icon { font-size: 18px; }
+
+    /* Compact stat cards and text for mobile readability */
+    .stat-card { padding: 0.85rem !important; }
+    .stat-label { font-size: 0.65rem; letter-spacing: 0.08em; }
+    .stat-value { font-size: 1.4rem !important; }
+
+    /* Quick action cards: slightly denser layout */
+    .quick-action-card { padding: 0.85rem !important; border-radius: 8px; }
+
+    /* Order rows: increase contrast and spacing while keeping density */
+    .order-row { padding: 0.75rem !important; }
+    .order-row > div { font-size: 0.95rem; }
+
+    /* Reduce product image footprint in lists */
+    .product-image-cell img, .product-cell-wrapper img { max-height: 120px !important; }
+
+    /* NAV ICON ALIGNMENT: make icons consistent and vertically centered */
+    .admin-nav-link {
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem 0.75rem !important;
+    }
+
+    .admin-nav-link .nav-icon,
+    .admin-sidebar .nav-icon {
+        font-size: 18px !important;
+        width: 26px;
+        min-width: 26px;
+        display: inline-block;
+        text-align: center;
+        line-height: 1;
+        color: var(--admin-muted);
+    }
+
+    /* Offcanvas icon alignment */
+    .offcanvas.admin-topbar-drawer .offcanvas-link i {
+        font-size: 18px;
+        width: 26px;
+        min-width: 26px;
+        text-align: center;
+        display: inline-block;
+    }
+
+    /* Topbar small icons */
+    .topbar-actions .btn-top i, .topbar-left .icon-button i {
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    /* Improve table usability: primary strategy is horizontal scroll; fallback card view for very small tables */
+    .table-container, .orders-table-container, .products-table-container, .users-table-container, table {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Fallback: when tables are used directly, present rows as cards for readability */
+    table.responsive-admin, table.admin-table {
+        width: 100% !important;
+        border-collapse: separate;
+    }
+
+    table.responsive-admin thead { display: none; }
+    table.responsive-admin tbody tr { display: block; margin-bottom: 0.9rem; border: 1px solid #eee; border-radius: 8px; padding: 0.6rem; background: #fff; }
+    table.responsive-admin tbody td { display: flex; justify-content: space-between; padding: 0.45rem 0; border-bottom: 0; }
+    table.responsive-admin tbody td:before { content: attr(data-label); font-weight: 700; color: #666; display: block; margin-right: 0.6rem; }
+
+    /* If your tables don't have data-label attributes, horizontal scroll remains primary strategy */
+    table.responsive-admin tbody td:not([data-label]) { white-space: normal; }
+}
+
+
+/* -----------------------------------------------------------------
+   Final mobile override: HIDE the persistent sidebar on small screens
+   Rationale: use the topbar + offcanvas/mobile menu for navigation.
+   This keeps the UI natural and avoids duplicate horizontal bars.
+   ----------------------------------------------------------------- */
+@media (max-width: 768px) {
+    /* Hide the fixed sidebar entirely so it doesn't duplicate nav */
+    .admin-sidebar {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Ensure collapsed class also hides sidebar */
+    .admin-container.sidebar-collapsed .admin-sidebar {
+        display: none !important;
+    }
+
+    /* Make main content use full width and keep topbar usable */
+    .admin-content {
+        margin-left: 0 !important;
+        padding-bottom: 1.25rem !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* Keep the topbar visible and clickable above content */
+    .admin-topbar { z-index: 1600; }
+
+    /* If you still want a compact bottom nav later, add a separate
+       element with class `mobile-bottom-nav` and style it explicitly.
+    */
+}
+
+
+/* Admin topbar mobile offcanvas adjustments */
+.offcanvas.admin-topbar-drawer {
+    top: var(--admin-header-height);
+    height: calc(100vh - var(--admin-header-height));
+    overflow-y: auto;
+    z-index: 1500; /* above sidebar but below topbar if needed */
+}
+
+/* Slight style for offcanvas links */
+.offcanvas.admin-topbar-drawer .offcanvas-body { padding: 1rem; }
+.offcanvas.admin-topbar-drawer .offcanvas-link { display: block; padding: 0.6rem 0.75rem; color: var(--admin-text); text-decoration: none; }
+.offcanvas.admin-topbar-drawer .offcanvas-link.btn { text-align: center; }
+
+/* Ensure mobile menu button has visible hit area */
+.mobile-menu-btn { padding: 0.45rem 0.6rem; border-radius: 8px; }
+
+@media (max-width: 991px) {
+    /* hide large topbar action links (use Bootstrap d-none d-md-inline as well) */
+    .topbar-actions .topbar-link.d-none.d-md-inline,
+    .topbar-actions .btn-top.d-none.d-md-inline {
+        display: none !important;
     }
 }

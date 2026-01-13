@@ -71,7 +71,7 @@ $message = isset($_GET['message']) ? $_GET['message'] : '';
                     <div class="backup-date"><?php echo $last_backup; ?></div>
                 </div>
 
-                <form method="POST" action="backup_logic.php">
+                <form method="POST" action="backup-logic.php">
                     <button type="submit" class="btn-backup">Download SQL Backup</button>
                 </form>
 

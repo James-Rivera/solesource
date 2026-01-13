@@ -307,7 +307,7 @@ if ($result && $result->num_rows > 0) {
                         <div class="text-muted">No low stock sizes found.</div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table align-middle mb-0">
+                            <table class="table align-middle mb-0 responsive-admin">
                                 <thead>
                                     <tr>
                                         <th>Product</th>
@@ -320,7 +320,7 @@ if ($result && $result->num_rows > 0) {
                                 <tbody>
                                     <?php foreach ($lowStockSizes as $ls): ?>
                                         <tr>
-                                            <td>
+                                            <td data-label="Product">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <?php if (!empty($ls['image'])): ?>
                                                         <img src="<?php echo htmlspecialchars('../' . $ls['image']); ?>" alt="<?php echo htmlspecialchars($ls['product_name'] ?? ''); ?>" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">
@@ -331,12 +331,12 @@ if ($result && $result->num_rows > 0) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td><?php echo htmlspecialchars($ls['size_label'] ?? ''); ?></td>
-                                            <td><?php echo htmlspecialchars($ls['gender'] ?? ''); ?></td>
-                                            <td>
+                                            <td data-label="Size"><?php echo htmlspecialchars($ls['size_label'] ?? ''); ?></td>
+                                            <td data-label="Gender"><?php echo htmlspecialchars($ls['gender'] ?? ''); ?></td>
+                                            <td data-label="Stock">
                                                 <span class="badge bg-danger-subtle text-danger fw-semibold px-3 py-2"><?php echo (int) ($ls['stock_quantity'] ?? 0); ?></span>
                                             </td>
-                                            <td class="text-end">
+                                            <td data-label="Action" class="text-end">
                                                 <a class="action-link" href="edit-product.php?id=<?php echo urlencode((string) ($ls['product_id'] ?? 0)); ?>">Edit Product</a>
                                             </td>
                                         </tr>

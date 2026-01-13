@@ -86,14 +86,27 @@ elseif ($status === 'cancelled') $statusClass = 'text-danger';
                         </div>
                         <?php foreach ($items as $item): ?>
                             <div class="product-table-row">
-                                <div data-label="Product" class="d-flex align-items-center gap-2">
-                                    <img src="<?php echo htmlspecialchars('../' . ($item['image'] ?? '')); ?>" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">
-                                    <div>
-                                        <div class="fw-bold small text-uppercase"><?php echo htmlspecialchars($item['brand']); ?></div>
-                                        <div class="small"><?php echo htmlspecialchars($item['name']); ?></div>
+                                <div data-label="Product">
+                                    <div class="product-cell-wrapper">
+                                        <img src="<?php echo htmlspecialchars('../' . ($item['image'] ?? '')); ?>" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;">
+                                        <div class="product-info-stack">
+                                            <div class="fw-bold small text-uppercase" style="line-height:1.3;"><?php echo htmlspecialchars($item['brand']); ?></div>
+                                            <div class="small" style="line-height:1.4;word-break:break-word;"><?php echo htmlspecialchars($item['name']); ?></div>
+                                            <div class="text-muted small">
+                                                Qty: <?php echo (int) $item['quantity']; ?>
+                                                <?php $sizeDisplay = ($item['size_label'] ?? '') ?: ($item['size'] ?? ''); if ($sizeDisplay !== ''): ?>
+                                                    · Size: <?php echo htmlspecialchars($sizeDisplay); ?>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div data-label="Qty"><?php echo (int) $item['quantity']; ?><?php $sizeDisplay = ($item['size_label'] ?? '') ?: ($item['size'] ?? ''); if ($sizeDisplay !== '') { echo ' • Size ' . htmlspecialchars($sizeDisplay); } ?></div>
+                                <div data-label="Qty" class="d-flex flex-column gap-1">
+                                    <span><?php echo (int) $item['quantity']; ?></span>
+                                    <?php $sizeDisplay = ($item['size_label'] ?? '') ?: ($item['size'] ?? ''); if ($sizeDisplay !== ''): ?>
+                                        <span class="text-muted small">Size: <?php echo htmlspecialchars($sizeDisplay); ?></span>
+                                    <?php endif; ?>
+                                </div>
                                 <div data-label="Price"><?php echo htmlspecialchars($item['price_formatted']); ?></div>
                                 <div data-label="Total"><?php echo htmlspecialchars($item['line_total_formatted']); ?></div>
                             </div>
