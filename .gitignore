@@ -2,6 +2,5 @@
 {backup_dir}
 AI_CHAT.md
 fix_mysql_aria.bat
-# Exclude Learnexus (collaborator's code)
-/Learnexus/
 !/.gitignore
+logs/
