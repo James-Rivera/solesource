@@ -5,7 +5,11 @@ require_once 'includes/connect.php';
 require_once 'includes/sms-config.php';
 =======
 require_once __DIR__ . '/../includes/connect.php';
+<<<<<<< HEAD
 >>>>>>> aec819cbb054f08c4ba22bc867363540530940ce:pages/profile.php
+=======
+>>>>>>> d56c9ebe354d27dd999119a45112e142e26549a2:pages/profile.php
+>>>>>>> 637dd8bc88ddfe3d63503325460e177c9d3e6440
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php?redirect=profile');
