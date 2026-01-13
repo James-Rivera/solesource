@@ -318,15 +318,51 @@ function notifyCollaborator(array $payload): void
     if (!$url) {
         return;
     }
+
+    // Add integration type so receivers can identify source
     $payload['integration'] = 'course';
+
+    // Logging setup (helpful for debugging webhook deliveries)
+    $logDir = __DIR__ . '/../../logs';
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0775, true);
+    }
+    $logFile = $logDir . '/webhooks.log';
+
+    $secret = getenv('COLLAB_WEBHOOK_SECRET') ?: '';
+    $headers = ['Content-Type: application/json'];
+    if ($secret !== '') {
+        $headers[] = 'Authorization: Bearer ' . $secret;
+    }
+
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_POST => 1,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_HTTPHEADER => $headers,
         CURLOPT_POSTFIELDS => json_encode($payload),
-        CURLOPT_TIMEOUT => 5,
+        CURLOPT_TIMEOUT => 10,
+        // Allow self-signed certs in development tunnels; remove in production
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
     ]);
-    curl_exec($ch);
+
+    $requestBody = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $start = microtime(true);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_error($ch);
     curl_close($ch);
+
+    $entry = [
+        'time' => date('c'),
+        'url' => $url,
+        'headers' => $headers,
+        'request' => $payload,
+        'response' => $response,
+        'http_code' => $httpCode,
+        'curl_error' => $curlErr,
+        'duration_ms' => round((microtime(true) - $start) * 1000),
+    ];
+    @file_put_contents($logFile, json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
