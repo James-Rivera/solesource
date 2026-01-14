@@ -7,6 +7,9 @@ $image = !empty($shoe['image']) ? $shoe['image'] : 'assets/svg/logo-big-white.sv
 ?>
 <div class="col-6 col-md-3 product-col">
     <div class="product-card h-100 d-flex flex-column position-relative">
+        <?php if (!empty($shoe['is_featured'])): ?>
+            <span class="badge-featured position-absolute top-0 start-0 m-2">Featured</span>
+        <?php endif; ?>
         <?php if ($stockTotal <= 0): ?>
             <span class="badge bg-dark position-absolute top-0 end-0 m-2">Out of Stock</span>
         <?php endif; ?>

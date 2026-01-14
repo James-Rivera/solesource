@@ -179,6 +179,13 @@ foreach ($price_ranges as $range) {
             $hero_desc = "The community's favorites. Verified authentic and ready to ship.";
             $breadcrumb_active = "Best Sellers";
         }
+        // Filter: featured
+        elseif (isset($_GET['filter']) && $_GET['filter'] === 'featured') {
+            $hero_title = "FEATURED";
+            $hero_desc = "Hand-picked favourites curated by our team.";
+            $breadcrumb_active = "Featured";
+            $conditions[] = "is_featured = 1";
+        }
 
         if (!empty($selected_price_ranges)) {
             $range_clauses = [];
@@ -222,7 +229,7 @@ foreach ($price_ranges as $range) {
         }
 
         // Pagination
-        $per_page = 12;
+        $per_page = 24;
         $page = max(1, (int)($_GET['page_num'] ?? 1));
         $offset = ($page - 1) * $per_page;
 

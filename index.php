@@ -71,7 +71,25 @@ $title = 'SoleSource | Premium Sneakers';
     };
 
     $new_releases = $fetch_products("release_date DESC, created_at DESC", 4);
-    $best_sellers = $fetch_products("total_sold DESC, is_featured DESC, created_at DESC", 4);
+    $best_sellers = $fetch_products("total_sold DESC, is_featured DESC, created_at DESC", 8);
+
+    // Featured products - only include items explicitly marked as featured
+    $fetch_featured = function ($limit = 4) use ($conn, $format_price) {
+        $sql = "SELECT * FROM products WHERE status = 'active' AND is_featured = 1 ORDER BY created_at DESC LIMIT ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $limit);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $items = [];
+        while ($row = $res->fetch_assoc()) {
+            $row['price'] = $format_price($row['price']);
+            $items[] = $row;
+        }
+        $stmt->close();
+        return $items;
+    };
+
+    $featured = $fetch_featured(4);
 
     $brands = [
         ['name' => 'Nike', 'logo' => 'assets/img/brands/nike.svg'],
@@ -236,6 +254,26 @@ $title = 'SoleSource | Premium Sneakers';
 
             <div class="row g-4">
                 <?php foreach ($best_sellers as $shoe): ?>
+                    <?php include __DIR__ . '/includes/partials/product-card.php'; ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Section (below Best Selling) -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center mb-4">
+                <div class="col-6">
+                    <h2 class="mb-0 fw-bold text-lowercase text-brand-black">featured</h2>
+                </div>
+                <div class="col-6 text-end">
+                    <a href="shop.php?filter=featured" class="text-decoration-underline text-lowercase text-brand-black fw-semibold">find more</a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <?php foreach ($featured as $shoe): ?>
                     <?php include __DIR__ . '/includes/partials/product-card.php'; ?>
                 <?php endforeach; ?>
             </div>
