@@ -71,7 +71,8 @@ $title = 'SoleSource | Premium Sneakers';
     };
 
     $new_releases = $fetch_products("release_date DESC, created_at DESC", 4);
-    $best_sellers = $fetch_products("total_sold DESC, is_featured DESC, created_at DESC", 8);
+    // Best sellers should be ordered strictly by how many were bought (total_sold)
+    $best_sellers = $fetch_products("total_sold DESC, created_at DESC", 8);
 
     // Featured products - only include items explicitly marked as featured
     $fetch_featured = function ($limit = 4) use ($conn, $format_price) {

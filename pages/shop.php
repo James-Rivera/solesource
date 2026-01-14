@@ -225,7 +225,8 @@ foreach ($price_ranges as $range) {
         if ($current_sort === 'new') {
             $order = "ORDER BY release_date DESC, created_at DESC";
         } elseif ($current_sort === 'best') {
-            $order = "ORDER BY total_sold DESC, is_featured DESC, created_at DESC";
+            // Order best sellers strictly by total_sold (most bought first)
+            $order = "ORDER BY total_sold DESC, created_at DESC";
         }
 
         // Pagination

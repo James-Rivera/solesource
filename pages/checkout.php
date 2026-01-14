@@ -283,6 +283,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmtDec->execute();
                     $stmtDec->close();
                 }
+
+                    // Increment total_sold so best-seller ordering reflects actual purchases
+                    $stmtIncSold = $conn->prepare('UPDATE products SET total_sold = COALESCE(total_sold,0) + ? WHERE id = ?');
+                    if ($stmtIncSold) {
+                        $qty = (int)$ci['qty'];
+                        $pid = (int)$ci['id'];
+                        $stmtIncSold->bind_param('ii', $qty, $pid);
+                        $stmtIncSold->execute();
+                        $stmtIncSold->close();
+                    }
             }
             $stmtItem->close();
 
