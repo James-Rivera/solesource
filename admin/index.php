@@ -118,6 +118,13 @@ if ($stmt) {
                         </div>
                         <i class="bi bi-exclamation-triangle"></i>
                     </a>
+                    <a class="stat-card quick-action-card" href="backup-logic.php">
+                        <div>
+                            <div class="stat-label">Backup</div>
+                            <div class="stat-value" style="font-size:1.3rem;">Create Backup</div>
+                        </div>
+                        <i class="bi bi-cloud-arrow-down"></i>
+                    </a>
                 </div>
             </section>
 
