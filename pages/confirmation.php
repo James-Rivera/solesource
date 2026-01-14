@@ -50,6 +50,16 @@ $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
+// Voucher & totals
+$subtotalAmount = 0.0;
+foreach ($orderItems as $oi) {
+    $subtotalAmount += ((float)($oi['price_at_purchase'] ?? 0)) * (int)($oi['quantity'] ?? 1);
+}
+$voucherCode = trim((string)($order['voucher_code'] ?? ''));
+$voucherDiscount = (float)($order['voucher_discount'] ?? 0);
+$voucherType = $order['voucher_discount_type'] ?? '';
+$hasVoucher = $voucherCode !== '' && $voucherDiscount > 0;
+$totalAmount = (float)($order['total_amount'] ?? max(0, $subtotalAmount - $voucherDiscount));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -132,6 +142,15 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
 
                             <hr class="section-divider my-4">
 
+                            <?php if ($hasVoucher): ?>
+                                <div class="voucher-banner mb-3" role="status">
+                                    <div class="voucher-chip">Coupon Applied</div>
+                                    <div class="voucher-copy">
+                                        Voucher <strong><?php echo htmlspecialchars($voucherCode); ?></strong> saved you ₱<?php echo number_format($voucherDiscount, 2); ?> on this order.
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
                             <div class="mb-4 text-start">
                                 <div class="order-summary-title mb-4 text-uppercase">Order Summary</div>
                                 <?php if (!empty($orderItems)): ?>
@@ -164,6 +183,27 @@ $assetBase = $scheme . $host . ($basePath ? $basePath . '/' : '/');
                             <hr class="section-divider my-4">
 
                             <div class="mb-4 text-start">
+                                <div class="order-summary-title mb-3 text-uppercase">Cost Breakdown</div>
+                                <div class="cost-breakdown-card mb-3">
+                                    <div class="cost-row d-flex justify-content-between">
+                                        <span>Subtotal</span>
+                                        <span>₱<?php echo number_format($subtotalAmount, 2); ?></span>
+                                    </div>
+                                    <?php if ($voucherDiscount > 0): ?>
+                                        <div class="cost-row savings d-flex justify-content-between">
+                                            <span>Voucher <?php echo $voucherCode ? '(' . htmlspecialchars($voucherCode) . ')' : ''; ?></span>
+                                            <span>-₱<?php echo number_format($voucherDiscount, 2); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="cost-row total d-flex justify-content-between" style="font-weight:800; margin-top:8px;">
+                                        <span>Total Paid</span>
+                                        <span>₱<?php echo number_format($totalAmount, 2); ?></span>
+                                    </div>
+                                    <p class="cost-note text-muted small mt-2">
+                                        Line-item prices show before discounts. Savings are reflected in the totals above.
+                                    </p>
+                                </div>
+
                                 <div class="order-summary-title mb-3 d-flex align-items-center justify-content-between text-uppercase">
                                     <span>Complete Order Details</span>
                                 </div>

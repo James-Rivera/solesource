@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please enter and confirm your new password.';
     } elseif ($password !== $confirm) {
         $error = 'Passwords do not match.';
-    } elseif (strlen($password) < 8) {
-        $error = 'Password must be at least 8 characters.';
+    } elseif (!preg_match('/^(?=.*[A-Za-z])(?=.*\\d).{8,}$/', $password)) {
+        $error = 'Password must be at least 8 characters and include letters and numbers.';
     } else {
         $hash = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $conn->prepare('UPDATE users SET password = ? WHERE email = ? LIMIT 1');
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="login-wrapper">
                 <div class="auth-card">
                     <h1 class="auth-title">Reset password</h1>
-                    <p class="text-muted small mb-4">Create a new password below. It must be at least 8 characters long.</p>
+                    <p class="text-muted small mb-4">Create a new password below. Use at least 8 characters including letters and numbers.</p>
 
                     <?php if ($error): ?>
                         <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <form method="POST">
                             <input type="hidden" name="token" value="<?php echo htmlspecialchars($tokenParam); ?>">
                             <div class="mb-3">
-                                <input type="password" name="password" class="form-control" placeholder="New password" aria-label="New password" required>
+                                <input type="password" name="password" class="form-control" placeholder="New password" aria-label="New password" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" title="Use at least 8 characters including letters and numbers" required>
                             </div>
                             <div class="mb-4">
                                 <input type="password" name="confirm_password" class="form-control" placeholder="Confirm new password" aria-label="Confirm new password" required>

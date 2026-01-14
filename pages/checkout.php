@@ -321,6 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $emailData = build_receipt_email([
                 'orderId' => $orderId,
                 'orderNumber' => $orderNumber,
+                'orderDate' => date('F j, Y'),
                 'fullName' => $fullName,
                 'paymentMethod' => $paymentMethod,
                 'shippingAddress' => $shippingAddress,
@@ -419,6 +420,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span class="text-muted">Confirmation</span>
             </div>
             <form method="post">
+                <input type="hidden" name="payment_agreed" id="payment_agreed" value="">
                 <div class="row g-5">
                     <div class="col-lg-7">
                         <div class="section-block mb-4">
@@ -728,6 +730,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COD Confirmation Modal -->
+    <div class="modal fade" id="codConfirmModal" tabindex="-1" aria-labelledby="codConfirmLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="codConfirmLabel">Confirm Cash on Delivery</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">You are to pay <strong id="codAmount">₱0.00</strong> upon delivery.</p>
+                    <p class="small text-muted">Please ensure someone will be available to receive and pay for the order. By agreeing, you confirm you will pay the full amount in cash to the courier.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="codAgreeBtn">I Agree - Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GCash Modal -->
+    <div class="modal fade" id="gcashModal" tabindex="-1" aria-labelledby="gcashLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gcashLabel">Pay with GCash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="small text-muted">Scan the QR code below using your GCash app to pay the exact amount.</p>
+                    <img src="https://via.placeholder.com/300x300.png?text=GCash+QR" alt="GCash QR" id="gcashQr" class="img-fluid mb-3" />
+                    <div class="small text-muted">After payment, tap "I have paid" to finish placing your order.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="gcashPaidBtn">I have paid</button>
                 </div>
             </div>
         </div>
@@ -1154,6 +1197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 form?.addEventListener('submit', (evt) => {
                     const payment = new FormData(form).get('payment');
+                    const agreed = document.getElementById('payment_agreed')?.value === '1';
                     if (payment === 'PayPal') {
                         evt.preventDefault();
                         if (!form.checkValidity()) {
@@ -1166,6 +1210,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         showPayPal();
                         payPalContainer?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        return;
+                    }
+
+                    // Handle COD and GCash with modals to confirm payment flow
+                    if ((payment === 'COD' || payment === 'GCash') && !agreed) {
+                        evt.preventDefault();
+                        if (!form.checkValidity()) {
+                            form.reportValidity();
+                            return;
+                        }
+                        if (payment === 'COD') {
+                            const codModalEl = document.getElementById('codConfirmModal');
+                            const codAmountEl = document.getElementById('codAmount');
+                            if (codAmountEl) codAmountEl.textContent = '₱' + Number(<?php echo json_encode($totalAmount); ?>).toFixed(2);
+                            const codModal = new bootstrap.Modal(codModalEl);
+                            codModal.show();
+                        } else {
+                            const gcashModalEl = document.getElementById('gcashModal');
+                            const gcashModal = new bootstrap.Modal(gcashModalEl);
+                            gcashModal.show();
+                        }
+                        return;
                     }
                 });
             })();
@@ -1189,6 +1255,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         showLoader();
                     }
                 });
+            })();
+        </script>
+        <script>
+            (function() {
+                const form = document.querySelector('form');
+                const paymentAgreedInput = document.getElementById('payment_agreed');
+                const codAgreeBtn = document.getElementById('codAgreeBtn');
+                const gcashPaidBtn = document.getElementById('gcashPaidBtn');
+
+                if (codAgreeBtn) {
+                    codAgreeBtn.addEventListener('click', () => {
+                        if (paymentAgreedInput) paymentAgreedInput.value = '1';
+                        // close modal then submit
+                        const codModalEl = document.getElementById('codConfirmModal');
+                        const m = bootstrap.Modal.getInstance(codModalEl);
+                        if (m) m.hide();
+                        form?.submit();
+                    });
+                }
+
+                if (gcashPaidBtn) {
+                    gcashPaidBtn.addEventListener('click', () => {
+                        if (paymentAgreedInput) paymentAgreedInput.value = '1';
+                        const gcashModalEl = document.getElementById('gcashModal');
+                        const m = bootstrap.Modal.getInstance(gcashModalEl);
+                        if (m) m.hide();
+                        form?.submit();
+                    });
+                }
             })();
         </script>
 </body>

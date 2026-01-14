@@ -12,6 +12,8 @@ function build_receipt_email(array $data): array
     $totalAmount = (float)($data['totalAmount'] ?? 0);
     $orderDate = $data['orderDate'] ?? '';
     $estimatedArrival = $data['estimatedArrival'] ?? '';
+    $voucherCode = $data['voucherCode'] ?? '';
+    $voucherDiscount = (float)($data['voucherDiscount'] ?? 0);
 
     $envAppUrl = getenv('APP_URL') ?: ($_SERVER['APP_URL'] ?? '');
     $baseUrl = $envAppUrl ? rtrim($envAppUrl, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
@@ -97,6 +99,7 @@ function build_receipt_email(array $data): array
             <div style="margin-bottom:4px;">Your Order: <strong style="color:' . $brandBlack . ';">' . htmlspecialchars($orderNumber) . '</strong></div>
             <div style="margin-bottom:10px;">Order Date: <strong style="color:' . $brandBlack . ';">' . htmlspecialchars($orderDate) . '</strong></div>
             <div style="margin-bottom:12px;">We have sent the order confirmation details to ' . htmlspecialchars($fullName ?: 'you') . '.</div>
+            ' . ($voucherDiscount > 0 ? '<div style="margin-top:8px; padding:10px; background:#f1f7ee; border-radius:6px; color:#234d20; font-weight:700;">Voucher ' . htmlspecialchars($voucherCode) . ' saved you ₱' . number_format($voucherDiscount, 2) . ' on this order.</div>' : '') . '
         </div>
 
         <div style="display:flex; gap:12px; padding:0 24px 18px 24px;">
@@ -124,6 +127,7 @@ function build_receipt_email(array $data): array
             <div style="font-size:14px; display:flex; justify-content:space-between; color:' . $brandBlack . ';">
                 <span>Subtotal</span><span>₱' . number_format($subtotal, 2) . '</span>
             </div>
+            ' . ($voucherDiscount > 0 ? '<div style="font-size:14px; display:flex; justify-content:space-between; color:' . $brandBlack . '; margin-top:6px;"><span>Voucher ' . ($voucherCode ? '(' . htmlspecialchars($voucherCode) . ')' : '') . '</span><span>-₱' . number_format($voucherDiscount, 2) . '</span></div>' : '') . '
             <div style="font-size:14px; display:flex; justify-content:space-between; color:' . $brandBlack . '; margin-top:4px;">
                 <span>Estimated Shipping</span><span>-</span>
             </div>
@@ -150,6 +154,7 @@ function build_receipt_email(array $data): array
         'Total: ₱' . number_format($totalAmount, 2) . "\n" .
         'Payment: ' . $paymentMethod . "\n" .
         'Ship to: ' . $shippingAddress . "\n" .
+        ($voucherDiscount > 0 ? ('Voucher: ' . $voucherCode . ' saved ₱' . number_format($voucherDiscount, 2) . "\n") : '') .
         'View: ' . $orderViewUrl;
 
     return [
