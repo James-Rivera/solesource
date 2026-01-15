@@ -2,6 +2,7 @@
 session_start();
 require_once '../includes/connect.php';
 require_once '../includes/mailer.php';
+require_once __DIR__ . '/../includes/admin-logs.php';
 
 // Admin only
 if (empty($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
@@ -104,6 +105,22 @@ try {
             error_log('Failed to queue shipped email for order ' . $orderId . ': ' . $e->getMessage());
         }
     }
+
+        // Audit log: record status change
+        try {
+            $adminId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+            $meta = [
+                'order_id' => $orderId,
+                'order_number' => $order['order_number'] ?? null,
+                'old_status' => $order['status'] ?? null,
+                'new_status' => $newStatus,
+                'tracking' => $newTracking,
+                'courier' => $newCourier,
+            ];
+            log_admin_action($conn, $adminId, 'order_status_change', $meta);
+        } catch (Throwable $e) {
+            error_log('Failed to write admin log for order ' . $orderId . ': ' . $e->getMessage());
+        }
 
     header('Location: orders.php?msg=updated');
     exit;

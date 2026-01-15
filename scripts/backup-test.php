@@ -27,3 +27,24 @@ $command = sprintf('%s --host=%s --user=%s --password=%s %s %s > %s',
 );
 
 echo $command . PHP_EOL;
+// detection of mysqldump path similar to backup-logic
+$possible = [
+    'C:\\xampp\\mysql\\bin\\mysqldump.exe',
+    'C:\\wamp64\\bin\\mysql\\mysql5.7.31\\bin\\mysqldump.exe',
+    '/usr/bin/mysqldump',
+    '/usr/local/bin/mysqldump',
+    'mysqldump'
+];
+$chosen = null;
+foreach ($possible as $p) {
+    if ($p === 'mysqldump') {
+        $chosen = $p;
+        break;
+    }
+    if (file_exists($p) && is_executable($p)) {
+        $chosen = $p;
+        break;
+    }
+}
+
+echo "Chosen mysqldump: " . ($chosen ?: 'none') . PHP_EOL;

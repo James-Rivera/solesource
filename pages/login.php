@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || $password === '') {
         $error_message = 'Email and password are required.';
     } else {
-        $sql = "SELECT id, full_name, email, password, role FROM users WHERE email = ? LIMIT 1";
+        $sql = "SELECT id, full_name, email, password, role, is_active FROM users WHERE email = ? LIMIT 1";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param('s', $email);
         $stmt->execute();
@@ -21,16 +21,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
 
         if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['full_name'];
-            $_SESSION['user_role'] = $user['role'];
-            $_SESSION['user_email'] = $user['email'];
-            if ($redirect === 'checkout') {
-                header('Location: checkout.php');
+            if (isset($user['is_active']) && (int) $user['is_active'] === 0) {
+                $error_message = 'This account has been suspended. Contact support to reactivate.';
             } else {
-                header('Location: index.php');
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['full_name'];
+                $_SESSION['user_role'] = $user['role'];
+                $_SESSION['user_email'] = $user['email'];
+                if ($redirect === 'checkout') {
+                    header('Location: checkout.php');
+                } else {
+                    header('Location: index.php');
+                }
+                exit;
             }
-            exit;
         } else {
             $error_message = 'Invalid email or password.';
         }
