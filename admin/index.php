@@ -60,6 +60,7 @@ if ($stmt) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SoleSource | Admin Dashboard</title>
+    <?php include __DIR__ . '/../includes/layout/head-meta.php'; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/variables.css">
@@ -117,6 +118,13 @@ if ($stmt) {
                             <div class="stat-value" style="font-size:1.3rem;">View Stock Alerts</div>
                         </div>
                         <i class="bi bi-exclamation-triangle"></i>
+                    </a>
+                    <a class="stat-card quick-action-card" href="backup-logic.php">
+                        <div>
+                            <div class="stat-label">Backup</div>
+                            <div class="stat-value" style="font-size:1.3rem;">Create Backup</div>
+                        </div>
+                        <i class="bi bi-cloud-arrow-down"></i>
                     </a>
                 </div>
             </section>

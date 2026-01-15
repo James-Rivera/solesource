@@ -52,6 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error_message = 'Please enter a valid email address.';
     } elseif ($password !== $confirm_password) {
         $error_message = 'Passwords do not match.';
+    } elseif (!preg_match('/^(?=.*[A-Za-z])(?=.*\d).{8,}$/', $password)) {
+        $error_message = 'Password must be at least 8 characters and include letters and numbers.';
     } else {
         // Check if email exists
         $check = $conn->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
@@ -172,7 +174,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="form-text">Philippines only. Enter the 10 digits after +63 (e.g., 9171234567).</div>
                         </div>
                         <div class="mb-3">
-                            <input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password">
+                            <input type="password" name="password" class="form-control" placeholder="Password" aria-label="Password" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" title="Use at least 8 characters including letters and numbers">
+                            <div class="form-text small">Use at least 8 characters, including letters and numbers.</div>
                         </div>
                         <div class="mb-3">
                             <input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password" aria-label="Confirm Password">

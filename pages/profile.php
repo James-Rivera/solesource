@@ -81,8 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         $security_error = 'Please fill out all password fields.';
     } elseif ($new !== $confirm) {
         $security_error = 'New password and confirmation do not match.';
-    } elseif (strlen($new) < 8) {
-        $security_error = 'New password must be at least 8 characters.';
+    } elseif (!preg_match('/^(?=.*[A-Za-z])(?=.*\\d).{8,}$/', $new)) {
+        $security_error = 'New password must be at least 8 characters and include letters and numbers.';
     } elseif (!password_verify($current, $user['password_hash'])) {
         $security_error = 'Current password is incorrect.';
     } else {

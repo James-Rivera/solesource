@@ -97,6 +97,7 @@ $title = 'SoleSource | Premium Sneakers';
         ['name' => 'Asics', 'logo' => 'assets/img/brands/asics.png'],
         ['name' => 'Onitsuka Tiger', 'logo' => 'assets/img/brands/onitsuka.png'],
         ['name' => 'Adidas', 'logo' => 'assets/img/brands/adidas.png'],
+        ['name' => 'Jordan', 'logo' => 'assets/img/brands/air-jordan.png']
     ];
     ?>
 

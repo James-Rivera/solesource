@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../includes/connect.php';
+require_once '../includes/mailer.php';
+require_once __DIR__ . '/../includes/admin-logs.php';
 
 // Admin only
 if (empty($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
@@ -25,7 +27,7 @@ if ($orderId <= 0 || !in_array($newStatus, $allowed, true)) {
 }
 
 // Fetch current order
-$sel = $conn->prepare("SELECT id, status, tracking_number, courier FROM orders WHERE id = ? LIMIT 1");
+$sel = $conn->prepare("SELECT o.id, o.status, o.tracking_number, o.courier, o.order_number, o.user_id, o.total_amount, u.email, u.full_name FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = ? LIMIT 1");
 $sel->bind_param('i', $orderId);
 $sel->execute();
 $res = $sel->get_result();
@@ -76,6 +78,50 @@ try {
     }
 
     $conn->commit();
+    // If status changed to shipped, queue an email notification to customer
+    if ($newStatus === 'shipped' && strtolower($order['status']) !== 'shipped') {
+        try {
+            $envAppUrl = getenv('APP_URL') ?: ($_SERVER['APP_URL'] ?? '');
+            $baseUrl = $envAppUrl ? rtrim($envAppUrl, '/') : (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+            $orderViewUrl = $baseUrl . '/index.php?page=view_order&id=' . urlencode($orderId);
+
+            $recipient = $order['email'] ?? '';
+            $customerName = $order['full_name'] ?? '';
+            $subject = 'Your SoleSource order ' . ($order['order_number'] ?? '') . ' is on the way';
+            $html = '<div style="font-family:Arial,sans-serif;color:#121212;max-width:600px;margin:12px auto;padding:18px;border:1px solid #efefef;border-radius:6px;">'
+                . '<h2 style="color:#121212;">Your order is on the way</h2>'
+                . '<p>Hi ' . htmlspecialchars($customerName, ENT_QUOTES, 'UTF-8') . ',</p>'
+                . '<p>Your order <strong>' . htmlspecialchars($order['order_number'] ?? '', ENT_QUOTES, 'UTF-8') . '</strong> has been marked as <strong>Shipping</strong>.</p>'
+                . '<p>Courier: ' . htmlspecialchars($newCourier, ENT_QUOTES, 'UTF-8') . '<br/>Tracking number: ' . htmlspecialchars($newTracking, ENT_QUOTES, 'UTF-8') . '</p>'
+                . '<p><a href="' . htmlspecialchars($orderViewUrl, ENT_QUOTES, 'UTF-8') . '" style="display:inline-block;padding:10px 14px;background:#E9713F;color:#fff;text-decoration:none;border-radius:4px;">View your order</a></p>'
+                . '<p style="color:#6f6f6f;font-size:13px;">If you have questions, reply to this email or contact support.</p>'
+                . '</div>';
+            $alt = 'Your order ' . ($order['order_number'] ?? '') . ' is shipping. Tracking: ' . $newTracking . ' via ' . $newCourier . '. View: ' . $orderViewUrl;
+
+            if ($recipient) {
+                queueEmail($conn, $recipient, $subject, $html, $alt);
+            }
+        } catch (Throwable $e) {
+            error_log('Failed to queue shipped email for order ' . $orderId . ': ' . $e->getMessage());
+        }
+    }
+
+        // Audit log: record status change
+        try {
+            $adminId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+            $meta = [
+                'order_id' => $orderId,
+                'order_number' => $order['order_number'] ?? null,
+                'old_status' => $order['status'] ?? null,
+                'new_status' => $newStatus,
+                'tracking' => $newTracking,
+                'courier' => $newCourier,
+            ];
+            log_admin_action($conn, $adminId, 'order_status_change', $meta);
+        } catch (Throwable $e) {
+            error_log('Failed to write admin log for order ' . $orderId . ': ' . $e->getMessage());
+        }
+
     header('Location: orders.php?msg=updated');
     exit;
 } catch (Throwable $t) {

@@ -1,0 +1,4 @@
+<?php
+// Redirect to the actual favicon under assets so requests to /favicon.ico resolve.
+header('Location: /assets/favicon/favicon.ico');
+exit;

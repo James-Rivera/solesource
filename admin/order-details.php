@@ -40,6 +40,14 @@ while ($row = $itemRes->fetch_assoc()) {
 }
 $itemStmt->close();
 
+$subtotalAmount = 0.0;
+foreach ($items as $it) {
+    $subtotalAmount += (float)($it['line_total'] ?? 0);
+}
+$voucherCode = trim((string)($order['voucher_code'] ?? ''));
+$voucherDiscount = (float)($order['voucher_discount'] ?? 0);
+$hasVoucher = $voucherCode !== '' && $voucherDiscount > 0;
+
 $status = strtolower($order['status'] ?? 'pending');
 $statusClass = 'text-secondary';
 if ($status === 'pending') $statusClass = 'text-warning';
@@ -148,16 +156,30 @@ elseif ($status === 'cancelled') $statusClass = 'text-danger';
                     <div class="orders-table-container p-3">
                         <h5 class="fw-bold mb-3">Customer & Shipping</h5>
                         <div class="mb-2 fw-bold"><?php echo htmlspecialchars($order['full_name']); ?></div>
-                        <div class="mb-3 text-muted small"><?php echo htmlspecialchars($order['email']); ?></div>
+                        <div class="mb-1 text-muted small"><?php echo htmlspecialchars($order['email']); ?></div>
+                        <div class="mb-2 text-muted small">Phone: <?php echo htmlspecialchars($order['phone'] ?? ($order['shipping_phone'] ?? '')); ?></div>
                         <div class="small text-brand-black">
-                            <?php echo htmlspecialchars($order['full_name']); ?><br>
-                            <?php echo htmlspecialchars($order['address'] ?? ''); ?><br>
-                            <?php echo htmlspecialchars($order['city'] ?? ''); ?>, <?php echo htmlspecialchars($order['province'] ?? ''); ?><br>
-                            <?php echo htmlspecialchars($order['region'] ?? ''); ?> <?php echo htmlspecialchars($order['zip_code'] ?? ''); ?><br>
-                            <?php echo htmlspecialchars($order['country'] ?? 'Philippines'); ?>
+                            <?php echo nl2br(htmlspecialchars(implode('\n', array_filter([ $order['address'] ?? '', $order['barangay'] ?? '', ($order['city'] ? $order['city'] . ', ' . $order['province'] : ''), $order['region'] ?? '', $order['zip_code'] ?? '', $order['country'] ?? ''])))); ?>
                         </div>
-                        <div class="mt-3 small text-muted">Payment: <?php echo htmlspecialchars(strtoupper($order['payment_method'] ?? 'COD')); ?></div>
-                        <div class="mt-1 small text-muted">Total: ₱<?php echo number_format((float) ($order['total_amount'] ?? 0), 2); ?></div>
+
+                        <?php if ($hasVoucher): ?>
+                            <div class="mt-3 alert alert-success py-2">
+                                <strong>Voucher applied:</strong> <?php echo htmlspecialchars($voucherCode); ?> — saved ₱<?php echo number_format($voucherDiscount, 2); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="mt-3 small text-muted">Payment method: <strong><?php echo htmlspecialchars(strtoupper($order['payment_method'] ?? 'COD')); ?></strong></div>
+
+                        <div class="mt-3">
+                            <div class="fw-bold small text-uppercase text-muted">Cost breakdown</div>
+                            <div class="d-flex justify-content-between mt-2"><div>Subtotal</div><div>₱<?php echo number_format($subtotalAmount, 2); ?></div></div>
+                            <?php if ($voucherDiscount > 0): ?>
+                                <div class="d-flex justify-content-between text-success"><div>Voucher <?php echo htmlspecialchars($voucherCode); ?></div><div>-₱<?php echo number_format($voucherDiscount, 2); ?></div></div>
+                            <?php endif; ?>
+                            <div class="d-flex justify-content-between mt-2"><div>Delivery & Handling</div><div>Free</div></div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold"><div>Total</div><div>₱<?php echo number_format((float) ($order['total_amount'] ?? 0), 2); ?></div></div>
+                        </div>
                     </div>
                 </div>
             </div>
