@@ -160,7 +160,6 @@ if (empty($navBrands)) { $navBrands = ['Nike','Adidas','Asics','Puma']; }
 			<div class="mobile-nav-group">
 				<div class="mobile-nav-heading">Admin</div>
 				<a class="mobile-nav-link" href="admin/index.php">
-					<i class="bi bi-speedometer2 me-2"></i>
 					Admin Panel
 				</a>
 			</div>
