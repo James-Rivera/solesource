@@ -185,26 +185,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'delete_size') {
         $deleteId = (int) ($_POST['delete_size_id'] ?? 0);
         if ($deleteId > 0) {
-            $stmtSoft = $conn->prepare("UPDATE product_sizes SET is_active = 0, stock_quantity = 0 WHERE id = ? AND product_id = ?");
-            if (!$stmtSoft) {
-                $error_message = $conn->error ?: 'Failed to deactivate size.';
-                add_debug($debug_logs, 'Prepare failed (delete_size soft): ' . ($conn->error ?: ''));
+            $stmtDel = $conn->prepare("DELETE FROM product_sizes WHERE id = ? AND product_id = ?");
+            if (!$stmtDel) {
+                $error_message = $conn->error ?: 'Failed to delete size.';
+                add_debug($debug_logs, 'Prepare failed (delete_size): ' . ($conn->error ?: ''));
             } else {
-                $stmtSoft->bind_param('ii', $deleteId, $productId);
-                if ($stmtSoft->execute()) {
-                    $success_message = 'Size deactivated (soft delete).';
+                $stmtDel->bind_param('ii', $deleteId, $productId);
+                if ($stmtDel->execute()) {
+                    $success_message = 'Size deleted.';
                     $error_message = '';
                 } else {
-                    $error_message = $stmtSoft->error ?: $conn->error ?: 'Failed to deactivate size.';
+                    $error_message = $stmtDel->error ?: $conn->error ?: 'Failed to delete size.';
                     $success_message = '';
-                    add_debug($debug_logs, 'Soft delete failed id ' . $deleteId . ': ' . $error_message);
+                    add_debug($debug_logs, 'Delete size failed id ' . $deleteId . ': ' . $error_message);
                 }
-                $stmtSoft->close();
+                $stmtDel->close();
             }
         } else {
             $error_message = 'Invalid size selected for deletion.';
             $success_message = '';
         }
+        // Refresh sizes and recalc stock
         $productSizes = load_product_sizes($conn, $productId);
         recalc_product_stock($conn, $productId);
     } elseif ($action === 'update_product') {
@@ -299,6 +300,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->close();
                 }
             }
+        }
+    }
+    elseif ($action === 'restore_product') {
+        // Restore product to active
+        $stmtR = $conn->prepare("UPDATE products SET status = 'active' WHERE id = ?");
+        if ($stmtR) {
+            $stmtR->bind_param('i', $productId);
+            if ($stmtR->execute()) {
+                $success_message = 'Product restored to Active.';
+                $product['status'] = 'active';
+            } else {
+                $error_message = 'Failed to restore product.';
+            }
+            $stmtR->close();
+        } else {
+            $error_message = 'Failed to restore product.';
         }
     }
 }
@@ -400,6 +417,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <option value="inactive" <?php echo ($product['status'] ?? 'active') === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
                         </select>
                     </div>
+                    <?php if (($product['status'] ?? 'active') === 'inactive'): ?>
+                        <div class="col-12">
+                            <form method="POST" class="d-inline" onsubmit="return confirm('Restore this product to Active?');">
+                                <input type="hidden" name="action" value="restore_product">
+                                <button type="submit" class="btn btn-sm btn-success">Restore</button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
                     <div class="col-md-6">
                         <label class="form-label d-block">Image</label>
                         <input type="file" name="image" accept="image/*" class="form-control">
@@ -472,12 +497,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <td data-label="Active" class="text-center">
                                             <input class="form-check-input" type="checkbox" name="size_active[]" value="<?php echo (int) $ps['id']; ?>" <?php echo !empty($ps['is_active']) ? 'checked' : ''; ?>>
                                         </td>
-                                        <td data-label="Delete" class="text-center">
-                                            <input type="hidden" name="delete_size_id" value="<?php echo (int) $ps['id']; ?>">
-                                            <button type="submit" name="action" value="delete_size" class="btn btn-link text-danger p-0" aria-label="Delete size" onclick="return confirm('Delete this size?');" formaction="edit-product.php?id=<?php echo urlencode($productId); ?>" formmethod="POST" formnovalidate>
-                                                Delete
-                                            </button>
-                                        </td>
+                                                <td data-label="Delete" class="text-center">
+                                                    <input type="hidden" name="delete_size_id" value="<?php echo (int) $ps['id']; ?>">
+                                                    <button type="submit" name="action" value="delete_size" class="btn btn-link text-danger p-0" aria-label="Delete size" onclick="return confirm('Delete this size?');" formaction="edit-product.php?id=<?php echo urlencode($productId); ?>" formmethod="POST" formnovalidate>
+                                                        Delete
+                                                    </button>
+                                                </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>

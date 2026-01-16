@@ -8,6 +8,111 @@ if (empty($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     exit;
 }
 
+// Handle product delete (deactivate/hard-delete) and restore actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'delete_product' && !empty($_POST['product_id'])) {
+        $pid = (int) $_POST['product_id'];
+
+        // If orders reference this product, mark as inactive (soft-delete). Otherwise remove sizes and product and unlink image.
+        $stmtRef = $conn->prepare('SELECT COUNT(*) AS cnt FROM order_items WHERE product_id = ?');
+        if ($stmtRef) {
+            $stmtRef->bind_param('i', $pid);
+            $stmtRef->execute();
+            $resRef = $stmtRef->get_result();
+            $refRow = $resRef ? $resRef->fetch_assoc() : null;
+            $stmtRef->close();
+            $refs = (int) ($refRow['cnt'] ?? 0);
+
+            if ($refs > 0) {
+                $upd = $conn->prepare("UPDATE products SET status = 'inactive' WHERE id = ?");
+                if ($upd) {
+                    $upd->bind_param('i', $pid);
+                    if ($upd->execute()) {
+                        $success_message = 'Product deactivated because it is referenced by existing orders.';
+                    } else {
+                        $error_message = 'Failed to deactivate product: ' . $upd->error;
+                    }
+                    $upd->close();
+                }
+            } else {
+                // Not referenced: delete sizes, delete product, unlink image file if present
+                $imgPath = '';
+                $stmtImg = $conn->prepare('SELECT image FROM products WHERE id = ? LIMIT 1');
+                if ($stmtImg) {
+                    $stmtImg->bind_param('i', $pid);
+                    $stmtImg->execute();
+                    $resImg = $stmtImg->get_result();
+                    $rowImg = $resImg ? $resImg->fetch_assoc() : null;
+                    $stmtImg->close();
+                    $imgPath = $rowImg['image'] ?? '';
+                }
+
+                $stmtDelSizes = $conn->prepare('DELETE FROM product_sizes WHERE product_id = ?');
+                if ($stmtDelSizes) {
+                    $stmtDelSizes->bind_param('i', $pid);
+                    $stmtDelSizes->execute();
+                    $stmtDelSizes->close();
+                }
+
+                $stmtDel = $conn->prepare('DELETE FROM products WHERE id = ?');
+                if ($stmtDel) {
+                    $stmtDel->bind_param('i', $pid);
+                    if ($stmtDel->execute()) {
+                        // unlink the image if it's a local path
+                        if (!empty($imgPath) && file_exists(__DIR__ . '/../' . $imgPath)) {
+                            @unlink(__DIR__ . '/../' . $imgPath);
+                        }
+                        $success_message = 'Product deleted successfully.';
+                    } else {
+                        $error_message = 'Failed to delete product: ' . $stmtDel->error;
+                    }
+                    $stmtDel->close();
+                }
+            }
+        }
+        // Redirect to avoid form resubmission
+        header('Location: products.php');
+        exit;
+    }
+
+    if ($_POST['action'] === 'restore_product' && !empty($_POST['product_id'])) {
+        $pid = (int) $_POST['product_id'];
+        $upd = $conn->prepare("UPDATE products SET status = 'active' WHERE id = ?");
+        if ($upd) {
+            $upd->bind_param('i', $pid);
+            if ($upd->execute()) {
+                $success_message = 'Product restored successfully.';
+            } else {
+                $error_message = 'Failed to restore product: ' . $upd->error;
+            }
+            $upd->close();
+        }
+        header('Location: products.php');
+        exit;
+    }
+}
+
+    // Handle AJAX status update requests
+    if ($_POST['action'] === 'set_product_status' && !empty($_POST['product_id']) && isset($_POST['status'])) {
+        $pid = (int) $_POST['product_id'];
+        $status = $_POST['status'] === 'inactive' ? 'inactive' : 'active';
+        // If setting to inactive, allow regardless (soft-deactivate). No hard-delete here.
+        $upd = $conn->prepare("UPDATE products SET status = ? WHERE id = ?");
+        $resp = ['ok' => false, 'message' => 'Failed to update status'];
+        if ($upd) {
+            $upd->bind_param('si', $status, $pid);
+            if ($upd->execute()) {
+                $resp = ['ok' => true, 'message' => $status === 'inactive' ? 'Product set to Inactive.' : 'Product set to Active.'];
+            } else {
+                $resp['message'] = $upd->error;
+            }
+            $upd->close();
+        }
+        header('Content-Type: application/json');
+        echo json_encode($resp);
+        exit;
+    }
+
 $success_message = '';
 $error_message = '';
 
@@ -383,7 +488,10 @@ if ($result && $result->num_rows > 0) {
                         </div>
                         <div class="status-cell" data-label="Status">
                             <?php $active = strtolower($product['status'] ?? '') === 'active'; ?>
-                            <span class="pill pill-sm <?php echo $active ? 'pill-active' : 'pill-inactive'; ?>"><?php echo $active ? 'Active' : 'Inactive'; ?></span>
+                            <select class="form-select form-select-sm product-status" data-id="<?php echo (int)$product['id']; ?>" data-prev="<?php echo $active ? 'active' : 'inactive'; ?>" style="width:130px; display:inline-block;">
+                                <option value="active" <?php echo $active ? 'selected' : ''; ?>>Active</option>
+                                <option value="inactive" <?php echo !$active ? 'selected' : ''; ?>>Inactive</option>
+                            </select>
                         </div>
                         <div data-label="Action">
                             <a href="edit-product.php?id=<?php echo urlencode($product['id']); ?>" class="action-link">Edit</a>
@@ -395,5 +503,57 @@ if ($result && $result->num_rows > 0) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div id="adminToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;"></div>
+    <script>
+        (function(){
+            const container = document.getElementById('adminToastContainer');
+            const showToast = (message, type='success', timeout=3000) => {
+                const toastEl = document.createElement('div');
+                toastEl.className = 'toast align-items-center text-bg-' + (type === 'error' ? 'danger' : 'success') + ' border-0';
+                toastEl.setAttribute('role','alert');
+                toastEl.setAttribute('aria-live','polite');
+                toastEl.setAttribute('aria-atomic','true');
+                toastEl.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+                container.appendChild(toastEl);
+                const toast = new bootstrap.Toast(toastEl, { delay: timeout });
+                toast.show();
+                toastEl.addEventListener('hidden.bs.toast', () => { toastEl.remove(); });
+            };
+
+            document.addEventListener('change', async (evt) => {
+                const sel = evt.target.closest('.product-status');
+                if (!sel) return;
+                const id = sel.dataset.id;
+                const status = sel.value === 'inactive' ? 'inactive' : 'active';
+                if (!id) return;
+                if (!confirm('Change status to ' + (status === 'inactive' ? 'Inactive' : 'Active') + '?')) {
+                    // revert selection
+                    sel.value = sel.getAttribute('data-prev') || sel.value;
+                    return;
+                }
+                sel.disabled = true;
+                try {
+                    const fd = new FormData();
+                    fd.append('action', 'set_product_status');
+                    fd.append('product_id', id);
+                    fd.append('status', status);
+                    const res = await fetch('products.php', { method: 'POST', body: fd });
+                    const data = await res.json().catch(() => null);
+                    if (!res.ok || !data || !data.ok) throw new Error(data?.message || 'Request failed');
+                    showToast(data.message || 'Status updated.', 'success');
+                    setTimeout(() => location.reload(), 700);
+                } catch (err) {
+                    console.error(err);
+                    showToast('Status update failed.', 'error');
+                    sel.disabled = false;
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

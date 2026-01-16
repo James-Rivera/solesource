@@ -506,9 +506,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="section-block mb-4">
                             <div class="section-title">Voucher</div>
                             <div class="input-group">
-                                <input type="text" name="voucher_code" class="form-control" placeholder="Enter voucher code" value="<?php echo htmlspecialchars($voucherCodeInput); ?>">
-                                <button class="btn btn-outline-dark" type="submit" name="apply_voucher" value="1">Apply</button>
+                                <input type="text" name="voucher_code" id="voucher_code_input" class="form-control" placeholder="Enter voucher code" value="<?php echo htmlspecialchars($voucherCodeInput); ?>">
+                                <button class="btn btn-outline-dark" type="button" id="applyVoucherBtn">Apply</button>
                             </div>
+                            <div id="voucher_status" class="small mt-2"></div>
                             <?php if ($voucherApplied): ?>
                                 <div class="text-success small mt-2">
                                     Applied <?php echo htmlspecialchars($voucherApplied['code']); ?> &middot;
@@ -827,6 +828,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const citySelect = new TomSelect(citySelectEl, { ...tomDefaults, placeholder: 'Select City...' });
                 const barangaySelect = new TomSelect(barangaySelectEl, { ...tomDefaults, placeholder: 'Select Barangay...' });
 
+                // Debugging removed in production — debug functions are no-ops.
+                const debugLog = () => {};
+                const ssLogger = () => {};
+
                 const dataSources = {
                     regions: 'https://raw.githubusercontent.com/isaacdarcilla/philippine-addresses/main/region.json',
                     provinces: 'https://raw.githubusercontent.com/isaacdarcilla/philippine-addresses/main/province.json',
@@ -854,10 +859,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     .filter(Boolean)
                     .join(', ');
 
+                const normalizeName = (str) => {
+                    if (!str) return '';
+                    return String(str)
+                        .replace(/\([^)]*\)/g, '')
+                        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~\[\]"]+/g, '')
+                        .replace(/\s+/g, ' ')
+                        .trim()
+                        .toLowerCase();
+                };
+
                 const findByName = (collection, nameKey, codeKey, value) => {
-                    const target = (value || '').toLowerCase().trim();
+                    const target = normalizeName(value);
                     if (!target) return '';
-                    const match = collection.find((item) => (item[nameKey] || '').toLowerCase() === target);
+                    let match = collection.find((item) => normalizeName(item[nameKey]) === target);
+                    if (!match) {
+                        match = collection.find((item) => normalizeName(item[nameKey]).includes(target) || normalizeName(item[nameKey]).startsWith(target));
+                    }
                     return match ? match[codeKey] : '';
                 };
 
@@ -885,7 +903,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 const loadRegions = async () => {
                     try {
-                        regionsData = await fetchJson(dataSources.regions);
+                        // Fetch region and address datasets in parallel to avoid race conditions later
+                        const [r, p, c, b] = await Promise.all([
+                            fetchJson(dataSources.regions).catch((e) => { console.error('regions load failed', e); return []; }),
+                            fetchJson(dataSources.provinces).catch((e) => { console.error('provinces load failed', e); return []; }),
+                            fetchJson(dataSources.cities).catch((e) => { console.error('cities load failed', e); return []; }),
+                            fetchJson(dataSources.barangays).catch((e) => { console.error('barangays load failed', e); return []; }),
+                        ]);
+                        regionsData = r || [];
+                        provincesData = p || [];
+                        citiesData = c || [];
+                        barangaysData = b || [];
+
                         if (Object.keys(regionSelect.options || {}).length === 0) {
                             regionSelect.addOptions(regionsData.map(r => ({ code: r.region_code, name: r.region_name })));
                         }
@@ -978,8 +1007,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     return true;
                 };
 
+                const ensureNativeOption = (selectEl, value, name) => {
+                    try {
+                        if (!selectEl || !value) return;
+                        const found = Array.from(selectEl.options).some(o => String(o.value) === String(value));
+                        if (!found) {
+                            const opt = document.createElement('option');
+                            opt.value = value;
+                            opt.text = name || value;
+                            selectEl.appendChild(opt);
+                        }
+                        selectEl.value = value;
+                    } catch (e) {
+                        // ignore
+                    }
+                };
+
+                // After a successful restore, watch for late resets and reapply if necessary.
+                const installPostRestoreWatcher = (addr) => {
+                    try {
+                        if (!addr) return;
+                        const CHECK_MS = 200;
+                        const DURATION_MS = 4000;
+                        const maxChecks = Math.ceil(DURATION_MS / CHECK_MS);
+                        let checks = 0;
+                        let reapplies = 0;
+                        const expected = {
+                            region: addr.region_code || addr.region_text || '',
+                            province: addr.province_code || addr.province_text || '',
+                            city: addr.city_code || addr.city_text || '',
+                            barangay: addr.barangay_code || addr.barangay_text || '',
+                        };
+
+                        const checkFn = async () => {
+                            checks++;
+                            const curRegion = (typeof regionSelect?.getValue === 'function') ? regionSelect.getValue() : (regionText?.value || '');
+                            const curProvince = (typeof provinceSelect?.getValue === 'function') ? provinceSelect.getValue() : (provinceText?.value || '');
+                            if (!curRegion && expected.region) {
+                                reapplies++;
+                                debugLog && debugLog('postRestoreWatcher: region missing, reapplying', { attempt: reapplies });
+                                await applyAddressToForm(addr);
+                            } else if (!curProvince && expected.province) {
+                                reapplies++;
+                                debugLog && debugLog('postRestoreWatcher: province missing, reapplying', { attempt: reapplies });
+                                await applyAddressToForm(addr);
+                            }
+
+                            if (checks >= maxChecks) {
+                                clearInterval(iv);
+                                debugLog && debugLog('postRestoreWatcher: finished', { checks, reapplies });
+                                try { sessionStorage.removeItem('checkout_address_restore_v1'); } catch (e) {}
+                            }
+                        };
+
+                        const iv = setInterval(checkFn, CHECK_MS);
+                        // run one immediately
+                        checkFn();
+                    } catch (e) {
+                        // ignore
+                    }
+                };
+
                 const applyAddressToForm = async (addr) => {
                     if (!addr) return;
+                    debugLog && debugLog('applyAddressToForm.start', addr);
                     if (fullNameInput) fullNameInput.value = addr.full_name || '';
                     if (phoneInput) phoneInput.value = addr.phone || '';
                     if (addressInput) addressInput.value = addr.address_line || addr.address || '';
@@ -987,16 +1078,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (countryInput) countryInput.value = addr.country || 'Philippines';
                     if (addressIdInput) addressIdInput.value = addr.id || '';
 
-                    setHidden(regionText, addr.region || '');
-                    setHidden(provinceText, addr.province || '');
-                    setHidden(cityText, addr.city || '');
-                    setHidden(barangayText, addr.barangay || '');
-
                     await loadRegions();
 
                     // Prefer explicit codes if provided; otherwise fall back to name matching and injected options.
                     const regionCode = addr.region_code || findByName(regionsData, 'region_name', 'region_code', addr.region);
                     if (regionCode && ensureOption(regionSelect, regionCode, addr.region)) {
+                        ensureNativeOption(regionSelectEl, regionCode, addr.region);
                         await onRegionChange(regionCode);
                     } else {
                         resetSelect(provinceSelect, true);
@@ -1006,24 +1093,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     const provinceCode = addr.province_code || findByName(provincesData, 'province_name', 'province_code', addr.province);
                     if (provinceCode && ensureOption(provinceSelect, provinceCode, addr.province)) {
+                        ensureNativeOption(provinceSelectEl, provinceCode, addr.province);
                         await onProvinceChange(provinceCode);
                     }
 
                     const cityCode = addr.city_code || findByName(citiesData, 'city_name', 'city_code', addr.city);
                     if (cityCode && ensureOption(citySelect, cityCode, addr.city)) {
+                        ensureNativeOption(citySelectEl, cityCode, addr.city);
                         await onCityChange(cityCode);
                     }
 
                     const barangayCode = addr.barangay_code || findByName(barangaysData, 'brgy_name', 'brgy_code', addr.barangay);
                     if (barangayCode) {
                         ensureOption(barangaySelect, barangayCode, addr.barangay);
+                        ensureNativeOption(barangaySelectEl, barangayCode, addr.barangay);
                         onBarangayChange(barangayCode);
                     }
 
-                    if (regionText && !regionText.value) setHidden(regionText, addr.region || '');
-                    if (provinceText && !provinceText.value) setHidden(provinceText, addr.province || '');
-                    if (cityText && !cityText.value) setHidden(cityText, addr.city || '');
-                    if (barangayText && !barangayText.value) setHidden(barangayText, addr.barangay || '');
+                    // Set the hidden text fields after selects are populated so change handlers won't clear them
+                    if (regionText) setHidden(regionText, addr.region || '');
+                    if (provinceText) setHidden(provinceText, addr.province || '');
+                    if (cityText) setHidden(cityText, addr.city || '');
+                    if (barangayText) setHidden(barangayText, addr.barangay || '');
+                    debugLog && debugLog('applyAddressToForm.done', { region: regionSelect.getValue ? regionSelect.getValue() : null, province: provinceSelect.getValue ? provinceSelect.getValue() : null, city: citySelect.getValue ? citySelect.getValue() : null, barangay: barangaySelect.getValue ? barangaySelect.getValue() : null });
                 };
 
                 const renderSavedAddresses = (list) => {
@@ -1099,6 +1191,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     });
                 }
+
+                // Restore address from sessionStorage (retry until TomSelect helpers are ready)
+                (function() {
+                    const STORAGE_KEY = 'checkout_address_restore_v1';
+                    const raw = sessionStorage.getItem(STORAGE_KEY);
+                    if (!raw) return;
+                    let addr = null;
+                    try { addr = JSON.parse(raw); } catch (e) { addr = null; }
+                    if (!addr) { sessionStorage.removeItem(STORAGE_KEY); return; }
+
+                    let attempts = 0;
+                    const maxAttempts = 30; // ~4.5s
+                    const tryApply = async () => {
+                        attempts++;
+                        try {
+                            if (typeof applyAddressToForm === 'function') {
+                                await applyAddressToForm(addr);
+                            } else {
+                                // fallback: fill basic inputs
+                                if (fullNameInput) fullNameInput.value = addr.full_name || '';
+                                if (phoneInput) phoneInput.value = addr.phone || '';
+                                if (addressInput) addressInput.value = addr.address_line || addr.address || '';
+                                if (zipInput) zipInput.value = addr.zip_code || '';
+                                if (countryInput) countryInput.value = addr.country || 'Philippines';
+                            }
+
+                            // Verify region/province set (either via text fields or TomSelect values)
+                            const regionOk = (regionText && regionText.value) || (typeof regionSelect?.getValue === 'function' && regionSelect.getValue());
+                            const provinceOk = (provinceText && provinceText.value) || (typeof provinceSelect?.getValue === 'function' && provinceSelect.getValue());
+                            if (regionOk && provinceOk) {
+                                // Start a short-lived watcher to catch any late resets and reapply if needed.
+                                try { installPostRestoreWatcher(addr); } catch (e) {}
+                                // The watcher will clear sessionStorage after it finishes; return now.
+                                return;
+                            }
+                        } catch (e) {
+                            // ignore and retry
+                        }
+                        if (attempts < maxAttempts) {
+                            setTimeout(tryApply, 150);
+                        } else {
+                            sessionStorage.removeItem(STORAGE_KEY);
+                        }
+                    };
+                    // start trying shortly after page load so initializers have a moment
+                    setTimeout(tryApply, 80);
+                })();
             });
         </script>
         <script>
@@ -1196,6 +1335,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 form?.addEventListener('submit', (evt) => {
+                    // If the form was submitted by the voucher "Apply" button, allow normal submit
+                    const submitter = evt.submitter || (evt.explicitOriginalTarget || null);
+                    if (submitter && (submitter.name === 'apply_voucher' || submitter.id === 'applyVoucherBtn')) {
+                        return;
+                    }
+
                     const payment = new FormData(form).get('payment');
                     const agreed = document.getElementById('payment_agreed')?.value === '1';
                     if (payment === 'PayPal') {
@@ -1234,6 +1379,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         return;
                     }
                 });
+
+                // Intercept Apply to preview voucher via AJAX and avoid full-page submit (prevents TomSelect resets)
+                (function() {
+                    const applyBtn = document.getElementById('applyVoucherBtn');
+                    const voucherInput = document.getElementById('voucher_code_input');
+                    const voucherStatus = document.getElementById('voucher_status');
+                    if (!applyBtn || !voucherInput) return;
+
+                    // logging disabled
+
+                    const saveAddressSnapshot = () => {
+                        try {
+                            const STORAGE_KEY = 'checkout_address_restore_v1';
+                            const idEl = document.getElementById('address_id');
+                            const nameEl = document.querySelector('input[name="full_name"]');
+                            const phoneEl = document.querySelector('input[name="phone"]');
+                            const addrEl = document.querySelector('input[name="address"]');
+                            const zipEl = document.querySelector('input[name="zip_code"]');
+                            const countryEl = document.querySelector('input[name="country"]');
+                            const regionTextEl = document.getElementById('region_text');
+                            const provinceTextEl = document.getElementById('province_text');
+                            const cityTextEl = document.getElementById('city_text');
+                            const barangayTextEl = document.getElementById('barangay_text');
+                            const regionSel = document.getElementById('region_select');
+                            const provinceSel = document.getElementById('province_select');
+                            const citySel = document.getElementById('city_select');
+                            const barangaySel = document.getElementById('barangay_select');
+
+                            const addrObj = {
+                                id: idEl?.value || '',
+                                full_name: nameEl?.value || '',
+                                phone: phoneEl?.value || '',
+                                address_line: addrEl?.value || '',
+                                zip_code: zipEl?.value || '',
+                                country: countryEl?.value || 'Philippines',
+                                region_text: regionTextEl?.value || '',
+                                province_text: provinceTextEl?.value || '',
+                                city_text: cityTextEl?.value || '',
+                                barangay_text: barangayTextEl?.value || '',
+                                region_code: regionSel?.value || regionTextEl?.value || '',
+                                province_code: provinceSel?.value || provinceTextEl?.value || '',
+                                city_code: citySel?.value || cityTextEl?.value || '',
+                                barangay_code: barangaySel?.value || barangayTextEl?.value || '',
+                            };
+                            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(addrObj));
+                            ssLogger('applyBtn.click: saved addr', addrObj);
+                        } catch (err) {
+                            console.error('applyBtn save failed', err);
+                        }
+                    };
+
+                    const updateVoucherUI = (data, code) => {
+                        try {
+                            if (!voucherStatus) return;
+                            if (data?.ok && data?.discount_value) {
+                                const txt = (data.discount_type === 'percent')
+                                    ? `Applied ${code} · ${data.discount_value}% off` 
+                                    : `Applied ${code} · ₱${Number(data.discount_value).toFixed(2)} off`;
+                                voucherStatus.textContent = txt;
+
+                                // update summary voucher area
+                                const summaryVoucher = document.querySelector('.summary-voucher');
+                                if (summaryVoucher) {
+                                    summaryVoucher.textContent = `Voucher applied: ${code} · ` + (data.discount_type === 'percent' ? `${data.discount_value}% off` : `₱${Number(data.discount_value).toFixed(2)} off`);
+                                } else {
+                                    const el = document.createElement('div');
+                                    el.className = 'summary-voucher mb-3 text-success small';
+                                    el.textContent = `Voucher applied: ${code} · ` + (data.discount_type === 'percent' ? `${data.discount_value}% off` : `₱${Number(data.discount_value).toFixed(2)} off`);
+                                    const summaryCard = document.querySelector('.summary-card');
+                                    if (summaryCard) summaryCard.insertBefore(el, summaryCard.firstChild.nextSibling);
+                                }
+
+                                // update total display if provided
+                                if (typeof data.total_amount !== 'undefined') {
+                                    const totalEls = document.querySelectorAll('.summary-row.summary-total span');
+                                    if (totalEls.length) {
+                                        totalEls[totalEls.length - 1].textContent = '₱' + Number(data.total_amount).toFixed(2);
+                                    }
+                                    const mobileTotal = document.querySelector('.mobile-summary-total');
+                                    if (mobileTotal) mobileTotal.textContent = '₱' + Number(data.total_amount).toFixed(2);
+                                }
+                            } else {
+                                voucherStatus.textContent = data?.error || 'Invalid voucher';
+                            }
+                        } catch (e) { console.error(e); }
+                    };
+
+                    applyBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const code = (voucherInput.value || '').trim().toUpperCase();
+                        if (!code) return;
+                        saveAddressSnapshot();
+                        try {
+                            const fd = new FormData();
+                            fd.append('voucher_code', code);
+                            fd.append('preview', '1');
+                            const res = await fetch('/includes/vouchers/preview.php', { method: 'POST', body: fd });
+                            const json = await res.json();
+                            ssLogger('voucher.preview.result', json);
+                            updateVoucherUI(json, code);
+                        } catch (err) {
+                            console.error('Voucher preview failed', err);
+                            voucherStatus.textContent = 'Voucher preview failed';
+                        }
+                    }, { passive: true });
+                })();
             })();
         </script>
         <script>
@@ -1286,6 +1537,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             })();
         </script>
+        
 </body>
 
 </html>
