@@ -1241,6 +1241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         </script>
         <script>
+            window.ssLogger = window.ssLogger || function(){};
             (function() {
                 const form = document.querySelector('form');
                 const paymentInputs = Array.from(document.querySelectorAll('input[name="payment"]'));
