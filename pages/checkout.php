@@ -1434,33 +1434,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     const updateVoucherUI = (data, code) => {
                         try {
                             if (!voucherStatus) return;
-                            if (data?.ok && data?.discount_value) {
-                                const txt = (data.discount_type === 'percent')
-                                    ? `Applied ${code} · ${data.discount_value}% off` 
-                                    : `Applied ${code} · ₱${Number(data.discount_value).toFixed(2)} off`;
+
+                            // Normalize response: support shapes with top-level or nested `voucher`
+                            const body = (data && data.voucher) ? data.voucher : (data || {});
+                            const discountType = body.discount_type || body.discountType || 'percent';
+                            const discountConfigValue = (typeof body.discount_value !== 'undefined') ? body.discount_value
+                                : (typeof body.discountValue !== 'undefined' ? body.discountValue : null);
+
+                            // discountAmount may be provided, otherwise compute from subtotal + config
+                            const discountAmount = (typeof body.discount_amount !== 'undefined') ? Number(body.discount_amount)
+                                : (typeof body.discountAmount !== 'undefined') ? Number(body.discountAmount)
+                                : (typeof body.subtotal !== 'undefined' && discountConfigValue !== null
+                                    ? (discountType === 'fixed' ? Number(discountConfigValue) : Number(body.subtotal) * (Number(discountConfigValue) / 100))
+                                    : null);
+
+                            const totalValue = (typeof body.total_amount !== 'undefined') ? body.total_amount
+                                : (typeof body.totalAmount !== 'undefined') ? body.totalAmount
+                                : (typeof body.total !== 'undefined') ? body.total
+                                : (typeof body.subtotal !== 'undefined' && discountAmount !== null ? Number(body.subtotal) - Number(discountAmount) : undefined);
+
+                            if (data?.ok && (discountConfigValue !== null || discountAmount !== null)) {
+                                const txt = (discountType === 'percent')
+                                    ? `Applied ${code} · ${discountConfigValue}% off`
+                                    : `Applied ${code} · ₱${Number(discountConfigValue).toFixed(2)} off`;
                                 voucherStatus.textContent = txt;
 
-                                // update summary voucher area
-                                const summaryVoucher = document.querySelector('.summary-voucher');
+                                // update or insert summary voucher banner
+                                let summaryVoucher = document.querySelector('.summary-voucher');
                                 if (summaryVoucher) {
-                                    summaryVoucher.textContent = `Voucher applied: ${code} · ` + (data.discount_type === 'percent' ? `${data.discount_value}% off` : `₱${Number(data.discount_value).toFixed(2)} off`);
+                                    summaryVoucher.textContent = `Voucher applied: ${code} · ` + (discountType === 'percent' ? `${discountConfigValue}% off` : `₱${Number(discountConfigValue).toFixed(2)} off`);
                                 } else {
                                     const el = document.createElement('div');
                                     el.className = 'summary-voucher mb-3 text-success small';
-                                    el.textContent = `Voucher applied: ${code} · ` + (data.discount_type === 'percent' ? `${data.discount_value}% off` : `₱${Number(data.discount_value).toFixed(2)} off`);
+                                    el.textContent = `Voucher applied: ${code} · ` + (discountType === 'percent' ? `${discountConfigValue}% off` : `₱${Number(discountConfigValue).toFixed(2)} off`);
                                     const summaryCard = document.querySelector('.summary-card');
                                     if (summaryCard) summaryCard.insertBefore(el, summaryCard.firstChild.nextSibling);
                                 }
 
-                                // update total display if provided
-                                if (typeof data.total_amount !== 'undefined') {
-                                    const totalEls = document.querySelectorAll('.summary-row.summary-total span');
-                                    if (totalEls.length) {
-                                        totalEls[totalEls.length - 1].textContent = '₱' + Number(data.total_amount).toFixed(2);
+                                // update or create voucher discount row
+                                if (discountAmount !== null) {
+                                    let discountRow = Array.from(document.querySelectorAll('.summary-row.text-success')).find(r => /Voucher/i.test(r.textContent || ''));
+                                    if (!discountRow) {
+                                        discountRow = document.createElement('div');
+                                        discountRow.className = 'summary-row text-success';
+                                        discountRow.innerHTML = `<span>Voucher Discount</span><span>-₱${Number(discountAmount).toFixed(2)}</span>`;
+                                        const summaryCard = document.querySelector('.summary-card');
+                                        const firstRow = summaryCard ? summaryCard.querySelector('.summary-row') : null;
+                                        if (summaryCard && firstRow) summaryCard.insertBefore(discountRow, firstRow);
+                                    } else {
+                                        const spans = discountRow.querySelectorAll('span');
+                                        if (spans.length) spans[spans.length - 1].textContent = `-₱${Number(discountAmount).toFixed(2)}`;
                                     }
-                                    const mobileTotal = document.querySelector('.mobile-summary-total');
-                                    if (mobileTotal) mobileTotal.textContent = '₱' + Number(data.total_amount).toFixed(2);
                                 }
+
+                                // update total display if provided or computed
+                                if (typeof totalValue !== 'undefined') {
+                                    const totalEls = document.querySelectorAll('.summary-row.summary-total span');
+                                    if (totalEls.length) totalEls[totalEls.length - 1].textContent = '₱' + Number(totalValue).toFixed(2);
+                                    const mobileTotal = document.querySelector('.mobile-summary-total');
+                                    if (mobileTotal) mobileTotal.textContent = '₱' + Number(totalValue).toFixed(2);
+                                }
+                                return;
                             } else {
                                 voucherStatus.textContent = data?.error || 'Invalid voucher';
                             }
