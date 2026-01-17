@@ -115,6 +115,19 @@ function ensure_email_queue_table(mysqli $conn): void
 function queueEmail(mysqli $conn, string $to, string $subject, string $htmlBody, string $altBody = '', array $embedded = []): int
 {
     ensure_email_queue_table($conn);
+    // Try immediate send when enabled. If it succeeds, return 0 to indicate not queued.
+    if (getenv('EMAIL_SEND_IMMEDIATE') === '1') {
+        try {
+            $res = sendEmail($to, $subject, $htmlBody, $altBody, $embedded);
+            if ($res === true) {
+                return 0; // sent immediately, no queue id
+            }
+            // on failure, fall back to queueing
+        } catch (Throwable $e) {
+            // fall through to queue the message
+        }
+    }
+
     $embeddedJson = $embedded ? json_encode($embedded) : null;
     $stmt = $conn->prepare('INSERT INTO email_queue (recipient, subject, body_html, body_text, embedded_json) VALUES (?, ?, ?, ?, ?)');
     $stmt->bind_param('sssss', $to, $subject, $htmlBody, $altBody, $embeddedJson);
