@@ -1,0 +1,244 @@
+/* Order confirmation page specific styles */
+/* Confirmation-card, confirmation-hero, status-btn, section-divider moved to bootstrap-overrides.css */
+
+.confirmation-page {
+  background: #f6f6f6;
+  color: #111;
+  font-family: var(--brand-font, "Outfit", sans-serif);
+}
+
+.text-small {
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.confirmation-hero .label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.confirmation-hero .order-id {
+  font-size: 0.9rem;
+  margin: 0.2rem 0 0;
+  opacity: 0.95;
+}
+
+.confirmation-body {
+  padding: 2.5rem 2.25rem 3rem;
+}
+
+.brand-mark {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.brand-logo {
+  max-width: 120px;
+  height: auto;
+}
+
+.hero-title {
+  font-size: clamp(2.6rem, 4vw, 3.6rem);
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0.35rem 0 0.75rem;
+}
+
+.hero-subcontainer {
+  padding-left: 10rem;
+  padding-right: 10rem;
+  margin-bottom: 5rem;
+  margin-top: 2rem;
+}
+
+.hero-subtext {
+  color: #5c5c5c;
+  font-size: 0.95rem;
+  max-width: 720px;
+  margin: 0 auto 1.75rem;
+  line-height: 1.5;
+  text-align: justify;
+}
+
+.shipping-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.shipping-address {
+  font-size: 0.85rem;
+  color: #444;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.order-summary-title {
+  font-size: 1.25rem;
+  letter-spacing: 0.35px;
+  font-weight: 800;
+}
+
+.product-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+
+.product-meta {
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.product-price {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.summary-row {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+summary-label {
+  font-weight: 300;
+  font-size: 1rem;
+  color: #121212;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.summary-value {
+  font-size: 1rem;
+  color: #111;
+  text-align: right;
+  max-width: 60%;
+}
+
+.cta-btn {
+  background: #e35926;
+  color: #fff;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  min-height: 55px;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-btn:hover {
+  background: #cc4e21;
+  color: #fff;
+}
+
+.status-btn {
+  display: inline-block;
+  padding: 0.65rem 1.4rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  border-radius: 4px;
+}
+.other-item + .other-item {
+  border-top: 1px solid #eee;
+}
+
+.voucher-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(233, 113, 63, 0.15), rgba(233, 113, 63, 0.05));
+  border: 1px solid rgba(233, 113, 63, 0.2);
+  color: #7a3e1f;
+  font-size: 0.9rem;
+  letter-spacing: 0.35px;
+  text-transform: uppercase;
+}
+
+.voucher-chip {
+  background: var(--brand-orange, #e9713f);
+  color: #fff;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.4px;
+}
+
+.voucher-copy {
+  font-weight: 600;
+  color: #402210;
+}
+
+.cost-breakdown-card {
+  border: 1px solid #eee;
+  border-radius: 18px;
+  padding: 1.75rem;
+  background: #fff;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+}
+
+.cost-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 0;
+  font-weight: 600;
+  color: #121212;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.cost-row + .cost-row {
+  border-top: 1px solid #f1f1f1;
+}
+
+.cost-row.savings {
+  color: #1f7a3e;
+}
+
+.cost-row.total {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #000;
+}
+
+.cost-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+  color: #6b6b6b;
+  letter-spacing: 0.2px;
+  text-transform: none;
+}
+
+@media (max-width: 768px) {
+  .hero-subcontainer {
+    padding-left: 0;
+    padding-right: 0;
+    margin-bottom: 3rem;
+  }
+
+  .confirmation-body {
+    padding: 2rem 1.5rem;
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+  }
+}

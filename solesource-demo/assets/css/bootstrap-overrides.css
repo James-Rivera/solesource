@@ -1,0 +1,226 @@
+/* ===================================================================
+   Bootstrap Overrides & Extensions for SoleSource
+   - Brand-specific customizations
+   - Custom button variants
+   - Utility extensions
+   =================================================================== */
+
+/* Brand Color System */
+:root {
+    --bs-primary: #E35926;
+    --bs-primary-rgb: 227, 89, 38;
+    --bs-dark: #121212;
+    --bs-body-font-family: 'Outfit', sans-serif;
+    --bs-body-color: #111;
+    --bs-link-color: #E35926;
+    --bs-link-hover-color: #cc4e21;
+}
+
+/* Custom Button - Brand Orange Primary */
+.btn-brand-orange,
+.btn-login-primary,
+.btn-signup-primary {
+    --bs-btn-bg: #E35926;
+    --bs-btn-border-color: #E35926;
+    --bs-btn-hover-bg: #cc4e21;
+    --bs-btn-hover-border-color: #cc4e21;
+    --bs-btn-active-bg: #b84420;
+    --bs-btn-active-border-color: #b84420;
+    --bs-btn-color: #fff;
+    --bs-btn-hover-color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Custom Button - Outlined Secondary */
+.btn-login-secondary,
+.btn-signup-secondary {
+    --bs-btn-bg: #fff;
+    --bs-btn-border-color: #111;
+    --bs-btn-hover-bg: #111;
+    --bs-btn-hover-border-color: #111;
+    --bs-btn-active-bg: #000;
+    --bs-btn-active-border-color: #000;
+    --bs-btn-color: #111;
+    --bs-btn-hover-color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    min-height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Status Button (Confirmation Page) */
+.status-btn {
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 0.65rem 1.4rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+}
+
+.status-btn:hover {
+    background: #f0f0f0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Auth Forms */
+.auth-card {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 3rem 3.5rem;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.auth-title {
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #111;
+    font-size: 2rem;
+    letter-spacing: 0.3px;
+    margin-bottom: 24px;
+}
+
+.auth-card .form-control {
+    border-radius: 4px;
+    min-height: 55px;
+    font-size: 1rem;
+    padding: 14px;
+}
+
+/* Brand Backgrounds */
+.bg-brand-orange {
+    background-color: #E35926 !important;
+}
+
+.bg-brand-black {
+    background-color: #121212 !important;
+}
+
+.text-brand-orange {
+    color: #E35926 !important;
+}
+
+/* Confirmation Card */
+.confirmation-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.confirmation-hero {
+    background: #E35926;
+    color: #fff;
+}
+
+/* Section Divider */
+.section-divider {
+    border-top: 1px solid #121212;
+    margin: 1.8rem 0;
+    opacity: 1;
+}
+
+/* Help Section */
+.help-title {
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
+    color: #111;
+}
+
+.help-copy {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.help-link {
+    background: #E35926;
+    color: #fff;
+    border-radius: 4px;
+    padding: 0.7rem 1.5rem;
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+    display: inline-block;
+}
+
+.help-link:hover {
+    background: #cc4e21;
+    color: #fff;
+}
+
+/* Password Toggle Button */
+.toggle-eye-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.toggle-eye-btn:hover {
+    color: #555;
+}
+
+/* Forgot Password Link */
+.forgot-link {
+    text-decoration: underline;
+    color: #555;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+    color: #333;
+}
+
+/* Newsletter Label */
+.newsletter-label {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+/* Signup Legal Text */
+.signup-legal {
+    font-size: 0.875rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* Switch Account Copy */
+.switch-copy {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+/* Responsive utilities for auth pages */
+@media (max-width: 768px) {
+    .auth-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .auth-title {
+        font-size: 1.75rem;
+    }
+}

@@ -1,0 +1,87 @@
+/* Signup page specific styles */
+/* Auth-card, auth-title, buttons moved to bootstrap-overrides.css */
+
+.signup-page {
+    background: #f8f9fa;
+    color: #111;
+    font-family: var(--brand-font, 'Outfit', sans-serif);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.signup-header {
+    background: #111;
+    padding: 14px 0;
+}
+
+.signup-logo {
+    height: 28px;
+}
+
+.signup-main {
+    min-height: 90vh;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0 4rem;
+}
+
+.signup-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Help section - unique to signup page layout */
+.need-help {
+    border-top: 1px solid #ddd;
+    padding: 90px 0 80px;
+    color: #111;
+    background: #f8f9fa;
+}
+
+    justify-content: center;
+}
+
+.btn-signup-secondary:hover {
+    background: #f2f2f2;
+    color: #111;
+    border-color: #111;
+}
+
+.signup-legal {
+    font-size: 0.95rem;
+    color: #555;
+    text-align: center;
+}
+
+.switch-copy {
+    font-size: 0.95rem;
+    color: #555;
+    text-align: center;
+}
+
+.need-help {
+    border-top: 1px solid #ddd;
+    margin-top: 96px;
+    padding: 48px 0 60px;
+    color: #111;
+    background: #f8f9fa;
+}
+
+.need-help .help-title {
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.need-help .help-copy {
+    font-size: 1rem;
+    color: #444;
+}
+
+.need-help .help-link {
+    font-weight: 700;
+    text-decoration: none;
+}

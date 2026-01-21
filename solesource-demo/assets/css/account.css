@@ -1,0 +1,589 @@
+/* Account Navigation */
+.account-nav {
+  background: #e35926;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.account-nav.sticky-top {
+  z-index: 700;
+}
+
+.account-nav .nav-link {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1rem 1.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  border: transparent;
+}
+
+.account-nav .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: #fff;
+  transition: width 0.3s ease;
+}
+
+.account-nav .nav-link:hover {
+  color: #fff;
+}
+
+.account-nav .nav-link:hover::after {
+  width: 100%;
+}
+
+.account-nav .nav-link.active {
+  color: #fff;
+  border-bottom-color: transparent;
+  background-color: transparent !important; /* Forces the white box to be transparent */
+  border: transparent;
+}
+
+.account-nav .nav-link.active::after {
+  width: 100%;
+}
+
+/* Profile Hero */
+.profile-hero {
+  background: #FF8755;
+  color: #fff;
+  padding: 3rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-hero-content h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.profile-hero-content .member-since {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.profile-hero-icon {
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.15;
+}
+
+.profile-hero-icon img {
+  width: 150px;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
+/* Product Grids */
+.account-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--brand-black);
+  margin-bottom: 1.5rem;
+}
+
+/* Wishlist Product Card */
+.wishlist-product-card {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.wishlist-product-card:hover {
+  border-color: var(--brand-black);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.wishlist-product-image-wrapper {
+  position: relative;
+}
+
+.wishlist-product-media {
+  background: #fafafa;
+}
+
+.wishlist-product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 1rem;
+}
+
+.wishlist-remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.wishlist-remove-btn:hover {
+  background: #fff;
+  border-color: var(--brand-black);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.wishlist-remove-btn i {
+  font-size: 14px;
+  color: var(--brand-black);
+}
+
+.wishlist-product-body {
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.wishlist-product-brand {
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.5px;
+}
+
+.wishlist-product-name {
+  font-size: 0.875rem;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.wishlist-product-price {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--brand-black);
+  margin-bottom: 0.75rem;
+}
+
+.btn-add-to-cart {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1.5px solid var(--brand-black);
+  background: transparent;
+  color: var(--brand-black);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.btn-add-to-cart:hover {
+  background: var(--brand-black);
+  color: #fff;
+}
+
+/* Order History List - Premium Clean Style */
+.order-history-list {
+  padding: 0;
+}
+
+.order-history-row {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.order-history-row:hover {
+  background-color: #fff;
+}
+
+.order-history-image {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.order-history-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: #fafafa;
+}
+
+.order-history-details {
+  min-width: 0;
+}
+
+.order-history-number {
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+}
+
+.order-history-meta {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.order-history-status {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--brand-black);
+}
+
+.order-history-status span:first-child {
+  line-height: 1;
+}
+
+.order-history-right {
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+.order-history-price {
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+
+.order-history-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
+.order-history-link:hover {
+  opacity: 0.7;
+}
+
+.order-history-link i {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.order-history-link:hover i {
+  transform: translateX(3px);
+}
+
+/* Orders Empty State */
+.orders-empty {
+  text-align: center;
+  padding: 5rem 0;
+}
+
+.orders-empty h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--brand-black);
+  margin-bottom: 1rem;
+}
+
+.orders-empty p {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.orders-empty .btn-shop {
+  background: var(--brand-orange);
+  color: #fff;
+  padding: 0.875rem 3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 8px;
+  border: none;
+  letter-spacing: 0.5px;
+}
+
+.orders-empty .btn-shop:hover {
+  background: #cc4e21;
+}
+
+/* Settings Layout */
+.settings-sidebar {
+  padding-right: 2rem;
+}
+
+.settings-sidebar-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--brand-black);
+  margin-bottom: 1.5rem;
+}
+
+
+.settings-sidebar .nav-link {
+  color: #666;
+  padding: 0.75rem 0;
+  border: none;
+  background: transparent !important;
+  text-align: left;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
+  width: fit-content;
+}
+
+.settings-sidebar .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #e35926;
+  transition: width 0.3s ease;
+}
+
+.settings-sidebar .nav-link:hover {
+  color: var(--brand-black);
+}
+
+.settings-sidebar .nav-link:hover::after {
+  width: 100%;
+}
+
+.settings-sidebar .nav-link.active {
+  color: var(--brand-orange);
+  font-weight: 600;
+  background: transparent !important;
+}
+
+.settings-sidebar .nav-link.active::after {
+  width: 100%;
+}
+
+/* Settings Content */
+.settings-content-title {
+  font-size: 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--brand-black);
+  margin-bottom: 1rem;
+}
+
+.settings-subtitle {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.settings-section {
+  margin-bottom: 3rem;
+}
+
+.settings-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--brand-black);
+  margin-bottom: 1.5rem;
+}
+
+.settings-detail-item {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.settings-detail-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.settings-detail-value {
+  font-size: 1.1rem;
+  color: var(--brand-black);
+}
+
+.settings-edit-link {
+  color: var(--brand-black);
+  text-decoration: underline;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.settings-edit-link:hover {
+  color: var(--brand-orange);
+}
+
+/* Settings Mobile Pills */
+.settings-mobile-nav {
+  display: none;
+}
+
+.settings-mobile-nav .nav {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.settings-mobile-nav .nav-link {
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  color: #111;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  background: #fff;
+}
+
+.settings-mobile-nav .nav-link.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.btn-delete-account {
+  background: #6c757d;
+  color: #fff;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 6px;
+  border: none;
+  letter-spacing: 0.5px;
+}
+
+.btn-delete-account:hover {
+  background: #5a6268;
+}
+
+/* Address Card */
+.address-card-wrapper {
+  max-width: 400px;
+}
+
+.address-add-card {
+  width: 100%;
+  min-height: 300px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 2rem;
+}
+
+.address-add-card:hover {
+  border-color: var(--brand-orange);
+  background: #fafafa;
+}
+
+.address-add-card i {
+  font-size: 4rem;
+  color: var(--brand-black);
+}
+
+.address-card-label {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--brand-black);
+  letter-spacing: 0.5px;
+}
+
+.btn-profile-logout{
+  background: #e35926;
+  color: #fff;
+  text-transform: uppercase;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.btn-profile-logout:hover {
+  background: #cc4e21;
+}
+
+@media (max-width: 991px) {
+  .profile-hero-icon {
+    display: none;
+  }
+
+  .order-history-row {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+    border: 1px solid #ededed;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
+  }
+  
+  .order-history-image {
+    margin-right: 0 !important;
+  }
+  
+  .order-history-right {
+    width: 100%;
+    text-align: left !important;
+    margin-left: 0 !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .order-history-price {
+    margin-bottom: 0 !important;
+  }
+
+  .settings-sidebar {
+    display: none;
+  }
+
+  .settings-mobile-nav {
+    display: block;
+    position: sticky;
+    top: 56px;
+    background: #fff;
+    z-index: 650;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .settings-content-title {
+    font-size: 1.5rem;
+  }
+
+  .settings-section {
+    background: #fff;
+    border: 1px solid #ededed;
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+}
